@@ -1,0 +1,7 @@
+---
+skip_list:
+  - jinja[spacing]
+  - meta-no-info
+  # Technically, we'd like to enable that one, but how do we handle private
+  # variables? (e.g. _XXX)
+  - var-naming[no-role-prefix]

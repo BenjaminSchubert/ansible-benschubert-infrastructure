@@ -1,0 +1,32 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Download and setup custom certificate
+      when: ingress_custom_ca_cert_url | default(False)
+      block:
+        - name: Set the path to the custom ca
+          ansible.builtin.set_fact:
+            ingress_custom_ca_cert: /tmp/custom_ca_cert.pem
+
+        - name: Download custom CA
+          ansible.builtin.uri:
+            url: "{{ ingress_custom_ca_cert_url }}"
+            dest: "{{ ingress_custom_ca_cert }}"
+            status_code:
+              - 200
+              - 304
+
+    # FIXME: find out how to do replacements for molecule that support default
+    #        values of '{}'
+    - name: Patch ansible variables that should default to empty dict
+      ansible.builtin.set_fact:
+        ingress_traefik_certificates_resolvers: "{{ ingress_traefik_certificates_resolvers or {} }}"
+        ingress_traefik_environment_variables: "{{ ingress_traefik_environment_variables or {} }}"
+        ingress_traefik_secrets: "{{ ingress_traefik_secrets or {} }}"
+
+    - name: Setup everything
+      ansible.builtin.import_role:
+        name: benschubert.infrastructure.main

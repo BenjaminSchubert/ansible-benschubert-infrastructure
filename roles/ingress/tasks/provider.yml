@@ -1,0 +1,31 @@
+---
+- name: Get the mode of the parent directory
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.stat:
+    path: "{{ ingress_traefik_configuration_files_path }}/config/providers"
+  register: _providers_info
+
+- name: Create the provider configuration for Traefik
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.template:
+    src: "{{ template_file }}"
+    dest: >-
+      {{ ingress_traefik_configuration_files_path }}/config/providers/{{ ingress_name }}.yml
+    mode: "0o400"
+    owner: "{{ _providers_info.stat.uid }}"
+    group: "{{ _providers_info.stat.gid }}"
+
+- name: Wait until the service is accessible
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ ingress_https_port }}/
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    follow_redirects: false
+    status_code:
+      - "{{ expected_status_code }}"
+  register: _service
+  until: _service.status == expected_status_code
+  retries: 25
+  delay: 2

@@ -1,0 +1,44 @@
+---
+- name: Prepare hosts
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Create base etc/hosts configuration
+      become: true
+      ansible.builtin.copy:
+        content: |
+          127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+          ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+        dest: /etc/isolated_hosts
+        mode: 0o644
+
+    - name: Configure podman
+      become: true
+      ansible.builtin.copy:
+        content: |
+          [containers]
+          netns="private"
+          userns="host"
+          ipcns="shareable"
+          utsns="private"
+          cgroupns="private"
+          cgroups="enabled"
+          log_driver = "k8s-file"
+          base_hosts_file = "/etc/isolated_hosts"
+          [engine]
+          cgroup_manager = "cgroupfs"
+          events_logger="file"
+          runtime="crun"
+        dest: /etc/containers/containers.conf
+        mode: 0o644
+
+    - name: Gather info about all present pods
+      containers.podman.podman_pod_info:
+      register: _all_pods
+
+    - name: Remove all current pods and containers
+      containers.podman.podman_pod:
+        name: "{{ item.Name }}"
+        state: absent
+      loop: "{{ _all_pods.pods }}"

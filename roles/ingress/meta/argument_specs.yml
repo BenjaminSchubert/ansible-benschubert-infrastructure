@@ -1,0 +1,210 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Setup a reverse proxy using podman to expose services using Traefik
+    description:
+      - This sets up a L(Traefik, https://traefik.io/) webserver to act as a
+        reverse proxy and gateway to expose the rest of the services in this
+        collection.
+    options:
+      ingress_exposed_https_port:
+        type: int
+        required: false
+        default: 443
+        description:
+          - The port under which Traefik is exposed to the outside world. This
+            is different from the C(ingress_https_port), which is the port at
+            which Traefik is exposed on the machine. A secure setup would use a
+            high port for the other, and use a firewall rule to redirect 443 to
+            there.
+      ingress_http_port:
+        type: int
+        required: false
+        default: 16080
+        description:
+          - The port that Traefik should use to expose its http interface on the
+            host. This is supposed to be a port different than 80, to allow
+            Traefik to run in a rootless container, and leverage another reverse
+            proxy or a firewall rule to redirect 80 there.
+      ingress_https_port:
+        type: int
+        required: false
+        default: 16443
+        description:
+          - The port that Traefik should use to expose its https interface on
+            the host. This is supposed to be a port different than 443, to allow
+            Traefik to run in a rootless container, and leverage another reverse
+            proxy or a firewall rule to redirect 443
+            (or C(ingress_exposed_https_port)) there.
+      ingress_networks:
+        type: list
+        elements: str
+        required: true
+        description:
+          - The list of podman networks that the Traefik pod should attach to.
+          - This is to let Traefik act as a reverse proxy for other services
+            hosted in podman, without exposing them to other places.
+      ingress_traefik_certificates_resolvers:
+        type: dict
+        default: {}
+        description:
+          - The configuration for the certificate resolvers
+          - When created, it expects at least a 'default' entry, which will be
+            used for all services that don't specify an explicit resolver in
+            their configuration
+          - See L(Traefik's documentation,
+            https://doc.traefik.io/traefik/https/acme/) for more information
+      ingress_traefik_configuration_files_path:
+        type: str
+        required: true
+        description:
+          - The directory in which the configuration files for Traefik will be
+            stored
+      ingress_traefik_environment_variables:
+        type: dict
+        default: {}
+        description:
+          - "A list of environment variables to set for Traefik as <key: value>"
+          - This can be used, e.g., to configure the certificate resolver.
+          - For secrets, use C(ingress_traefik_secrets) instead.
+      ingress_traefik_secrets:
+        type: dict
+        default: {}
+        description:
+          - "A list of secrets to inject into the Traefik container as
+            <key: value>"
+          - The key of each secret will be set as an environment variable
+            pointing to the secret containing the value
+      template_warning:
+        type: str
+        required: true
+        description:
+          - A warning that this role will add to the top of each file it creates
+            so users know it is managed by an automated process.
+  provider:
+    short_description: >-
+      Configures a new provider to expose a service on the ingress
+    description:
+      - This sets up a configuration fragment on Traefik to expose a new
+        services
+      - See
+        L(the Traefik documentation, https://doc.traefik.io/traefik/routing/overview/)
+        for more information
+      - This entry point also ensures that the service is available afterwards.
+        As such, the service should already be configured
+    options:
+      template_file:
+        type: str
+        required: true
+        description:
+          - The ansible template to resolve for generating the configuration
+      ingress_traefik_configuration_files_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where all the configurations are stored
+      ingress_name:
+        type: str
+        required: true
+        description:
+          - The name to give to the configuration file that the template is
+            rendered as
+      hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which the service should be exposed
+          - This is used to ensure that the service is now available
+      ingress_https_port:
+        type: int
+        default: 16443
+        description:
+          - The port at which the service is exposed via the ingress, in order
+            to be able to make API calls to the service
+      ingress_custom_ca_cert:
+        type: str
+        description:
+          - The path on disk to a custom certificate to validate the TLS
+            certificates if they are not available in the root certificate
+            authorities
+      ingress_validate_certs:
+        type: bool
+        default: true
+        description:
+          - Whether the TLS certificate to access the service should be
+            validated or not
+      expected_status_code:
+        type: int
+        default: true
+        description:
+          - The status code that the service is expected to return when reached
+            at /
+          - Used when validating that the service is indeed reachable
+  dashboard:
+    short_description: >-
+      Expose the Traefik dashboard on the instance deployed via the main
+      entry-point
+    description:
+      - The service as created will be protected by Authentik and requires
+        authentication
+    options:
+      auth_authentik_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which the Authentik service is reachable
+      auth_authentik_token:
+        type: str
+        required: true
+        description:
+          - The token to use to connect to Authentik
+          - Defaults to C(auth_authentik_superadmin_bootstrap_password) if not
+            set
+      ingress_custom_ca_cert:
+        type: str
+        description:
+          - The path on disk to a custom certificate to validate the TLS
+            certificates if they are not available in the root certificate
+            authorities
+      ingress_traefik_dashboard_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname under which to expose the Traefik dashboard
+      ingress_exposed_https_port:
+        type: int
+        required: false
+        default: 443
+        description:
+          - The port under which Traefik is exposed to the outside world. This
+            is used to be able to show the icon of Traefik on
+      ingress_https_port:
+        type: int
+        default: 16443
+        description:
+          - The port at which the service is exposed via the ingress, in order
+            to be able to make API calls to the service
+      ingress_traefik_certificates_resolvers:
+        type: dict
+        default: {}
+        description:
+          - The configuration for the certificate resolvers
+          - When created, it expects at least a 'default' entry, which will be
+            used for all services that don't specify an explicit resolver in
+            their configuration
+          - "'storage' MUST be set as C(/etc/traefik/acme.json)"
+          - See L(Traefik's documentation,
+            https://doc.traefik.io/traefik/https/acme/) for more information
+      ingress_validate_certs:
+        type: bool
+        default: true
+        description:
+          - Whether the TLS certificate to access the Traefik should be
+            validated or not
+      template_warning:
+        type: str
+        required: true
+        description:
+          - A warning that this role will add to the top of each file it creates
+            so users know it is managed by an automated process.

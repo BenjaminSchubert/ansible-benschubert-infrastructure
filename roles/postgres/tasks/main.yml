@@ -1,0 +1,47 @@
+---
+- name: Ensure the PostgreSQL database path exists
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.file:
+    path: "{{ postgres_data_path }}"
+    state: directory
+    mode: "0o700"
+
+- name: Create the PostgreSQL network
+  containers.podman.podman_network:
+    name: "{{ postgres_network }}"
+    internal: true
+
+- name: Create the PostgreSQL pod
+  containers.podman.podman_pod:
+    name: "{{ postgres_pod }}"
+    state: created
+    infra_name: "{{ postgres_pod }}-infra"
+    network:
+      - "{{ postgres_network }}"
+    userns: auto:size=1024
+
+- name: Setup a PostgreSQL container
+  containers.podman.podman_container:
+    name: "{{ postgres_pod }}-postgres"
+    pod: "{{ postgres_pod }}"
+    image: docker.io/library/postgres:latest
+    user: postgres
+    state: started
+    volumes:
+      - "{{ postgres_data_path }}:/var/lib/postgresql/data:rw,U,Z"
+    env:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      POSTGRES_USER: "{{ postgres_user }}"
+      POSTGRES_DB: "{{ postgres_database }}"
+    secrets:
+      - "{{ postgres_password_secret }},target=/run/secrets/postgres-password"
+    healthcheck: pg_isready -d $${POSTGRES_DB -U $${POSTGRES_USER}
+    read_only: true
+
+- name: Ensure the PostgreSQL container is healthy
+  ansible.builtin.command: podman healthcheck run {{ postgres_pod }}-postgres
+  register: _healthcheck
+  until: _healthcheck is not failed
+  retries: 3
+  changed_when: false

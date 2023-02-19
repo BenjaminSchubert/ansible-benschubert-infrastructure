@@ -1,0 +1,55 @@
+---
+namespace: benschubert
+name: infrastructure
+version: 0.0.1
+
+authors:
+  - Benjamin Schubert <contact@benschubert.me>
+
+description: |
+  A collection to deploy all the infrastructure services that are part of my Homelab.
+
+  The main entry point for the collection
+  is R(benschubert.infrastructure.main, ansible_collections.benschubert.infrastructure.main_role) which
+  puts all the other roles together in a singular, consistent deployment.
+  It will ensure that all the roles are called in a consistent manner and in the
+  right order.
+
+  The following services can be configured with this collection:
+
+  - L(Traefik, https://traefik.io/),
+    using R(the ingress role, ansible_collections.benschubert.infrastructure.ingress_role),
+    which acts as a reverse proxy and connects all the services to the
+    outside world.
+  - L(Authentik, https://goauthentik.io/),
+    using R(the auth role, ansible_collections.benschubert.infrastructure.auth_role),
+    which provides an authentication service to allow SSO to be used for
+    the various services.
+
+  This collection globally expects that B(podman is already configured) on the
+  host, and that the user running the role has enough B(user namespaces)
+  available to isolate every pod.
+
+
+dependencies:
+  containers.podman: ">=1.10.0"
+
+readme: README.md
+license_file: LICENSE
+
+manifest:
+  omit_default_directives: true
+  directives:
+    - include meta/*.yml
+    - recursive-include docs **
+    - recursive-exclude docs/collections **
+    - recursive-include tests **
+    - recursive-exclude tests/output **
+    - recursive-include roles **.yml **.j2
+    - recursive-include plugins */**.py
+    - recursive-include requirements **
+    - include .ansible-lint
+    - include .yamllint.yml
+    - include dwasfile.py
+    - include pyproject.toml
+    - include requirements.yml

@@ -1,0 +1,69 @@
+---
+- name: Get consent flow for applications
+  benschubert.infrastructure.authentik_flow_info:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    slug: default-provider-authorization-explicit-consent
+  register: _authorization_flow
+  until: _authorization_flow.data is not none
+  retries: 5
+  delay: 5
+
+- name: Generate the provider
+  benschubert.infrastructure.authentik_provider_proxy:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    provider:
+      name: "{{ application_name }}"
+      authorization_flow: "{{ _authorization_flow.data.pk }}"
+      external_host: >-
+        https://{{ hostname }}:{{ ingress_exposed_https_port }}
+      mode: forward_single
+  register: _provider_result
+
+- name: Generate the application
+  benschubert.infrastructure.authentik_application:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    application:
+      name: "{{ application_name }}"
+      slug: "{{ application_slug }}"
+      provider: "{{ _provider_result.data.pk }}"
+      group: "{{ group }}"
+      open_in_new_tab: true
+      meta_description: "{{ meta_description }}"
+
+- name: Configure the application icon
+  benschubert.infrastructure.authentik_application_icon_url:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    slug: "{{ application_slug }}"
+    url: "{{ icon_url }}"
+
+- name: Configure the internal outpost
+  benschubert.infrastructure.authentik_outpost:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    outpost:
+      name: authentik Embedded Outpost
+      config:
+        authentik_host: https://{{ auth_authentik_hostname }}:{{ ingress_exposed_https_port }}
+
+- name: Register the application against the internal provider
+  benschubert.infrastructure.authentik_outpost_provider:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    outpost_name: authentik Embedded Outpost
+    provider_pk: "{{ _provider_result.data.pk }}"

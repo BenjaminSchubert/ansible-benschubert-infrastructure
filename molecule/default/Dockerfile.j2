@@ -1,0 +1,45 @@
+{% if item.registry is defined %}
+FROM {{ item.registry.url }}/{{ item.image }}
+{% else %}
+FROM {{ item.image }}
+{% endif %}
+
+{% if item.env is defined %}
+{% for var, value in item.env.items() %}
+{% if value %}
+ENV {{ var }} {{ value }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install required packages
+RUN apt-get update && \
+    apt-get install --assume-yes \
+        bash \
+        ca-certificates \
+        fuse-overlayfs \
+        iproute2 \
+        podman \
+        python3 \
+        sudo \
+        # And some utilities to help debug
+        curl \
+        jq \
+        less \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Configure users
+RUN useradd --create-home --groups sudo --shell /bin/bash podman && \
+    echo "podman:10000:100000" > /etc/subuid && \
+    echo "podman:10000:100000" > /etc/subgid && \
+    echo "%sudo ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/sudo && \
+    # And create cacheable volume for the storage
+    mkdir -p /home/podman/.local/share/containers && \
+    chown -R podman:podman /home/podman/.local
+
+VOLUME /home/podman/.local/share/containers
+USER podman

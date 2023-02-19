@@ -1,0 +1,209 @@
+---
+argument_specs:
+  main:
+    short_description: Setup an authentication server in podman, using Authentik
+    description:
+      - This sets up an L(Authentik, https://goauthentik.io/) webserver to
+        act as an authentication and SSO server used by the rest of the services
+        in this collection.
+      - Additionally, it will setup a PostgreSQL database and a Redis instance
+        for it.
+    options:
+      auth_authentik_configuration_path:
+        type: str
+        required: true
+        description:
+          - The directory in which the configuration files for Authentik will be
+            stored
+      auth_authentik_background:
+        type: str
+        description:
+          - Name of the file to use as a background for Authentik when users
+            login
+      auth_authentik_email_config:
+        type: dict
+        default: null
+        description:
+          - configuration to allow Authentik to send emails when needed
+        options:
+          from:
+            type: str
+            required: true
+            description:
+              - The email address authentik will send from
+              - In order to change the display name, use C(Name <account@domain>)
+          host:
+            type: str
+            required: true
+            description:
+              - The email provider host
+          password:
+            type: str
+            required: true
+            description:
+              - The password to authenticate with the email provider
+          port:
+            type: str
+            required: true
+            description:
+              - The port for the SMTP service to send emails to
+          username:
+            type: str
+            required: true
+            description:
+              - The username to authenticate with the email provider
+          ssl:
+            type: bool
+            description:
+              - Whether to use SSL to connect to the email provider
+          tls:
+            type: bool
+            description:
+              - Whether to use TLS to connect to the email provider
+      auth_authentik_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname under which Authentik should be reachable
+      auth_authentik_secret_key:
+        type: str
+        required: true
+        description:
+          - Secret key used for cookie signing and unique user IDs, don't change
+            this after the first install.
+      auth_authentik_superadmin_bootstrap_password:
+        type: str
+        default: null
+        description:
+          - The password for the super admin that Authentik creates at bootstrap
+          - Only required for the first run.
+      auth_authentik_superadmin_bootstrap_token:
+        type: str
+        default: null
+        description:
+          - The value of the token to create for the super admin at bootstrap
+          - This is then used to connect to Authentik
+      auth_postgres_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the PostgreSQL instance should store its data
+      auth_postgres_password:
+        type: str
+        required: true
+        description:
+          - The password used to connect to PostgreSQL database
+      auth_redis_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the Redis instance should store its
+            configurations
+      auth_redis_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the Redis instance should store its data
+      auth_redis_password:
+        type: str
+        required: true
+        description:
+          - The password that Authentik will use to connect to Redis
+          - This is also used to configure the Redis instance
+      ingress_custom_ca_cert:
+        type: str
+        description:
+          - The path on disk to a custom certificate to validate the TLS
+            certificates if they are not available in the root certificate
+            authorities
+          - If set, this will be used whenever contacting the Authentik server
+      ingress_https_port:
+        type: int
+        default: 16443
+        description:
+          - The port at which the service is exposed via the ingress, in order
+            to be able to make API calls to the service
+      template_warning:
+        type: str
+        required: true
+        description:
+          - A warning that this role will add to the top of each file it creates
+            so users know it is managed by an automated process.
+  application:
+    short_description: Setup an application and provider to protect an application via proxy
+    description:
+      - This role creates an
+        L(application, https://goauthentik.io/docs/applications) and a
+        L(proxy provider, https://goauthentik.io/docs/providers/proxy/) in order
+        to protect an application via Authentik.
+    options:
+      application_name:
+        type: str
+        required: true
+        description:
+          - The human readable name for the application as registered in
+            Authentik
+      application_slug:
+        type: str
+        required: true
+        description:
+          - The unique identifier for the application in Authentik
+      auth_authentik_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which the Authentik is reachable
+      auth_authentik_token:
+        type: str
+        required: true
+        description:
+          - The token to use to connect to Authentik
+      group:
+        type: str
+        required: true
+        description:
+          - The group to which to add the application on the Authentik dashboard
+      hostname:
+        type: str
+        required: true
+        description:
+          - The external facing hostname for the application to register
+      icon_url:
+        type: str
+        required: true
+        description:
+          - The URL at which to find the icon for the application, to be
+            displayed on the Authentik dashboard
+      ingress_custom_ca_cert:
+        type: str
+        description:
+          - The path on disk to a custom certificate to validate the TLS
+            certificates if they are not available in the root certificate
+            authorities
+      ingress_exposed_https_port:
+        type: int
+        required: false
+        default: 443
+        description:
+          - The port under which Traefik is exposed to the outside world. This
+            is different from the C(ingress_https_port), which is the port at
+            which Traefik is exposed on the machine. A secure setup would use a
+            high port for the other, and use a firewall rule to redirect 443 to
+            there.
+      ingress_https_port:
+        type: int
+        default: 16443
+        description:
+          - The port at which the service is exposed via the ingress, in order
+            to be able to make API calls to the service
+      ingress_validate_certs:
+        type: bool
+        default: true
+        description:
+          - Whether the TLS certificate to access Authentik should be validated
+            or not
+      meta_description:
+        type: str
+        required: true
+        description:
+          - The description to show on the dashboard about the application

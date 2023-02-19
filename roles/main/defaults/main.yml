@@ -1,0 +1,5 @@
+---
+ingress_networks:
+  - ingress-auth
+
+ingress_additional_networks: []

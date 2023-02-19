@@ -1,0 +1,238 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Configure a suite of services in podman to serve as a foundation for a Homelab.
+    description:
+      - This role configures a suite of services connected together via podman
+        and exposed to the host.
+      - You can find the entire list of services configured by this role in
+        the R(the main description, plugins_in_benschubert.infrastructure).
+
+    options:
+      ##
+      # Auth related variables
+      ##
+      auth_authentik_background:
+        type: str
+        description:
+          - The name of the file to use as a background for Authentik when users
+            login
+      auth_authentik_configuration_path:
+        type: str
+        required: true
+        description:
+          - The directory in which the configuration files for Authentik will be
+            stored
+      auth_authentik_email_config:
+        type: dict
+        default: null
+        description:
+          - The configuration to allow Authentik to send emails when needed
+        options:
+          from:
+            type: str
+            required: true
+            description:
+              - The email address authentik will send from
+              - In order to change the display name, use C(Name <account@domain>)
+          host:
+            type: str
+            required: true
+            description:
+              - The email provider host
+          password:
+            type: str
+            required: true
+            description:
+              - The password to authenticate with the email provider
+          port:
+            type: str
+            required: true
+            description:
+              - The port for the SMTP service to send emails to
+          username:
+            type: str
+            required: true
+            description:
+              - The username to authenticate with the email provider
+          ssl:
+            type: bool
+            description:
+              - Whether to use SSL to connect to the email provider
+          tls:
+            type: bool
+            description:
+              - Whether to use TLS to connect to the email provider
+      auth_authentik_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname under which Authentik should be reachable
+      auth_authentik_secret_key:
+        type: str
+        required: true
+        description:
+          - Secret key used for cookie signing and unique user IDs, don't change
+            this after the first install.
+      auth_authentik_superadmin_bootstrap_password:
+        type: str
+        default: null
+        description:
+          - The password for the super admin that Authentik creates at bootstrap
+          - Only required for the first run.
+      auth_authentik_superadmin_bootstrap_token:
+        type: str
+        default: null
+        description:
+          - The value of the token to create for the super admin at bootstrap
+          - This is then used to connect to Authentik
+      auth_authentik_token:
+        type: str
+        required: true
+        description:
+          - The token to use to connect to Authentik
+          - Defaults to I(auth_authentik_superadmin_bootstrap_password) if not
+            set
+          - It is recommended, after the bootstrap, to create a new token, and
+            remove the bootstrap one, so that it does not linger in the
+            environment needlessly
+      auth_postgres_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the PostgreSQL instance for Authentik should
+            store its data
+      auth_postgres_password:
+        type: str
+        required: true
+        description:
+          - The password used to connect to the Authentik PostgreSQL database
+      auth_redis_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the Redis instance for Authentik should store
+            its configurations
+      auth_redis_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the Authentik Redis instance should store its
+            data
+      auth_redis_password:
+        type: str
+        required: true
+        description:
+          - The password that Authentik will use to connect to Redis
+          - This is also used to configure the Redis instance
+
+      ##
+      # Ingress
+      ##
+      ingress_exposed_https_port:
+        type: int
+        required: false
+        default: 443
+        description:
+          - The port under which Traefik is exposed to the outside world. This
+            is different from the C(ingress_https_port), which is the port at
+            which Traefik is exposed on the machine. A secure setup would use a
+            high port for the other, and use a firewall rule to redirect 443 to
+            there.
+      ingress_http_port:
+        type: int
+        required: false
+        default: 16080
+        description:
+          - The port that Traefik should use to expose its http interface on the
+            host. This is supposed to be a port different than 80, to allow
+            Traefik to run in a rootless container, and leverage another reverse
+            proxy or a firewall rule to redirect 80 there.
+      ingress_https_port:
+        type: int
+        required: false
+        default: 16443
+        description:
+          - The port that Traefik should use to expose its https interface on
+            the host. This is supposed to be a port different than 443, to allow
+            Traefik to run in a rootless container, and leverage another reverse
+            proxy or a firewall rule to redirect 443
+            (or rather C(ingress_exposed_https_port)) there.
+      ingress_additional_networks:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of additional podman networks that need to be attached to the
+            ingress pod.
+          - This is useful if you want to expose other services that are not
+            part of this collection through the ingress.
+      ingress_networks:
+        type: list
+        elements: str
+        required: false
+        description:
+          - In most cases, setting this B(should not be required), and you
+            should leverage I(ingress_additional_networks) instead.
+          - The list of podman networks that the Traefik pod should attach to.
+          - This is to let Traefik act as a reverse proxy for other services
+            hosted in podman, without exposing them to other places.
+      ingress_traefik_certificates_resolvers:
+        type: dict
+        default: {}
+        description:
+          - The configuration for the certificate resolvers
+          - When created, it expects at least a 'default' entry, which will be
+            used for all services that don't specify an explicit resolver in
+            their configuration
+          - See L(Traefik's documentation,
+            https://doc.traefik.io/traefik/https/acme/) for more information
+      ingress_traefik_configuration_files_path:
+        type: str
+        required: true
+        description:
+          - The directory in which the configuration files for Traefik will be
+            stored
+      ingress_traefik_environment_variables:
+        type: dict
+        default: {}
+        description:
+          - "A list of environment variables to set for Traefik as <key: value>"
+          - This can be used, e.g., to configure the certificate resolver.
+          - For secrets, use I(ingress_traefik_secrets) instead.
+      ingress_traefik_secrets:
+        type: dict
+        default: {}
+        description:
+          - "A list of secrets to inject into the Traefik container as
+            <key: value>"
+          - The key of each secret will be set as an environment variable
+            pointing to the secret containing the value
+      ingress_custom_ca_cert:
+        type: str
+        description:
+          - The path on disk to a custom certificate to validate the TLS
+            certificates if they are not available in the root certificate
+            authorities
+      ingress_traefik_dashboard_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname under which to expose the Traefik dashboard
+      ingress_validate_certs:
+        type: bool
+        default: true
+        description:
+          - Whether the TLS certificate to access the Traefik should be
+            validated or not
+
+      ##
+      # Miscellaneous
+      ##
+      template_warning:
+        type: str
+        required: true
+        description:
+          - A warning that is added to the top of each file created by this
+            collection so users know it is managed by an automated process.

@@ -1,0 +1,36 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Configure a PostgreSQL instance using podman
+    description: []
+    options:
+      postgres_data_path:
+        type: str
+        required: true
+        description: The path on disk where to store the data from PostgreSQL
+      postgres_database:
+        type: str
+        required: true
+        description: The name of the database to create
+      postgres_network:
+        type: str
+        required: true
+        description: >-
+          The name of the podman network to which the PostgreSQL instance will
+          be exposed
+      postgres_pod:
+        type: str
+        required: true
+        description: >-
+          The name to give the podman pod in which the PostgreSQL container will
+          be launched
+      postgres_user:
+        type: str
+        required: true
+        description: The name of the user to use to connect to the database
+      postgres_password_secret:
+        type: str
+        required: true
+        description: >-
+          The podman secret containing the password to connect to the database

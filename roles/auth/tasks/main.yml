@@ -1,0 +1,249 @@
+---
+- name: Warn if the bootstrap secrets are set
+  ansible.builtin.fail:
+    msg: >-
+      The bootstrap superadmin secrets are still injected. You might want to
+      change the secrets and remove them from the variables for security
+  when: >-
+    auth_authentik_superadmin_bootstrap_password
+    or auth_authentik_superadmin_bootstrap_password
+  ignore_errors: true
+  tags:
+    - skip_ansible_lint
+
+- name: Ensure the paths for authentik exist
+  ansible.builtin.file:
+    path: "{{ auth_authentik_configuration_path }}/{{ item }}"
+    state: directory
+    mode: "0o755"
+  loop:
+    - blueprints
+    - public
+
+- name: Copy the required blueprints
+  ansible.builtin.template:
+    src: "{{ item }}.yml.j2"
+    dest: "{{ auth_authentik_configuration_path }}/blueprints/{{ item }}.yaml"
+    mode: "0o644"
+  loop:
+    - flow-login
+    - flow-recovery
+    - tenant
+
+- name: Copy the background for authentik
+  ansible.builtin.copy:
+    src: "{{ auth_authentik_background }}"
+    dest: "{{ auth_authentik_configuration_path }}/{{ auth_authentik_background }}"
+    mode: "0o644"
+  when: auth_authentik_background | default(false)
+
+- name: Create the required secrets
+  containers.podman.podman_secret:
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    state: present
+    skip_existing: true
+  no_log: true
+  when: item.data
+  loop:
+    - name: auth-authentik-secret-key
+      data: "{{ auth_authentik_secret_key }}"
+    - name: auth-postgres-password
+      data: "{{ auth_postgres_password }}"
+    - name: auth-redis-password
+      data: "{{ auth_redis_password }}"
+    - name: auth-authentik-email-password
+      data: "{{ auth_authentik_email_config.password | default(None) }}"
+
+- name: Create the Authentik database
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.postgres
+  vars:
+    postgres_pod: auth-postgres
+    postgres_password_secret: auth-postgres-password
+    postgres_data_path: "{{ auth_postgres_data_path }}"
+    postgres_user: authentik
+    postgres_database: authentik
+    postgres_network: auth-postgres
+
+- name: Create the Authentik redis instance
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.redis
+  vars:
+    redis_pod: auth-redis
+    redis_config_path: "{{ auth_redis_config_path }}"
+    redis_data_path: "{{ auth_redis_data_path }}"
+    redis_network: auth-redis
+    redis_password: "{{ auth_redis_password }}"
+
+- name: Create the auth pod
+  containers.podman.podman_pod:
+    name: auth
+    state: created
+    infra_name: auth-infra
+    network:
+      - ingress-auth
+      - auth-postgres
+      - auth-redis
+    userns: auto:size=1024
+
+- name: Create the auth-worker pod
+  containers.podman.podman_pod:
+    name: auth-worker
+    state: created
+    infra_name: auth-worker-infra
+    network:
+      - auth-postgres
+      - auth-redis
+    userns: auto:size=1024
+
+- name: Setup the Authentik server container
+  containers.podman.podman_container:
+    name: auth-authentik
+    pod: auth
+    state: started
+    image: ghcr.io/goauthentik/server
+    command: server
+    env:
+      AUTHENTIK_LOG_LEVEL: trace
+      AUTHENTIK_SECRET_KEY: file:///run/secrets/auth-authentik-secret-key
+      AUTHENTIK_POSTGRESQL__HOST: auth-postgres
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: file:///run/secrets/auth-postgres-password
+      AUTHENTIK_REDIS__HOST: auth-redis
+      AUTHENTIK_REDIS__PASSWORD: file:///run/secrets/auth-redis-password
+      # Make Authentik not access the outside world
+      AUTHENTIK_DISABLE_UPDATE_CHECK: true
+      AUTHENTIK_ERROR_REPORTING__ENABLED: false
+      AUTHENTIK_DISABLE_STARTUP_ANALYTICS: true
+      AUTHENTIK_AVATARS: none
+      AUTHENTIK_HOST: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+      # Email configurations
+      AUTHENTIK_EMAIL__HOST: "{{ auth_authentik_email_config.host | default(omit) }}"
+      AUTHENTIK_EMAIL__PORT: "{{ auth_authentik_email_config.port | default(omit) }}"
+      AUTHENTIK_EMAIL__USERNAME: "{{ auth_authentik_email_config.username | default(omit) }}"
+      AUTHENTIK_EMAIL__PASSWORD: >-
+        {{
+          auth_authentik_email_config.password
+          | default(False)
+          | ternary('file:///run/secrets/auth-authentik-email-password', omit)
+        }}
+      AUTHENTIK_EMAIL__USE_TLS: "{{ auth_authentik_email_config.tls | default(omit) }}"
+      AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
+      AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
+    healthcheck: /lifecycle/ak healthcheck
+    volumes: >-
+      {{
+        [
+          auth_authentik_configuration_path +
+            "/blueprints:/blueprints/benschubert-infrastructure:ro,Z",
+          auth_authentik_configuration_path + "/public:/media/public:ro,Z",
+        ] + (
+          [
+            auth_authentik_configuration_path
+            + "/"
+            + auth_authentik_background
+            + ":/web/dist/assets/images/flow_background.jpg:ro,z"
+          ]
+          if (auth_authentik_background | default(false))
+          else []
+        )
+      }}
+    secrets: >-
+      {{
+        [
+          'auth-authentik-secret-key',
+          'auth-postgres-password',
+          'auth-redis-password',
+        ] + (
+          ['auth-authentik-email-password']
+          if (auth_authentik_email_config.password | default(False))
+          else []
+        )
+      }}
+    read_only: true
+
+- name: Ensure the Authentik container is healthy
+  ansible.builtin.command: podman healthcheck run auth-authentik
+  register: _healthcheck
+  until: _healthcheck is not failed
+  delay: 5
+  retries: 15
+  changed_when: false
+
+- name: Setup the Authentik worker container
+  containers.podman.podman_container:
+    name: auth-worker-authentik
+    pod: auth-worker
+    state: started
+    image: ghcr.io/goauthentik/server
+    command: worker
+    env:
+      AUTHENTIK_SECRET_KEY: file:///run/secrets/auth-authentik-secret-key
+      AUTHENTIK_POSTGRESQL__HOST: auth-postgres
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: file:///run/secrets/auth-postgres-password
+      AUTHENTIK_REDIS__HOST: auth-redis
+      AUTHENTIK_REDIS__PASSWORD: file:///run/secrets/auth-redis-password
+      # Bootstrap information
+      AUTHENTIK_BOOTSTRAP_EMAIL: "{{ auth_authentik_superadmin_bootstrap_email or omit }}"
+      AUTHENTIK_BOOTSTRAP_PASSWORD: "{{ auth_authentik_superadmin_bootstrap_password or omit }}"
+      AUTHENTIK_BOOTSTRAP_TOKEN: "{{ auth_authentik_superadmin_bootstrap_token or omit }}"
+      # Make Authentik not access the outside world
+      AUTHENTIK_DISABLE_UPDATE_CHECK: true
+      AUTHENTIK_ERROR_REPORTING__ENABLED: false
+      AUTHENTIK_DISABLE_STARTUP_ANALYTICS: true
+      AUTHENTIK_AVATARS: none
+      AUTHENTIK_HOST: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+      # Email configurations
+      AUTHENTIK_EMAIL__HOST: "{{ auth_authentik_email_config.host | default(omit) }}"
+      AUTHENTIK_EMAIL__PORT: "{{ auth_authentik_email_config.port | default(omit) }}"
+      AUTHENTIK_EMAIL__USERNAME: "{{ auth_authentik_email_config.username | default(omit) }}"
+      AUTHENTIK_EMAIL__PASSWORD: >-
+        {{
+          auth_authentik_email_config.password
+          | default(False)
+          | ternary('file:///run/secrets/auth-authentik-email-password', omit)
+        }}
+      AUTHENTIK_EMAIL__USE_TLS: "{{ auth_authentik_email_config.tls | default(omit) }}"
+      AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
+      AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
+    healthcheck: /lifecycle/ak healthcheck
+    volumes:
+      # yamllint disable-line rule:line-length
+      - "{{ auth_authentik_configuration_path }}/blueprints:/blueprints/benschubert-infrastructure:ro,Z"
+      - "{{ auth_authentik_configuration_path }}/public:/media/public:ro,Z"
+
+    secrets: >-
+      {{
+        [
+          'auth-authentik-secret-key',
+          'auth-postgres-password',
+          'auth-redis-password',
+        ] + (
+          ['auth-authentik-email-password']
+          if (auth_authentik_email_config.password | default(False))
+          else []
+        )
+      }}
+    read_only: true
+
+- name: Ensure the Authentik worker container is healthy
+  ansible.builtin.command: podman healthcheck run auth-worker-authentik
+  register: _healthcheck
+  until: _healthcheck is not failed
+  delay: 5
+  retries: 3
+  changed_when: false
+
+- name: Setup an ingress for Authentik
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+    tasks_from: provider
+  vars:
+    template_file: ingress-authentik.yml.j2
+    ingress_name: authentik
+    hostname: "{{ auth_authentik_hostname }}"
+    expected_status_code: 302

@@ -1,0 +1,56 @@
+---
+- name: Ensure the Redis paths exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0o700"
+  loop:
+    - "{{ redis_config_path }}"
+    - "{{ redis_data_path }}"
+
+- name: Create the redis.conf configuration
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.copy:
+    content: |
+      user ping on nopass +ping
+      user default on ~* &* +@all -@dangerous -@admin +keys >{{ redis_password }}
+    dest: "{{ redis_config_path }}/redis.conf"
+    mode: "0o400"
+  register: _configuration
+
+- name: Create the Redis network
+  containers.podman.podman_network:
+    name: "{{ redis_network }}"
+    internal: true
+
+- name: Create the Redis pod
+  containers.podman.podman_pod:
+    name: "{{ redis_pod }}"
+    state: created
+    infra_name: "{{ redis_pod }}-infra"
+    network:
+      - "{{ redis_network }}"
+    userns: auto:size=1024
+
+- name: Setup a Redis container
+  containers.podman.podman_container:
+    name: "{{ redis_pod }}-redis"
+    pod: "{{ redis_pod }}"
+    image: docker.io/library/redis:latest
+    command: [redis-server, /etc/redis.conf]
+    user: redis
+    state: started
+    force_restart: "{{ _configuration.changed }}"
+    volumes:
+      - "{{ redis_config_path }}/redis.conf:/etc/redis.conf:ro,U,Z"
+      - "{{ redis_data_path }}/:/data:rw,U,Z"
+    healthcheck: redis-cli --user ping --pass '' ping | grep PONG
+    read_only: true
+
+- name: Ensure the Redis container is healthy
+  ansible.builtin.command: podman healthcheck run {{ redis_pod }}-redis
+  register: _healthcheck
+  until: _healthcheck is not failed
+  retries: 3
+  changed_when: false

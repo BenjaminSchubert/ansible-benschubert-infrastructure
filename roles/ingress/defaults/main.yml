@@ -1,0 +1,8 @@
+---
+ingress_exposed_https_port: 443
+ingress_http_port: 16080
+ingress_https_port: 16443
+
+ingress_traefik_certificates_resolvers: {}
+ingress_traefik_environment_variables: {}
+ingress_traefik_secrets: {}

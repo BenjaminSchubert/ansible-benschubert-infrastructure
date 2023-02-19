@@ -1,0 +1,8 @@
+---
+ingress_validate_certs: true
+ingress_exposed_https_port: 443
+ingress_https_port: 16443
+
+auth_authentik_superadmin_bootstrap_email: null
+auth_authentik_superadmin_bootstrap_password: null
+auth_authentik_superadmin_bootstrap_token: null

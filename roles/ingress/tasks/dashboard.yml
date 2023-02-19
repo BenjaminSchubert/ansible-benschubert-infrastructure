@@ -1,0 +1,23 @@
+---
+- name: Create an application for Traefik on authentik
+  ansible.builtin.import_role:
+    name: auth
+    tasks_from: application
+  vars:
+    application_name: Traefik's dashboard
+    application_slug: benschubert-infrastructure-traefik-dashboard
+    group: admin
+    hostname: "{{ ingress_traefik_dashboard_hostname }}"
+    meta_description: The dashboard for Traefik
+    # yamllint disable-line rule:line-length
+    icon_url: https://{{ ingress_traefik_dashboard_hostname }}:{{ ingress_exposed_https_port }}/dashboard/icons/favicon-32x32.png
+
+- name: Setup a provider for the traefik dashboard
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+    tasks_from: provider
+  vars:
+    template_file: ingress-traefik-dashboard.yml.j2
+    ingress_name: traefik-dashboard
+    hostname: "{{ ingress_traefik_dashboard_hostname }}"
+    expected_status_code: 302

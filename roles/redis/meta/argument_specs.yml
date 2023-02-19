@@ -1,0 +1,37 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Configure a Redis instance using podman
+    description:
+      - Configure a Redis instance in a podman container
+      - This will setup a Redis instance with a 'default' user and the specified
+        password
+    options:
+      redis_config_path:
+        type: str
+        required: true
+        description: >-
+          The path on disk in which to store the configuration for the Redis
+          instance
+      redis_data_path:
+        type: str
+        required: true
+        description: >-
+          The path on disk where Redis will store it's data for persistence
+      redis_network:
+        type: str
+        required: true
+        description: >-
+          The name of the podman network to which the Redis instance will be
+          exposed
+      redis_password:
+        type: str
+        required: true
+        description: The password to authenticate against the Redis instance
+      redis_pod:
+        type: str
+        required: true
+        description: >-
+          The name to give the podman pod in which the Redis container will be
+          launched

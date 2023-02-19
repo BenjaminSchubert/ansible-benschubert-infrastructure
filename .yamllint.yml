@@ -1,0 +1,28 @@
+---
+extends: default
+
+ignore: |
+  .dwas/
+  /.env.yml
+
+yaml-files:
+  - "*.yaml"
+  - "*.yml"
+  - .yamllint
+  - .ansible-lint
+
+rules:
+  comments:
+    level: error
+  comments-indentation:
+    level: error
+  document-start:
+    level: error
+  line-length:
+    max: 100
+    allow-non-breakable-words: true
+  quoted-strings:
+    quote-type: double
+    required: only-when-needed
+  truthy:
+    level: error

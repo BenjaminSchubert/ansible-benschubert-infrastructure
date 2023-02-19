@@ -1,0 +1,36 @@
+{{ template_warning }}
+---
+api:
+  dashboard: true
+
+accessLog: {}
+log:
+  level: INFO
+
+entryPoints:
+  web:
+    address: ":16080"
+    http:
+      redirections:
+        entryPoint:
+          # Here we need to redirect to 443 manually, as this is exposed outside
+          # at 443 via firewall rules but really binds to 16443
+          to: :{{ ingress_exposed_https_port }}
+          scheme: https
+  web-secure:
+    address: ":16443"
+
+  ping:
+    address: ":8082"
+
+ping:
+  entryPoint: "ping"
+
+providers:
+  file:
+    directory: /etc/traefik/providers
+    watch: true
+
+{% if ingress_traefik_certificates_resolvers %}
+{{ {"certificatesResolvers": (ingress_traefik_certificates_resolvers or {})} | to_yaml }}
+{% endif %}

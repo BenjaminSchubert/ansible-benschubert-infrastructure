@@ -1,0 +1,84 @@
+---
+driver:
+  name: podman
+
+verifier:
+  name: testinfra
+  options:
+    verbose: true
+
+platforms:
+  - name: instance
+    image: docker.io/debian:bookworm-slim
+    dockerfile: Dockerfile.j2
+    etc_hosts:
+      ${AUTHENTIK_HOSTNAME:-auth.test}: 127.0.0.1
+      ${TRAEFIK_HOSTNAME:-traefik.test}: 127.0.0.1
+    security_opts:
+      - label=disable
+    published_ports:
+      - 127.0.0.1:${HTTP_PORT:-16080}:16080
+      - 127.0.0.1:${HTTPS_PORT:-16443}:16443
+    devices:
+      - /dev/fuse
+    privileged: true
+    volumes:
+      - benschubert-infrastructure-podman:/home/podman/.local/share/containers
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      stdout_callback: yaml
+  ansible_args:
+    - --diff
+  env:
+    ANSIBLE_PIPELINING: "True"
+  inventory:
+    host_vars:
+      instance:
+        ansible_user: podman
+
+        template_warning: |
+          ##################################################
+          # WARNING
+          #
+          # This file is managed by ansible.
+          #
+          # Any change done on this file will be overriden
+          # on the next run of ansible.
+          ##################################################
+
+        # Hostnames
+        auth_authentik_hostname: ${AUTHENTIK_HOSTNAME:-auth.test}
+        ingress_traefik_dashboard_hostname: ${TRAEFIK_HOSTNAME:-traefik.test}
+
+        ##
+        # Ingress
+        ##
+        ingress_custom_ca_cert_url: ${TRAEFIK_CUSTOM_CA_CERT:-null}
+        ingress_exposed_https_port: ${HTTPS_PORT:-443}
+        ingress_http_port: 16080
+        ingress_https_port: 16443
+        ingress_traefik_certificates_resolvers: ${TRAEFIK_CERTIFICATES_RESOLVER:-null}
+        ingress_traefik_configuration_files_path: /home/podman/services/traefik
+        ingress_traefik_environment_variables: ${TRAEFIK_ENVIRONMENT_VARIABLES:-null}
+        ingress_traefik_secrets: ${TRAEFIK_SECRETS:-null}
+        ingress_validate_certs: ${TRAEFIK_VALIDATE_CERTS:-false}
+
+        ##
+        # Auth
+        ##
+        auth_authentik_secret_key: verysecretkey
+        auth_authentik_superadmin_bootstrap_email: ${AUTHENTIK_EMAIL:-null}
+        auth_authentik_superadmin_bootstrap_password: password
+        auth_authentik_superadmin_bootstrap_token: superadmintoken
+        auth_authentik_token: superadmintoken
+        auth_postgres_password: verysecretpassword
+        auth_postgres_data_path: /home/podman/services/auth/postgres
+        auth_redis_password: veryredispassword
+        auth_redis_config_path: /home/podman/services/auth/redis/config/
+        auth_redis_data_path: /home/podman/services/auth/redis/data/
+        auth_authentik_configuration_path: /home/podman/services/auth/authentik
+        auth_authentik_email_config: ${EMAIL_CONFIG:-null}
+        auth_authentik_background: ${AUTHENTIK_WALLPAPER:-null}

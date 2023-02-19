@@ -1,0 +1,17 @@
+---
+- name: Expand ocnfiguration
+  ansible.builtin.set_fact:
+    ingress_networks: "{{ ingress_networks + ingress_additional_networks }}"
+
+- name: Setup Ingress
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+
+- name: Setup Auth
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.auth
+
+- name: Add Traefik dashboard
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+    tasks_from: dashboard

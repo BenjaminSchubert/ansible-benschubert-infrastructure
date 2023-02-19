@@ -1,0 +1,107 @@
+---
+- name: Create the required networks
+  containers.podman.podman_network:
+    name: "{{ item }}"
+    internal: true
+  loop: "{{ ingress_networks }}"
+
+- name: Create an ingress network to allow external access
+  containers.podman.podman_network:
+    name: ingress
+    internal: false
+
+- name: Ensure the parent directory for traefik exists
+  ansible.builtin.file:
+    path: "{{ ingress_traefik_configuration_files_path | dirname }}"
+    state: directory
+    mode: "0o700"
+
+- name: Ensure the directory for traefik configuration exists
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.file:
+    path: "{{ ingress_traefik_configuration_files_path }}/config/providers"
+    state: directory
+    mode: "0o700"
+
+- name: Create the traefik main configuration
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.template:
+    src: traefik.yml.j2
+    dest: "{{ ingress_traefik_configuration_files_path }}/config/traefik.yml"
+    mode: "0o400"
+  register: _configuration
+
+- name: Create the acme.json file to store certificates
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.file:
+    path: "{{ ingress_traefik_configuration_files_path }}/acme.json"
+    access_time: preserve
+    modification_time: preserve
+    state: touch
+    mode: "0o600"
+
+- name: Create the required secrets
+  containers.podman.podman_secret:
+    name: "{{ 'ingress-traefik-' + item.key.lower().replace('_', '-') }}"
+    data: "{{ item.value }}"
+    state: present
+    skip_existing: true
+  no_log: true
+  loop: "{{ (ingress_traefik_secrets or {}) | dict2items }}"
+
+- name: Create the ingress pod
+  containers.podman.podman_pod:
+    name: ingress
+    state: started
+    infra_name: ingress-infra
+    network: "{{ ingress_networks + ['ingress'] }}"
+    publish:
+      - "{{ ingress_http_port }}:16080"
+      - "{{ ingress_https_port }}:16443"
+    userns: auto:size=1024
+
+- name: Setup the traefik container
+  containers.podman.podman_container:
+    name: ingress-traefik
+    pod: ingress
+    image: docker.io/traefik:latest
+    state: started
+    force_restart: "{{ _configuration.changed }}"
+    volumes:
+      - "{{ ingress_traefik_configuration_files_path }}/config:/etc/traefik:ro,U,Z"
+      - "{{ ingress_traefik_configuration_files_path }}/acme.json:/etc/traefik/acme.json:rw,U,Z"
+    healthcheck: traefik healthcheck
+    read_only: true
+    expose:
+      - 16443
+    env: "{{
+      (ingress_traefik_environment_variables or {})
+      | combine(
+        (ingress_traefik_secrets or {}).keys()
+        | zip(
+          (ingress_traefik_secrets or {}).keys()
+          | map('lower')
+          | map('replace', '_', '-')
+          | map('regex_replace', '^(.*)$', '/run/secrets/ingress-traefik-\\1')
+        )
+        | list
+        | items2dict(key_name=0, value_name=1)
+      )
+      }}"
+    secrets: |
+      {{
+        (ingress_traefik_secrets or {}).keys()
+        | map('lower')
+        | map('regex_replace', '_', '-')
+        | map('regex_replace', '^(.*)$', 'ingress-traefik-\1')
+      }}
+
+- name: Ensure the Traefik container is healthy
+  ansible.builtin.command: podman healthcheck run ingress-traefik
+  register: _healthcheck
+  until: _healthcheck is not failed
+  retries: 3
+  changed_when: false
