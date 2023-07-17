@@ -1,4 +1,13 @@
 ---
+# FIXME: 'mutually_exclusive' or 'required_one_of' are not available for role
+#        validation, thus make it ourselves
+- name: Ensure the provider is provided
+  ansible.builtin.assert:
+    that:
+      - (provider_oauth2 | default(None)) or (provider_proxy | default(None))
+      - not ((provider_oauth2 | default(None)) and (provider_proxy | default(None)))
+    fail_msg: Either provider_oauth2 or provider_proxy needs to be passed but not both
+
 - name: Get consent flow for applications
   benschubert.infrastructure.authentik_flow_info:
     authentik_token: "{{ auth_authentik_token }}"
@@ -11,7 +20,34 @@
   retries: 5
   delay: 5
 
-- name: Generate the provider
+- name: Generate the OAuth2 provider
+  when: provider_oauth2 | default(false)
+  block:
+    - name: Get the ids of the requested scopes
+      benschubert.infrastructure.authentik_propertymappings_scope_info:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        scope_name: "{{ item }}"
+      loop: "{{ provider_oauth2.scopes }}"
+      register: _scopes
+
+    - name: Generate the OAuth2 provider itself
+      benschubert.infrastructure.authentik_provider_oauth2:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        provider:
+          name: "{{ application_name }}"
+          authorization_flow: "{{ _authorization_flow.data.pk }}"
+          property_mappings: "{{ _scopes.results | map(attribute='data.pk') }}"
+          redirect_uris: "{{ provider_oauth2.redirect_uris }}"
+      register: _provider_oauth2_result
+
+- name: Generate the proxy provider
+  when: provider_proxy | default(false)
   benschubert.infrastructure.authentik_provider_proxy:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -21,9 +57,17 @@
       name: "{{ application_name }}"
       authorization_flow: "{{ _authorization_flow.data.pk }}"
       external_host: >-
-        https://{{ hostname }}:{{ ingress_exposed_https_port }}
+        https://{{ provider_proxy.hostname }}:{{ ingress_exposed_https_port }}
       mode: forward_single
-  register: _provider_result
+  register: _provider_proxy_result
+
+- name: Retrieve proxy
+  ansible.builtin.set_fact:
+    _provider_result: >-
+      {{
+        (provider_oauth2 | default(None)) is not none
+        | ternary(_provider_oauth2_result, _provider_proxy_result)
+      }}
 
 - name: Generate the application
   benschubert.infrastructure.authentik_application:
@@ -60,6 +104,7 @@
         authentik_host: https://{{ auth_authentik_hostname }}:{{ ingress_exposed_https_port }}
 
 - name: Register the application against the internal provider
+  when: provider_proxy | default(false)
   benschubert.infrastructure.authentik_outpost_provider:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}

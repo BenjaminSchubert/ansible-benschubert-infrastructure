@@ -2,7 +2,8 @@
 argument_specs:
   main:
     short_description: >-
-      Configure a suite of services in podman to serve as a foundation for a Homelab.
+      Configure a suite of basic infrastructure services in podman to serve as
+      a foundation for a Homelab.
     description:
       - This role configures a suite of services connected together via podman
         and exposed to the host.
@@ -168,6 +169,8 @@ argument_specs:
             ingress pod.
           - This is useful if you want to expose other services that are not
             part of this collection through the ingress.
+          - For a definition of what the entries can accept, see
+            I(ingress_networks)
       ingress_networks:
         type: list
         elements: str

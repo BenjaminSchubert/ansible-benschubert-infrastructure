@@ -7,10 +7,11 @@
     application_name: Traefik's dashboard
     application_slug: benschubert-infrastructure-traefik-dashboard
     group: admin
-    hostname: "{{ ingress_traefik_dashboard_hostname }}"
     meta_description: The dashboard for Traefik
     # yamllint disable-line rule:line-length
     icon_url: https://{{ ingress_traefik_dashboard_hostname }}:{{ ingress_exposed_https_port }}/dashboard/icons/favicon-32x32.png
+    provider_proxy:
+      hostname: "{{ ingress_traefik_dashboard_hostname }}"
 
 - name: Setup a provider for the traefik dashboard
   ansible.builtin.import_role:

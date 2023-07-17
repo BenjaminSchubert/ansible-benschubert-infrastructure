@@ -1,5 +1,9 @@
 ---
 ingress_networks:
   - ingress-auth
+  - ingress-monitoring-grafana
+
+ingress_network_aliases:
+  - "{{ auth_authentik_hostname }}"
 
 ingress_additional_networks: []

@@ -1,0 +1,145 @@
+---
+- name: Ensure the paths for grafana exist
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.file:
+    path: "{{ monitoring_grafana_data_path }}"
+    state: directory
+    mode: "0o700"
+
+- name: Create the Grafana network
+  containers.podman.podman_network:
+    name: ingress-monitoring-grafana
+    internal: true
+
+- name: Create an application for Grafana on Authentik
+  ansible.builtin.import_role:
+    name: auth
+    tasks_from: application
+  vars:
+    application_name: grafana
+    application_slug: benschubert-infrastructure-grafana
+    group: admin
+    meta_description: Grafana
+    # yamllint disable-line rule:line-length
+    icon_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_exposed_https_port }}/public/img/grafana_icon.svg
+    provider_oauth2:
+      # yamllint disable-line rule:line-length
+      redirect_uris: https://{{ monitoring_grafana_hostname }}:{{ ingress_exposed_https_port }}/login/generic_oauth
+      scopes:
+        - profile
+        - email
+        - openid
+
+- name: Retrieve the created provider
+  benschubert.infrastructure.authentik_provider_info:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    name: grafana
+    type: oauth2
+  register: _provider_result
+
+- name: Create the required secrets
+  containers.podman.podman_secret:
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    state: present
+    skip_existing: true
+  no_log: true
+  when: item.data
+  loop:
+    - name: monitoring-grafana-postgres-password
+      data: "{{ monitoring_grafana_postgres_password }}"
+    - name: monitoring-grafana-client-secret
+      data: "{{ _provider_result.data.client_secret }}"
+    - name: monitoring-grafana-secret-key
+      data: "{{ monitoring_grafana_secret_key }}"
+
+- name: Create the Grafana database
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.postgres
+  vars:
+    postgres_pod: monitoring-grafana-postgres
+    postgres_password_secret: monitoring-grafana-postgres-password
+    postgres_data_path: "{{ monitoring_grafana_postgres_data_path }}"
+    postgres_user: grafana
+    postgres_database: grafana
+    postgres_network: monitoring-grafana-postgres
+
+- name: Create the Grafana pod
+  containers.podman.podman_pod:
+    name: monitoring-grafana
+    state: created
+    infra_name: monitoring-grafana-infra
+    network:
+      - ingress-monitoring-grafana
+      - monitoring-grafana-postgres
+    userns: auto:size=1024
+
+- name: Setup the Grafana container
+  containers.podman.podman_container:
+    name: monitoring-grafana-grafana
+    pod: monitoring-grafana
+    state: started
+    image: docker.io/grafana/grafana
+    healthcheck: curl --fail http://localhost:3000
+    read_only: true
+    env:
+      # Login
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_NAME: authentik
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "{{ _provider_result.data.client_id }}"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET__FILE: /run/secrets/monitoring-grafana-client-secret
+      GF_AUTH_GENERIC_OAUTH_SCOPES: openid profile email
+      # yamllint disable-line rule:line-length
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: https://{{ auth_authentik_hostname }}:{{ ingress_exposed_https_port }}/application/o/authorize/
+      # yamllint disable-line rule:line-length
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/application/o/token/
+      # yamllint disable-line rule:line-length
+      GF_AUTH_GENERIC_OAUTH_API_URL: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/application/o/userinfo/
+      # yamllint disable-line rule:line-length
+      GF_AUTH_SIGNOUT_REDIRECT_URL: https://{{ auth_authentik_hostname }}:{{ ingress_exposed_https_port }}/application/o/grafana/end-session/
+      GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: >-
+        {{ '1' if (not ingress_validate_certs or ingress_custom_ca_cert) else omit }}
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: >-
+        contains(groups[*], 'admins') && 'Admin' || 'Viewer'
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_STRICT: "true"
+      GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN: "true"
+      # Database
+      GF_DATABASE_TYPE: postgres
+      GF_DATABASE_HOST: monitoring-grafana-postgres
+      GF_DATABASE_NAME: grafana
+      GF_DATABASE_USER: grafana
+      GF_DATABASE_PASSWORD__FILE: /run/secrets/monitoring-grafana-postgres-password
+      # Misc
+      GF_SERVER_ROOT_URL: https://{{ monitoring_grafana_hostname }}:{{ ingress_exposed_https_port }}
+      GF_SERVER_DOMAIN: "{{ monitoring_grafana_hostname }}"
+      GF_SERVER_ENFORCE_DOMAIN: "1"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "0"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "0"
+      GF_SECURITY_SECRET_KEY__FILE: /run/secrets/monitoring-grafana-secret-key
+    secrets:
+      - monitoring-grafana-postgres-password,target=/run/secrets/monitoring-grafana-postgres-password
+      - monitoring-grafana-client-secret,target=/run/secrets/monitoring-grafana-client-secret
+      - monitoring-grafana-secret-key,target=/run/secrets/monitoring-grafana-secret-key
+    volumes:
+      - "{{ monitoring_grafana_data_path }}:/var/lib/grafana:rw,U,Z"
+
+- name: Ensure the grafana container is healthy
+  ansible.builtin.command: podman healthcheck run monitoring-grafana-grafana
+  register: _healthcheck
+  until: _healthcheck is not failed
+  retries: 3
+  changed_when: false
+
+- name: Setup an ingress for Grafana
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+    tasks_from: provider
+  vars:
+    template_file: ingress-grafana.yml.j2
+    ingress_name: grafana
+    hostname: "{{ monitoring_grafana_hostname }}"
+    expected_status_code: 302

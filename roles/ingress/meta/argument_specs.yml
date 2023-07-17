@@ -159,14 +159,12 @@ argument_specs:
         required: true
         description:
           - The token to use to connect to Authentik
-          - Defaults to C(auth_authentik_superadmin_bootstrap_password) if not
-            set
       ingress_custom_ca_cert:
         type: str
         description:
           - The path on disk to a custom certificate to validate the TLS
-            certificates if they are not available in the root certificate
-            authorities
+            certificates when ansible makes requests if they are not available
+            in the root certificate authorities
       ingress_traefik_dashboard_hostname:
         type: str
         required: true
@@ -200,8 +198,8 @@ argument_specs:
         type: bool
         default: true
         description:
-          - Whether the TLS certificate to access the Traefik should be
-            validated or not
+          - Whether the TLS certificate should be verified when ansible makes
+            API calls
       template_warning:
         type: str
         required: true

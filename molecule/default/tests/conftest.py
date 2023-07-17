@@ -60,6 +60,7 @@ def session(
         for hostname_var in [
             "auth_authentik_hostname",
             "ingress_traefik_dashboard_hostname",
+            "monitoring_grafana_hostname",
         ]:
             hostname = hostvars[hostname_var]
             session_.mount(

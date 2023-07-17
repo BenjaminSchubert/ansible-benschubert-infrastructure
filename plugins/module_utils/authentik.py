@@ -1,6 +1,7 @@
 """This module provides utilities to work with Authentik APIs."""
 
 import json
+from collections.abc import Callable
 from http import HTTPStatus
 from typing import Any, Literal, NoReturn, cast
 from urllib.parse import urlencode, urljoin
@@ -158,6 +159,12 @@ class Authentik:
         return result
 
 
+def _compare(
+    existing: dict[str, Any] | None, final: dict[str, Any] | None
+) -> bool:
+    return existing == final
+
+
 def execute(  # type: ignore[misc]
     module: AnsibleModule,
     api_slug: str,
@@ -165,6 +172,9 @@ def execute(  # type: ignore[misc]
     search_query: dict[str, str] | None,
     desired_value: dict[str, Any],
     state: Literal["absent", "present"],
+    compare: Callable[
+        [dict[str, Any] | None, dict[str, Any] | None], bool
+    ] = _compare,
 ) -> NoReturn:
     """
     Ensure the selected Authentik resource is in the desired state.
@@ -221,7 +231,7 @@ def execute(  # type: ignore[misc]
     else:
         final_value = existing_value | desired_value
 
-    if existing_value == final_value:
+    if compare(existing_value, final_value):
         module.exit_json(
             changed=False,
             msg="entry is up to date",

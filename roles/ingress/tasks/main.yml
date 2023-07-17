@@ -58,6 +58,7 @@
     state: started
     infra_name: ingress-infra
     network: "{{ ingress_networks + ['ingress'] }}"
+    network_aliases: "{{ ingress_network_aliases }}"
     publish:
       - "{{ ingress_http_port }}:16080"
       - "{{ ingress_https_port }}:16443"

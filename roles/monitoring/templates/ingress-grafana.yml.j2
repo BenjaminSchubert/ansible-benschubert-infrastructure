@@ -1,0 +1,15 @@
+{{ template_warning }}
+---
+http:
+  routers:
+    grafana:
+      rule: Host(`{{ hostname }}`)
+      service: grafana
+      priority: 10
+      tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
+
+  services:
+    grafana:
+      loadBalancer:
+        servers:
+          - url: http://monitoring-grafana:3000

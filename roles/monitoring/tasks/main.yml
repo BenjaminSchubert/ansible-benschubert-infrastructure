@@ -1,0 +1,4 @@
+---
+- name: Setup Grafana
+  ansible.builtin.import_tasks:
+    file: _grafana.yml

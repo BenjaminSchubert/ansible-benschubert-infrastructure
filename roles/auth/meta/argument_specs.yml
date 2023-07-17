@@ -152,7 +152,7 @@ argument_specs:
         type: str
         required: true
         description:
-          - The hostname at which the Authentik is reachable
+          - The hostname at which the Authentik instance is reachable
       auth_authentik_token:
         type: str
         required: true
@@ -163,11 +163,6 @@ argument_specs:
         required: true
         description:
           - The group to which to add the application on the Authentik dashboard
-      hostname:
-        type: str
-        required: true
-        description:
-          - The external facing hostname for the application to register
       icon_url:
         type: str
         required: true
@@ -185,11 +180,7 @@ argument_specs:
         required: false
         default: 443
         description:
-          - The port under which Traefik is exposed to the outside world. This
-            is different from the C(ingress_https_port), which is the port at
-            which Traefik is exposed on the machine. A secure setup would use a
-            high port for the other, and use a firewall rule to redirect 443 to
-            there.
+          - The port at which the service is exposed to the outside world.
       ingress_https_port:
         type: int
         default: 16443
@@ -207,3 +198,30 @@ argument_specs:
         required: true
         description:
           - The description to show on the dashboard about the application
+      provider_oauth2:
+        type: dict
+        description:
+          - The configuration for the provider if it is using OAuth2
+          - Mutually exclusive with C(provider_proxy)
+        options:
+          redirect_uris:
+            description:
+              - The list of valid URIs where Authentik can redirect after login
+            type: str
+            required: true
+          scopes:
+            description:
+              - The scopes allowed for the OAuth2 application
+            type: list
+            required: true
+      provider_proxy:
+        type: dict
+        description:
+          - The configuration for the provider if it is using the proxy mode
+          - Mutually exclusive with C(provider_oauth2)
+        options:
+          hostname:
+            type: str
+            required: true
+            description:
+              - The external facing hostname for the application to register

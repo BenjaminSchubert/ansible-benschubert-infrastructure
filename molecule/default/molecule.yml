@@ -14,6 +14,7 @@ platforms:
     etc_hosts:
       ${AUTHENTIK_HOSTNAME:-auth.test}: 127.0.0.1
       ${TRAEFIK_HOSTNAME:-traefik.test}: 127.0.0.1
+      ${GRAFANA_HOSTNAME:-grafana.test}: 127.0.0.1
     security_opts:
       - label=disable
     published_ports:
@@ -52,6 +53,7 @@ provisioner:
         # Hostnames
         auth_authentik_hostname: ${AUTHENTIK_HOSTNAME:-auth.test}
         ingress_traefik_dashboard_hostname: ${TRAEFIK_HOSTNAME:-traefik.test}
+        monitoring_grafana_hostname: ${GRAFANA_HOSTNAME:-grafana.test}
 
         ##
         # Ingress
@@ -82,3 +84,11 @@ provisioner:
         auth_authentik_configuration_path: /home/podman/services/auth/authentik
         auth_authentik_email_config: ${EMAIL_CONFIG:-null}
         auth_authentik_background: ${AUTHENTIK_WALLPAPER:-null}
+
+        ##
+        # Monitoring
+        ##
+        monitoring_grafana_secret_key: averysecretsecret
+        monitoring_grafana_postgres_password: postgresgrafanapassword
+        monitoring_grafana_postgres_data_path: /home/podman/services/monitoring/grafana/postgres
+        monitoring_grafana_data_path: /home/podman/services/monitoring/grafana/grafana

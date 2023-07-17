@@ -25,6 +25,9 @@ description: |
     using R(the auth role, ansible_collections.benschubert.infrastructure.auth_role),
     which provides an authentication service to allow SSO to be used for
     the various services.
+  - L(Grafana, https://grafana.com/),
+    using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
+    which allows building dashboard to monitor the Homelab and more.
 
   This collection globally expects that B(podman is already configured) on the
   host, and that the user running the role has enough B(user namespaces)

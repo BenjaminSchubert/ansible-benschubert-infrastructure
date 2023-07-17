@@ -1,0 +1,82 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Configure all services required to monitor services and systems.
+    description:
+      - This role configures a suite of services that are used to monitor
+        services.
+      - "It will configure the following:"
+      - L(Grafana, https://grafana.com/)
+    options:
+      auth_authentik_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which the Authentik service is reachable
+      auth_authentik_token:
+        type: str
+        required: true
+        description:
+          - The token to use to connect to Authentik
+      ingress_custom_ca_cert:
+        type: str
+        description:
+          - The path on disk to a custom certificate to validate the TLS
+            certificates when ansible makes requests if they are not available
+            in the root certificate authorities
+      ingress_exposed_https_port:
+        type: int
+        required: false
+        default: 443
+        description:
+          - The port at which the service is exposed to the outside world.
+      ingress_https_port:
+        type: int
+        default: 16443
+        description:
+          - The port at which the service is exposed via the ingress, in order
+            to be able to make API calls to the service
+      ingress_traefik_certificates_resolvers:
+        type: dict
+        default: {}
+        description:
+          - The configuration for the certificate resolvers
+          - When created, it expects at least a 'default' entry, which will be
+            used for all services that don't specify an explicit resolver in
+            their configuration
+          - "'storage' MUST be set as C(/etc/traefik/acme.json)"
+          - See L(Traefik's documentation,
+            https://doc.traefik.io/traefik/https/acme/) for more information
+      ingress_validate_certs:
+        type: bool
+        default: true
+        description:
+          - Whether the TLS certificate should be verified when ansible makes
+            API calls
+      monitoring_grafana_data_path:
+        type: str
+        required: true
+        description:
+          - The directory in which the Grafana data will be stored
+      monitoring_grafana_postgres_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the PostgreSQL instance for Grafana should
+            store its data
+      monitoring_grafana_postgres_password:
+        type: str
+        required: true
+        description:
+          - The password used to connect to PostgreSQL database
+      monitoring_grafana_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which the Grafana instance is reachable
+      monitoring_grafana_secret_key:
+        type: str
+        required: true
+        description:
+          - The secret key to use in Grafana to encrypt various sensitive data
