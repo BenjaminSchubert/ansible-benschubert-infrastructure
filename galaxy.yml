@@ -28,6 +28,9 @@ description: |
   - L(Grafana, https://grafana.com/),
     using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
     which allows building dashboard to monitor the Homelab and more.
+  - L(Mimir, https://grafana.com/oss/mimir/),
+    using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
+    which allows ingesting and storing metrics and alerts.
 
   This collection globally expects that B(podman is already configured) on the
   host, and that the user running the role has enough B(user namespaces)

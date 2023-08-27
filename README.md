@@ -10,3 +10,4 @@ runs in rootless podman containers on the same machine.
 - [Traefik](https://traefik.io/) to act as an ingress controller
 - [Authentik](https://goauthentik.io/) to handle SSO
 - [Grafana](https://grafana.com/) for viewing metrics and logs
+- [Mimir](https://grafana.com/oss/mimir/) to ingest logs and metrics

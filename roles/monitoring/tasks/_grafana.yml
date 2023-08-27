@@ -94,6 +94,7 @@
     infra_name: monitoring-grafana-infra
     network:
       - ingress-monitoring-grafana
+      - monitoring-grafana-mimir
       - monitoring-grafana-postgres
     userns: auto:size=1024
 

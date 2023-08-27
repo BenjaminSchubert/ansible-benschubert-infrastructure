@@ -61,6 +61,7 @@ def session(
             "auth_authentik_hostname",
             "ingress_traefik_dashboard_hostname",
             "monitoring_grafana_hostname",
+            "monitoring_mimir_hostname",
         ]:
             hostname = hostvars[hostname_var]
             session_.mount(

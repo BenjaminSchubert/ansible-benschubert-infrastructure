@@ -275,6 +275,21 @@ argument_specs:
         required: true
         description:
           - The secret key to use in Grafana to encrypt various sensitive data
+      monitoring_mimir_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which the Mimir instance is reachable
+      monitoring_mimir_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the Mimir configuration files should be stored.
+      monitoring_mimir_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the Mimir data should be stored.
 
       ##
       # Miscellaneous
