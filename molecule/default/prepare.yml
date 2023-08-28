@@ -42,3 +42,15 @@
         name: "{{ item.Name }}"
         state: absent
       loop: "{{ _all_pods.pods }}"
+
+    - name: Gather info about all present secrets
+      ansible.builtin.command:
+        cmd: podman secret ls --quiet
+      changed_when: false
+      register: _all_secrets
+
+    - name: Remove all current secrets
+      containers.podman.podman_secret:
+        name: "{{ item }}"
+        state: absent
+      loop: "{{ _all_secrets.stdout_lines }}"
