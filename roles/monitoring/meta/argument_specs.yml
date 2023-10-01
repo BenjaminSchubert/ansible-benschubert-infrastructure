@@ -54,6 +54,11 @@ argument_specs:
         description:
           - Whether the TLS certificate should be verified when ansible makes
             API calls
+      monitoring_grafana_admin_group_name:
+        type: str
+        default: Grafana Admins
+        description:
+          - The name of the group in Authentik that should be admins in Grafana
       monitoring_grafana_data_path:
         type: str
         required: true

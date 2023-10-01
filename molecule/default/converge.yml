@@ -30,3 +30,31 @@
     - name: Setup everything
       ansible.builtin.import_role:
         name: benschubert.infrastructure.main
+
+    - name: Get the Grafana group info
+      benschubert.infrastructure.authentik_group_info:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        name: "{{ monitoring_grafana_admin_group_name }}"
+      register: group
+
+    - name: Get the akadmin user info
+      benschubert.infrastructure.authentik_user_info:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        username: akadmin
+      register: user
+
+    - name: Add akadmin to the grafana admin group
+      benschubert.infrastructure.authentik_user_group:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        user_pk: "{{ user.data.pk }}"
+        group_pk: "{{ group.data.pk }}"
+      register: blah

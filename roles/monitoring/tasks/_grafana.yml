@@ -41,6 +41,15 @@
     type: oauth2
   register: _provider_result
 
+- name: Create the grafana admin group
+  benschubert.infrastructure.authentik_group:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    group:
+      name: "{{ monitoring_grafana_admin_group_name }}"
+
 - name: Create the required secrets
   containers.podman.podman_secret:
     name: "{{ item.name }}"
@@ -104,7 +113,7 @@
       GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: >-
         {{ '1' if (not ingress_validate_certs or ingress_custom_ca_cert) else omit }}
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: >-
-        contains(groups[*], 'admins') && 'Admin' || 'Viewer'
+        contains(groups[*], '{{ monitoring_grafana_admin_group_name }}') && 'Admin' || 'Viewer'
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_STRICT: "true"
       GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN: "true"
       # Database
