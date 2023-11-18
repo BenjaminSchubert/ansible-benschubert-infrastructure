@@ -76,3 +76,14 @@
     ingress_name: mimir
     hostname: "{{ monitoring_mimir_hostname }}"
     expected_status_code: 302
+
+- name: Register Mimir as a datasource on grafana
+  community.grafana.grafana_datasource:
+    name: mimir
+    ds_type: prometheus
+    ds_url: http://monitoring-mimir:9009/prometheus
+    grafana_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}
+    grafana_user: "{{ monitoring_grafana_admin_user }}"
+    grafana_password: "{{ monitoring_grafana_admin_password }}"
+    is_default: true
+    validate_certs: false
