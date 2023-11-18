@@ -75,7 +75,6 @@ provisioner:
         auth_authentik_superadmin_bootstrap_email: ${AUTHENTIK_EMAIL:-null}
         auth_authentik_superadmin_bootstrap_password: password
         auth_authentik_superadmin_bootstrap_token: superadmintoken
-        auth_authentik_token: superadmintoken
         auth_postgres_password: verysecretpassword
         auth_postgres_data_path: /home/podman/services/auth/postgres
         auth_redis_password: veryredispassword

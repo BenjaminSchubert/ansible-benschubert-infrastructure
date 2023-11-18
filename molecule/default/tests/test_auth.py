@@ -29,7 +29,7 @@ def test_no_tasks_failed(
     resp = session.get(
         f"https://{hostvars['auth_authentik_hostname']}/api/v3/events/system_tasks/",
         headers={
-            "Authorization": f"Bearer {hostvars['auth_authentik_token']}",
+            "Authorization": f"Bearer {hostvars['auth_authentik_superadmin_bootstrap_token']}"
         },
         allow_redirects=False,
         timeout=10,
