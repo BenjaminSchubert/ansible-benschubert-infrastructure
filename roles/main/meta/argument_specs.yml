@@ -233,11 +233,22 @@ argument_specs:
       ##
       # Monitoring
       ##
+      monitoring_grafana_admin_bootstrap_password:
+        type: str
+        required: false
+        description:
+          - The password to give to the Grafana admin user
       monitoring_grafana_admin_group_name:
         type: str
         default: Grafana Admins
         description:
           - The name of the group in Authentik that should be admins in Grafana
+      monitoring_grafana_admin_user:
+        type: str
+        default: admin
+        description:
+          - The name of the admin user for Grafana. This user will not exist on
+            the Authentik service
       monitoring_grafana_data_path:
         type: str
         required: true

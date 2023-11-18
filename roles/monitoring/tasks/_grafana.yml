@@ -1,4 +1,14 @@
 ---
+- name: Warn if the bootstrap secrets are set
+  ansible.builtin.fail:
+    msg: >-
+      The bootstrap admin password is still injected. You might want to
+      change the secrets and remove them from the variables for security
+  when: monitoring_grafana_admin_bootstrap_password
+  ignore_errors: true
+  tags:
+    - skip_ansible_lint
+
 - name: Ensure the paths for grafana exist
   become_method: containers.podman.podman_unshare
   become: true
@@ -129,6 +139,8 @@
       GF_ANALYTICS_CHECK_FOR_UPDATES: "0"
       GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "0"
       GF_SECURITY_SECRET_KEY__FILE: /run/secrets/monitoring-grafana-secret-key
+      GF_SECURITY_ADMIN_USER: "{{ monitoring_grafana_admin_user }}"
+      GF_SECURITY_ADMIN_PASSWORD: "{{ monitoring_grafana_admin_bootstrap_password }}"
     secrets:
       - monitoring-grafana-postgres-password,target=/run/secrets/monitoring-grafana-postgres-password
       - monitoring-grafana-client-secret,target=/run/secrets/monitoring-grafana-client-secret

@@ -1,2 +1,4 @@
 ---
 monitoring_grafana_admin_group_name: Grafana Admins
+monitoring_grafana_admin_user: admin
+monitoring_grafana_admin_password: "{{ monitoring_grafana_admin_bootstrap_password }}"
