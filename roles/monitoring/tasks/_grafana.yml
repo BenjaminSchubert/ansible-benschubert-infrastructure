@@ -19,7 +19,7 @@
 
 - name: Create the Grafana network
   containers.podman.podman_network:
-    name: ingress-monitoring-grafana
+    name: ingress-monitoring
     internal: true
 
 - name: Create an application for Grafana on Authentik
@@ -93,8 +93,7 @@
     state: created
     infra_name: monitoring-grafana-infra
     network:
-      - ingress-monitoring-grafana
-      - monitoring-grafana-mimir
+      - ingress-monitoring
       - monitoring-grafana-postgres
     userns: auto:size=1024
 

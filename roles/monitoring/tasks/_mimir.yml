@@ -20,7 +20,7 @@
 
 - name: Create the Mimir network
   containers.podman.podman_network:
-    name: ingress-monitoring-mimir
+    name: ingress-monitoring
     internal: true
 
 - name: Create the Mimir pod
@@ -29,8 +29,7 @@
     state: created
     infra_name: monitoring-mimir-infra
     network:
-      - ingress-monitoring-mimir
-      - monitoring-grafana-mimir
+      - ingress-monitoring
     userns: auto:size=1024
 
 - name: Setup the Mimir container

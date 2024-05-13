@@ -1,9 +1,4 @@
 ---
-- name: Create the mimir-grafana network
-  containers.podman.podman_network:
-    name: monitoring-grafana-mimir
-    internal: true
-
 - name: Setup Grafana
   ansible.builtin.import_tasks:
     file: _grafana.yml

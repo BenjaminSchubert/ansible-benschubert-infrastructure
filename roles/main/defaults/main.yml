@@ -1,8 +1,7 @@
 ---
 ingress_networks:
   - ingress-auth
-  - ingress-monitoring-grafana
-  - ingress-monitoring-mimir
+  - ingress-monitoring
 
 ingress_network_aliases:
   - "{{ auth_authentik_hostname }}"
