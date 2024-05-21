@@ -117,11 +117,11 @@ register_managed_step(ruff())
 register_managed_step(
     ruff(additional_arguments=["check", "--fix"]),
     name="ruff:fix",
+    run_by_default=False,
 )
 register_managed_step(
     ruff(additional_arguments=["format", "--diff"]),
     name="format",
-    run_by_default=False,
 )
 register_managed_step(
     ruff(additional_arguments=["format"]),

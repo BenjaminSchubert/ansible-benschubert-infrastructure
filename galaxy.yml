@@ -31,6 +31,9 @@ description: |
   - L(Mimir, https://grafana.com/oss/mimir/),
     using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
     which allows ingesting and storing metrics and alerts.
+  - L(Grafana Alloy, https://grafana.com/oss/alloy-opentelemetry-collector/),
+    using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
+    which allows collecting metrics and logs
 
   This collection globally expects that B(podman is already configured) on the
   host, and that the user running the role has enough B(user namespaces)

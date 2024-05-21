@@ -10,19 +10,21 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url
 
 
-def get_base_arguments() -> dict[str, Any]:
+def get_base_arguments(include_state: bool = True) -> dict[str, Any]:
     """Get the base arguments required for the AUthentik utility."""
-    return {
+    base = {
         "authentik_url": {"type": "str", "required": True},
         "authentik_token": {"type": "str", "required": True, "no_log": True},
         "ca_path": {"type": "str", "required": False},
         "validate_certs": {"type": "bool", "default": True},
-        "state": {
+    }
+    if include_state:
+        base["state"] = {
             "type": "str",
             "choices": ["present", "absent"],
             "default": "present",
-        },
-    }
+        }
+    return base
 
 
 class Authentik:

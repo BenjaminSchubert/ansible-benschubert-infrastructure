@@ -9,5 +9,10 @@ plugins/modules/authentik_provider_info.py validate-modules:missing-gplv3-licens
 plugins/modules/authentik_provider_proxy.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_outpost.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_outpost_provider.py validate-modules:missing-gplv3-license
+plugins/modules/authentik_token.py validate-modules:missing-gplv3-license
+plugins/modules/authentik_token.py validate-modules:no-log-needed
+plugins/modules/authentik_token_value.py validate-modules:missing-gplv3-license
+plugins/modules/authentik_token_value.py validate-modules:no-log-needed
 plugins/modules/authentik_user_group.py validate-modules:missing-gplv3-license
+plugins/modules/authentik_user.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_user_info.py validate-modules:missing-gplv3-license

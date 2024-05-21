@@ -1,7 +1,3 @@
-# Ansible expects imports to be after the documentation
-# Ansible modules are not on path by default
-# pylint: disable=wrong-import-position,import-error
-
 DOCUMENTATION = """
 ---
 module: authentik_propertymappings_scope_info
@@ -79,7 +75,7 @@ from ansible_collections.benschubert.infrastructure.plugins.module_utils.authent
 
 
 def main() -> NoReturn:  # type: ignore[misc]
-    argument_spec = get_base_arguments()
+    argument_spec = get_base_arguments(include_state=False)
     argument_spec["scope_name"] = {"type": "str", "required": True}
 
     module = AnsibleModule(

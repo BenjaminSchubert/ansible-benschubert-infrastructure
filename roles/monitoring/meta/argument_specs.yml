@@ -9,6 +9,7 @@ argument_specs:
       - "It will configure the following:"
       - L(Grafana, https://grafana.com/)
       - L(Mimir, https://grafana.com/oss/mimir/)
+      - L(Grafana Alloy, https://grafana.com/oss/alloy-opentelemetry-collector/)
     options:
       auth_authentik_hostname:
         type: str
@@ -119,3 +120,79 @@ argument_specs:
         required: true
         description:
           - The path on disk where the Mimir data should be stored.
+      monitoring_monitor_agent_config_path:
+        type: str
+        required: true
+        description:
+          - The path at which the Grafana Alloy monitoring the monitoring stack
+            should store its configuration
+      monitoring_monitor_agent_data_path:
+        type: str
+        required: true
+        description:
+          - The path at which the Grafana Alloy monitoring the monitoring stack
+            should store its data
+  agent:
+    short_description: >-
+      Configure a Grafana alloy service to monitor some systems
+    description:
+      - This role configures a
+        L(Grafana Alloy, https://grafana.com/oss/alloy-opentelemetry-collector/)
+        container to monitor the provided services.
+    options:
+      auth_authentik_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which the Authentik service is reachable
+      auth_authentik_token:
+        type: str
+        required: true
+        description:
+          - The token to use to connect to Authentik
+      ingress_custom_ca_cert:
+        type: str
+        description:
+          - The path on disk to a custom certificate to validate the TLS
+            certificates when ansible makes requests if they are not available
+            in the root certificate authorities
+      ingress_https_port:
+        type: int
+        default: 16443
+        description:
+          - The port at which the service is exposed via the ingress, in order
+            to be able to make API calls to the service
+      ingress_validate_certs:
+        type: bool
+        default: true
+        description:
+          - Whether the TLS certificate should be verified when ansible makes
+            API calls
+      monitoring_agent_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where to store the agent's configuration
+      monitoring_agent_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the agent can store it's own data
+      monitoring_agent_networks:
+        type: list
+        elements: str
+        required: true
+        description:
+          - The networks that the agent should be joining
+      monitoring_agent_pod:
+        type: str
+        required: true
+        description:
+          - The name of the pod to deploy the agent in.
+          - It will be also used to create a user in Authentik to allow access
+            protected services
+      monitoring_mimir_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which to find the Mimir deployment

@@ -6,3 +6,14 @@
 - name: Setup Mimir
   ansible.builtin.import_tasks:
     file: _mimir.yml
+
+- name: Monitor the monitoring services
+  ansible.builtin.import_role:
+    name: monitoring
+    tasks_from: agent
+  vars:
+    monitoring_agent_config_path: "{{ monitoring_monitor_agent_config_path }}"
+    monitoring_agent_data_path: "{{ monitoring_monitor_agent_data_path }}"
+    monitoring_agent_networks:
+      - ingress-monitoring
+    monitoring_agent_pod: monitoring-monitor

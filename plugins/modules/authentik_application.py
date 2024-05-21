@@ -48,6 +48,7 @@ options:
 
 extends_documentation_fragment:
   - benschubert.infrastructure.authentik
+  - benschubert.infrastructure.authentik.stateful
 
 author:
   - Benjamin Schubert (@benjaminschubert)

@@ -1,17 +1,16 @@
 DOCUMENTATION = """
 ---
-module: authentik_user_info
+module: authentik_token_value
 
-short_description: Allows retrieving information about users from the Authentik API
+short_description: Allows retrieving the value of the provided token
 
 description:
-  - This module allows retrieving information from users from the Authentik API
-  - See https://goauthentik.io/docs/user-group-role/user
+  - This module allows retrieving a token by name from the Authentik API
 
 options:
-  username:
+  token:
     description:
-      - The name of the user to get information for
+      - The name of the token for which to retrieve the value
     required: true
     type: str
 
@@ -23,23 +22,19 @@ author:
 """
 
 EXAMPLES = """
-- name: Retrieve the akadmin user
-  benschubert.infrastructure.authentik_user_info:
+- name: Retrieve the token named test_token
+  benschubert.infrastructure.authentik_token_value:
     authentik_token: <my-secret-token>
     authentik_url: https://authentik.test/
-    username: akadmin
+    token: test_token
 """
 
 RETURN = """
-data:
-  description: The information returned by the Authentik API for the user
+key:
+  description: The value of the token
   returned: always
-  type: dict
-  sample:
-    pk: <pk>
-    name: akadmin
-    is_superuser: true
-    uid: <uid>
+  type: str
+  sample: mytokenvalue
 """
 
 
@@ -55,17 +50,18 @@ from ansible_collections.benschubert.infrastructure.plugins.module_utils.authent
 def main() -> NoReturn:  # type: ignore[misc]
     argument_spec = {
         **get_base_arguments(include_state=False),
-        "username": {"type": "str", "required": True},
+        "token": {"type": "str", "required": True},
     }
 
     module = AnsibleModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
+        no_log=True,
     )
 
-    authentik = Authentik(module, "/api/v3/core/users/")
-    result = authentik.get_one({"username": module.params["username"]})
-    module.exit_json(changed=False, data=result)
+    authentik = Authentik(module, "/api/v3/core/tokens/")
+    result = authentik.request(f"{module.params['token']}/view_key/")
+    module.exit_json(changed=False, key=result["key"])
 
 
 if __name__ == "__main__":

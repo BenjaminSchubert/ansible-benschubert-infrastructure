@@ -297,6 +297,18 @@ argument_specs:
         required: true
         description:
           - The path on disk where the Mimir data should be stored.
+      monitoring_monitor_agent_config_path:
+        type: str
+        required: true
+        description:
+          - The path at which the Grafana Alloy monitoring the monitoring stack
+            should store its configuration
+      monitoring_monitor_agent_data_path:
+        type: str
+        required: true
+        description:
+          - The path at which the Grafana Alloy monitoring the monitoring stack
+            should store its data
 
       ##
       # Miscellaneous

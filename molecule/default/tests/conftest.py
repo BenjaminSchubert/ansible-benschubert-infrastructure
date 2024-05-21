@@ -1,6 +1,7 @@
 import os
 from collections.abc import Iterator
-from typing import Any, cast
+from http import HTTPStatus
+from typing import Any, TypedDict
 
 import pytest
 import requests
@@ -9,18 +10,23 @@ from testinfra.host import Host
 from . import LocalhostVerifyAdapter
 
 
+class _TCache(TypedDict, total=False):
+    authentik_credentials: tuple[str, str]
+    hostvars: dict[str, Any]
+
+
 @pytest.fixture(scope="session")
-def cache() -> dict[str, Any]:
+def cache() -> _TCache:
     return {}
 
 
 @pytest.fixture(scope="module")
-def hostvars(host: Host, cache: dict[str, Any]) -> dict[str, Any]:
+def hostvars(host: Host, cache: _TCache) -> dict[str, Any]:
     if "hostvars" not in cache:
         ret = host.ansible("debug", "var=hostvars[inventory_hostname]")
         cache["hostvars"] = ret["hostvars[inventory_hostname]"]
 
-    return cast(dict[str, Any], cache["hostvars"])
+    return cache["hostvars"]
 
 
 @pytest.fixture(scope="session")
@@ -75,3 +81,23 @@ def session(
             )
 
         yield session_
+
+
+@pytest.fixture(scope="module")
+def authentik_credentials(
+    session: requests.Session, hostvars: dict[str, Any], cache: _TCache
+) -> tuple[str, str]:
+    if "authentik_credentials" not in cache:
+        # Get akadmin user
+        resp = session.get(
+            f"https://{hostvars['auth_authentik_hostname']}/api/v3/core/tokens/molecule-test/view_key/",
+            headers={
+                "Authorization": f"Bearer {hostvars['auth_authentik_superadmin_bootstrap_token']}"
+            },
+            allow_redirects=False,
+            timeout=10,
+        )
+        assert resp.status_code == HTTPStatus.OK
+        cache["authentik_credentials"] = ("akadmin", resp.json()["key"])
+
+    return cache["authentik_credentials"]

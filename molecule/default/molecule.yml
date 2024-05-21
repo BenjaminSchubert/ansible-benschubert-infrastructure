@@ -40,6 +40,7 @@ provisioner:
     host_vars:
       instance:
         ansible_user: podman
+        data: /home/podman/infrastructure
 
         template_warning: |
           ##################################################
@@ -65,7 +66,7 @@ provisioner:
         ingress_http_port: 16080
         ingress_https_port: 16443
         ingress_traefik_certificates_resolvers: ${TRAEFIK_CERTIFICATES_RESOLVER:-null}
-        ingress_traefik_configuration_files_path: /home/podman/services/traefik
+        ingress_traefik_configuration_files_path: "{{ data }}/traefik"
         ingress_traefik_environment_variables: ${TRAEFIK_ENVIRONMENT_VARIABLES:-null}
         ingress_traefik_secrets: ${TRAEFIK_SECRETS:-null}
         ingress_validate_certs: ${TRAEFIK_VALIDATE_CERTS:-false}
@@ -78,11 +79,11 @@ provisioner:
         auth_authentik_superadmin_bootstrap_password: password
         auth_authentik_superadmin_bootstrap_token: superadmintoken
         auth_postgres_password: verysecretpassword
-        auth_postgres_data_path: /home/podman/services/auth/postgres
+        auth_postgres_data_path: "{{ data }}/auth/postgres"
         auth_redis_password: veryredispassword
-        auth_redis_config_path: /home/podman/services/auth/redis/config/
-        auth_redis_data_path: /home/podman/services/auth/redis/data/
-        auth_authentik_configuration_path: /home/podman/services/auth/authentik
+        auth_redis_config_path: "{{ data }}/auth/redis/config/"
+        auth_redis_data_path: "{{ data }}/auth/redis/data/"
+        auth_authentik_configuration_path: "{{ data }}/auth/authentik"
         auth_authentik_email_config: ${EMAIL_CONFIG:-null}
         auth_authentik_background: ${AUTHENTIK_WALLPAPER:-null}
 
@@ -93,7 +94,9 @@ provisioner:
         monitoring_grafana_admin_user: admin
         monitoring_grafana_admin_bootstrap_password: supersecretpassword
         monitoring_grafana_postgres_password: postgresgrafanapassword
-        monitoring_grafana_postgres_data_path: /home/podman/services/monitoring/grafana/postgres
-        monitoring_grafana_data_path: /home/podman/services/monitoring/grafana/grafana
-        monitoring_mimir_config_path: /home/podman/services/monitoring/mimir/config
-        monitoring_mimir_data_path: /home/podman/services/monitoring/mimir/data
+        monitoring_grafana_postgres_data_path: "{{ data }}/monitoring/grafana/postgres"
+        monitoring_grafana_data_path: "{{ data }}/monitoring/grafana/grafana"
+        monitoring_mimir_config_path: "{{ data }}/monitoring/mimir/config"
+        monitoring_mimir_data_path: "{{ data }}/monitoring/mimir/data"
+        monitoring_monitor_agent_config_path: "{{ data }}/monitoring/agent/config"
+        monitoring_monitor_agent_data_path: "{{ data }}/monitoring/agent/data"

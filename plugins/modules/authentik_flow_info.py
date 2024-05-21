@@ -58,7 +58,7 @@ from ansible_collections.benschubert.infrastructure.plugins.module_utils.authent
 
 
 def main() -> NoReturn:  # type: ignore[misc]
-    argument_spec = get_base_arguments()
+    argument_spec = get_base_arguments(include_state=False)
     argument_spec["slug"] = {"type": "str", "required": True}
 
     module = AnsibleModule(

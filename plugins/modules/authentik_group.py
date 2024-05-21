@@ -1,7 +1,3 @@
-# Ansible expects imports to be after the documentation
-# Ansible modules are not on path by default
-# pylint: disable=wrong-import-position,import-error
-
 DOCUMENTATION = """
 ---
 module: authentik_group
@@ -9,7 +5,7 @@ module: authentik_group
 short_description: Allows administration of Authentik groups
 
 description:
-  - This module allows the administration of Authentik applications via the
+  - This module allows the administration of Authentik groups via the
     Authentik API.
   - See https://goauthentik.io/docs/user-group-role/groups
 
@@ -29,6 +25,7 @@ options:
 
 extends_documentation_fragment:
   - benschubert.infrastructure.authentik
+  - benschubert.infrastructure.authentik.stateful
 
 author:
   - Benjamin Schubert (@benjaminschubert)

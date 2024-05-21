@@ -57,4 +57,17 @@
         validate_certs: "{{ ingress_validate_certs }}"
         user_pk: "{{ user.data.pk }}"
         group_pk: "{{ group.data.pk }}"
-      register: blah
+
+    - name: Create a token to access services as akadmin
+      benschubert.infrastructure.authentik_token:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        token:
+          identifier: molecule-test
+          intent: app_password
+          user: "{{ user.data.pk }}"
+          description: A token to allow Akadmin to access services via APIs
+          expiring: false
+      register: _test

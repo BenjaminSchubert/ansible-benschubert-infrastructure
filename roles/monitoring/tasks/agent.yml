@@ -1,0 +1,101 @@
+---
+- name: Ensure the Agent's paths exist
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0o700"
+  loop:
+    - "{{ monitoring_agent_config_path }}"
+    - "{{ monitoring_agent_data_path }}"
+
+- name: Create the agent's service account to authenticate
+  benschubert.infrastructure.authentik_user:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    user:
+      name: "{{ monitoring_agent_pod }}"
+      username: "{{ monitoring_agent_pod }}"
+      path: service-accounts
+      type: service_account
+  register: _service_account
+
+- name: Create the agent's service account's token
+  benschubert.infrastructure.authentik_token:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    token:
+      identifier: monitoring-auth-token
+      intent: app_password
+      user: "{{ _service_account.data.pk }}"
+      description: Token to authenticate the agent against mimir
+      expiring: false
+
+- name: Retrieve the generated token
+  benschubert.infrastructure.authentik_token_value:
+    authentik_token: "{{ auth_authentik_token }}"
+    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+    token: monitoring-auth-token
+  register: _service_account_token
+
+- name: Create the mimir authentication secret
+  containers.podman.podman_secret:
+    name: "{{ monitoring_agent_pod }}-mimir-credentials"
+    data: "{{ _service_account_token.key }}"
+    state: present
+    skip_existing: true
+  no_log: true
+
+- name: Create the agent default configuration file
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.template:
+    src: agent-config.alloy.j2
+    dest: "{{ monitoring_agent_config_path }}/config.alloy"
+    mode: 0o400
+  register: _configuration
+
+- name: Create the Agent's pod
+  containers.podman.podman_pod:
+    name: "{{ monitoring_agent_pod }}"
+    state: created
+    infra_name: "{{ monitoring_agent_pod }}-infra"
+    network: "{{ monitoring_agent_networks }}"
+    userns: auto:size=1024
+
+- name: Setup the Alloy's container
+  containers.podman.podman_container:
+    name: "{{ monitoring_agent_pod }}-agent"
+    pod: "{{ monitoring_agent_pod }}"
+    state: started
+    image: docker.io/grafana/alloy
+    command:
+      - run
+      - --disable-reporting
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    force_restart: "{{ _configuration.changed }}"
+    # FIXME: Once https://github.com/grafana/alloy/issues/477 is resolved
+    #        we should be able to set it to curl/wget
+    # healthcheck: wget -O- http://localhost:9009/-/healthy
+    healthcheck: /bin/true
+    read_only: true
+    secrets:
+      - "{{ monitoring_agent_pod }}-mimir-credentials,target=/run/secrets/mimir-authentication-key"
+    volumes:
+      - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,U,Z"
+      - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:U,Z"
+
+- name: Ensure the agent container is healthy
+  ansible.builtin.command: podman healthcheck run {{ monitoring_agent_pod }}-agent
+  register: _healthcheck
+  until: _healthcheck is not failed
+  retries: 3
+  changed_when: false
