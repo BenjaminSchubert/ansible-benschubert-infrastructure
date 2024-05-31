@@ -196,3 +196,37 @@ argument_specs:
         required: true
         description:
           - The hostname at which to find the Mimir deployment
+      monitoring_agent_postgres_instances:
+        type: list
+        elements: dict
+        default: []
+        description:
+          - A list of PostgreSQL databases to monitor
+        options:
+          database:
+            type: str
+            required: true
+            description:
+              - The name of the database to which to connect
+          instance:
+            type: str
+            required: true
+            description:
+              - The hostname of the database to which to connect
+          password:
+            type: str
+            required: true
+            description:
+              - The password to use to connect to the database
+          username:
+            type: str
+            required: true
+            description:
+              - The username to use to connect to the database
+      monitoring_agent_prometheus_endpoints:
+        type: dict
+        default: {}
+        description:
+          - A dictionary of C(name) to C(hostname:port) of endpoints for which
+            to collect Prometheus metrics.
+          - C(name) is an arbitrary value that is used as the instance label.

@@ -8,11 +8,36 @@ local.file "mimir_authentication_key" {
   is_secret = true
 }
 
-prometheus.scrape "agent" {
-  scrape_interval = "30s"
-  targets    = [
-    {"__address__" = "localhost:12345", "instance" = "agent"},
+{% if monitoring_agent_postgres_instances %}
+{% for instance in monitoring_agent_postgres_instances %}
+local.file "{{ instance.instance | replace("-", "_") }}" {
+  filename = "/run/secrets/postgres-{{ instance.instance }}"
+  is_secret = true
+}
+{% endfor %}
+
+prometheus.exporter.postgres "benschubert_infrastructure" {
+  data_source_names = [
+    {% for instance in monitoring_agent_postgres_instances %}
+    local.file.{{ instance.instance | replace("-", "_") }}.content,
+    {% endfor %}
   ]
+}
+{% endif %}
+
+prometheus.scrape "benschubert_infrastructure" {
+  scrape_interval = "30s"
+  targets = concat(
+    [
+      {"__address__" = "localhost:12345", "instance" = "agent"},
+      {% for instance, address in monitoring_agent_prometheus_endpoints.items() %}
+      {"__address__" = "{{ address }}", "instance" = "{{ instance }}"},
+      {% endfor %}
+    ],
+    {% if monitoring_agent_postgres_instances %}
+    prometheus.exporter.postgres.benschubert_infrastructure.targets,
+    {% endif %}
+  )
   forward_to = [
     prometheus.remote_write.monitor.receiver,
   ]

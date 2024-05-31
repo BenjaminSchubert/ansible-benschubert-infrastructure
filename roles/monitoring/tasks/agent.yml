@@ -53,6 +53,16 @@
     skip_existing: true
   no_log: true
 
+- name: Create the secrets for the postgresql connection strings
+  containers.podman.podman_secret:
+    name: "{{ monitoring_agent_pod }}-postgres-{{ item.instance }}"
+    # yamllint disable-line rule:line-length
+    data: postgresql://{{ item.username }}:{{ item.password }}@{{ item.instance }}:5432/{{ item.database }}?sslmode=disable
+    state: present
+    skip_existing: true
+  loop: "{{ monitoring_agent_postgres_instances }}"
+  no_log: true
+
 - name: Create the agent default configuration file
   become_method: containers.podman.podman_unshare
   become: true
@@ -87,8 +97,22 @@
     # healthcheck: wget -O- http://localhost:9009/-/healthy
     healthcheck: /bin/true
     read_only: true
-    secrets:
-      - "{{ monitoring_agent_pod }}-mimir-credentials,target=/run/secrets/mimir-authentication-key"
+    secrets: >-
+      {{
+        [
+          "{}-mimir-credentials,target=/run/secrets/mimir-authentication-key".format(
+            monitoring_agent_pod
+          ),
+        ] + (
+          monitoring_agent_postgres_instances
+          | map(attribute="instance")
+          | map(
+            "regex_replace",
+            "(.+)",
+            "{}-postgres-\1,target=/run/secrets/postgres-\1".format(monitoring_agent_pod)
+          ) | list
+        )
+      }}
     volumes:
       - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,U,Z"
       - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:U,Z"

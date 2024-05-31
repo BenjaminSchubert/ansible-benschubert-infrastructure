@@ -2,3 +2,5 @@
 monitoring_grafana_admin_group_name: Grafana Admins
 monitoring_grafana_admin_user: admin
 monitoring_grafana_admin_password: "{{ monitoring_grafana_admin_bootstrap_password }}"
+monitoring_agent_prometheus_endpoints: {}
+monitoring_agent_postgres_instances: []

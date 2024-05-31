@@ -16,4 +16,13 @@
     monitoring_agent_data_path: "{{ monitoring_monitor_agent_data_path }}"
     monitoring_agent_networks:
       - ingress-monitoring
+      - monitoring-grafana-postgres
     monitoring_agent_pod: monitoring-monitor
+    monitoring_agent_prometheus_endpoints:
+      mimir: monitoring-mimir:9009
+      grafana: monitoring-grafana:3000
+    monitoring_agent_postgres_instances:
+      - instance: monitoring-grafana-postgres
+        username: grafana
+        password: "{{ monitoring_grafana_postgres_password }}"
+        database: grafana
