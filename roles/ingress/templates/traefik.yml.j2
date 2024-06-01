@@ -19,12 +19,15 @@ entryPoints:
           scheme: https
   web-secure:
     address: ":16443"
-
-  ping:
+  metrics:
     address: ":8082"
 
+metrics:
+  prometheus:
+    entryPoint: metrics
+
 ping:
-  entryPoint: "ping"
+  entryPoint: metrics
 
 providers:
   file:

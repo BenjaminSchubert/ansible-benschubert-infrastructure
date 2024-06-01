@@ -30,7 +30,7 @@
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
     token:
-      identifier: monitoring-auth-token
+      identifier: "{{ monitoring_agent_pod }}-agent-auth-token"
       intent: app_password
       user: "{{ _service_account.data.pk }}"
       description: Token to authenticate the agent against mimir
@@ -42,7 +42,7 @@
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
-    token: monitoring-auth-token
+    token: "{{ monitoring_agent_pod }}-agent-auth-token"
   register: _service_account_token
 
 - name: Create the mimir authentication secret

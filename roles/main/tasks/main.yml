@@ -11,11 +11,11 @@
   ansible.builtin.import_role:
     name: benschubert.infrastructure.auth
 
-- name: Add Traefik dashboard
-  ansible.builtin.import_role:
-    name: benschubert.infrastructure.ingress
-    tasks_from: dashboard
-
 - name: Configure monitoring services
   ansible.builtin.import_role:
     name: benschubert.infrastructure.monitoring
+
+- name: Add Traefik dashboard
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+    tasks_from: finalize

@@ -141,13 +141,14 @@ argument_specs:
           - The status code that the service is expected to return when reached
             at /
           - Used when validating that the service is indeed reachable
-  dashboard:
+  finalize:
     short_description: >-
       Expose the Traefik dashboard on the instance deployed via the main
-      entry-point
+      entry-point and enables metrics monitoring
     description:
       - The service as created will be protected by Authentik and requires
         authentication
+      - It thus needs to run only once the Authentik service has been brought up.
     options:
       auth_authentik_hostname:
         type: str
@@ -165,6 +166,16 @@ argument_specs:
           - The path on disk to a custom certificate to validate the TLS
             certificates when ansible makes requests if they are not available
             in the root certificate authorities
+      ingress_monitor_agent_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where to store the monitoring's agent configuration files
+      ingress_monitor_agent_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where to store the monitoring's agent data
       ingress_traefik_dashboard_hostname:
         type: str
         required: true

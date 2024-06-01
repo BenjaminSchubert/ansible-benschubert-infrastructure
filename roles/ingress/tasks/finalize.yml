@@ -22,3 +22,17 @@
     ingress_name: traefik-dashboard
     hostname: "{{ ingress_traefik_dashboard_hostname }}"
     expected_status_code: 302
+
+- name: Monitor Traefik
+  ansible.builtin.import_role:
+    name: monitoring
+    tasks_from: agent
+  vars:
+    monitoring_agent_config_path: "{{ ingress_monitor_agent_config_path }}"
+    monitoring_agent_data_path: "{{ ingress_monitor_agent_data_path }}"
+    monitoring_agent_networks:
+      - ingress
+    monitoring_agent_pod: ingress-monitor
+    monitoring_agent_prometheus_endpoints:
+      traefik: ingress:8082
+    monitoring_agent_postgres_instances: []

@@ -171,6 +171,18 @@ argument_specs:
             part of this collection through the ingress.
           - For a definition of what the entries can accept, see
             I(ingress_networks)
+      ingress_monitor_agent_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where to store the monitoring's agent configuration files
+            for the ingress services
+      ingress_monitor_agent_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where to store the monitoring's agent data for the
+            ingress services
       ingress_networks:
         type: list
         elements: str

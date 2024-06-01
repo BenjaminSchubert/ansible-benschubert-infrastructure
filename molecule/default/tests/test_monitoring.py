@@ -52,14 +52,40 @@ def test_services_are_up(
     result = resp.json()
     assert result["status"] == "success"
     entries = {
-        (r["metric"]["instance"], r["value"][1])
+        (r["metric"]["instance"], r["metric"]["job"], r["value"][1])
         for r in result["data"]["result"]
     }
     assert entries == {
-        ("agent", "1"),
-        ("grafana", "1"),
-        ("mimir", "1"),
-        ("postgresql://monitoring-grafana-postgres:5432/grafana", "1"),
+        (
+            "agent",
+            "prometheus.scrape.benschubert_infrastructure_ingress_monitor",
+            "1",
+        ),
+        (
+            "agent",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
+            "1",
+        ),
+        (
+            "grafana",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
+            "1",
+        ),
+        (
+            "mimir",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
+            "1",
+        ),
+        (
+            "postgresql://monitoring-grafana-postgres:5432/grafana",
+            "integrations/postgres",
+            "1",
+        ),
+        (
+            "traefik",
+            "prometheus.scrape.benschubert_infrastructure_ingress_monitor",
+            "1",
+        ),
     }
 
 
@@ -80,9 +106,13 @@ def test_postgres_databases_are_up(
     result = resp.json()
     assert result["status"] == "success"
     entries = {
-        (r["metric"]["instance"], r["value"][1])
+        (r["metric"]["instance"], r["metric"]["job"], r["value"][1])
         for r in result["data"]["result"]
     }
     assert entries == {
-        ("postgresql://monitoring-grafana-postgres:5432/grafana", "1"),
+        (
+            "postgresql://monitoring-grafana-postgres:5432/grafana",
+            "integrations/postgres",
+            "1",
+        ),
     }
