@@ -25,6 +25,16 @@ prometheus.exporter.postgres "benschubert_infrastructure" {
 }
 {% endif %}
 
+{% if monitoring_agent_redis_instances %}
+{% for instance in monitoring_agent_redis_instances %}
+prometheus.exporter.redis "benschubert_infrastructure" {
+  redis_addr = "{{ instance.name }}"
+  redis_user = "{{ instance.user }}"
+  redis_password_file = "/run/secrets/redis-{{ instance.name }}"
+}
+{% endfor %}
+{% endif %}
+
 prometheus.scrape "benschubert_infrastructure_{{ monitoring_agent_pod | replace('-', '_') }}" {
   scrape_interval = "30s"
   targets = concat(
@@ -36,6 +46,9 @@ prometheus.scrape "benschubert_infrastructure_{{ monitoring_agent_pod | replace(
     ],
     {% if monitoring_agent_postgres_instances %}
     prometheus.exporter.postgres.benschubert_infrastructure.targets,
+    {% endif %}
+    {% if monitoring_agent_redis_instances %}
+    prometheus.exporter.redis.benschubert_infrastructure.targets,
     {% endif %}
   )
   forward_to = [

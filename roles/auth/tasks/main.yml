@@ -75,6 +75,7 @@
     redis_data_path: "{{ auth_redis_data_path }}"
     redis_network: auth-redis
     redis_password: "{{ auth_redis_password }}"
+    redis_metrics_password: "{{ auth_redis_metrics_password }}"
 
 - name: Create the auth pod
   containers.podman.podman_pod:
@@ -118,6 +119,7 @@
       AUTHENTIK_ERROR_REPORTING__ENABLED: false
       AUTHENTIK_DISABLE_STARTUP_ANALYTICS: true
       AUTHENTIK_AVATARS: none
+      AUTHENTIK_LISTEN__METRICS: 0.0.0.0:9300
       AUTHENTIK_HOST: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
       # Email configurations
       AUTHENTIK_EMAIL__HOST: "{{ auth_authentik_email_config.host | default(omit) }}"
@@ -247,3 +249,27 @@
     ingress_name: authentik
     hostname: "{{ auth_authentik_hostname }}"
     expected_status_code: 302
+
+- name: Monitor Authentik
+  ansible.builtin.import_role:
+    name: monitoring
+    tasks_from: agent
+  vars:
+    monitoring_agent_config_path: "{{ auth_monitor_agent_config_path }}"
+    monitoring_agent_data_path: "{{ auth_monitor_agent_data_path }}"
+    monitoring_agent_networks:
+      - ingress-auth
+      - auth-postgres
+      - auth-redis
+    monitoring_agent_pod: auth-monitor
+    monitoring_agent_prometheus_endpoints:
+      authentik: auth:9300
+    monitoring_agent_postgres_instances:
+      - instance: auth-postgres
+        username: authentik
+        password: "{{ auth_postgres_password }}"
+        database: authentik
+    monitoring_agent_redis_instances:
+      - name: auth-redis
+        user: metrics
+        password: "{{ auth_redis_metrics_password }}"

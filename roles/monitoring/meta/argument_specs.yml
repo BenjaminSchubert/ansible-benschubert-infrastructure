@@ -230,3 +230,26 @@ argument_specs:
           - A dictionary of C(name) to C(hostname:port) of endpoints for which
             to collect Prometheus metrics.
           - C(name) is an arbitrary value that is used as the instance label.
+      monitoring_agent_redis_instances:
+        type: list
+        default: []
+        elements: dict
+        description:
+          - A list of Redis instances to monitor
+        options:
+          name:
+            type: str
+            required: true
+            description:
+              - The hostname of the Redis instance
+          password:
+            type: str
+            required: true
+            description:
+              - The password for the user to use for metrics collection on
+                Redis, to use to authenticate.
+          user:
+            type: str
+            required: true
+            description:
+              - The username to use to authenticate against Redis

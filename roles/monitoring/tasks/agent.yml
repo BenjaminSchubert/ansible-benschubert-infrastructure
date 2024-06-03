@@ -63,6 +63,16 @@
   loop: "{{ monitoring_agent_postgres_instances }}"
   no_log: true
 
+- name: Create the secrets for the redis passwords
+  containers.podman.podman_secret:
+    name: "{{ monitoring_agent_pod }}-redis-{{ item.name }}"
+    # yamllint disable-line rule:line-length
+    data: "{{ item.password }}"
+    state: present
+    skip_existing: true
+  loop: "{{ monitoring_agent_redis_instances }}"
+  no_log: true
+
 - name: Create the agent default configuration file
   become_method: containers.podman.podman_unshare
   become: true
@@ -110,6 +120,14 @@
             "regex_replace",
             "(.+)",
             "{}-postgres-\1,target=/run/secrets/postgres-\1".format(monitoring_agent_pod)
+          ) | list
+        ) + (
+          monitoring_agent_redis_instances
+          | map(attribute="name")
+          | map(
+            "regex_replace",
+            "(.+)",
+            "{}-redis-\1,target=/run/secrets/redis-\1".format(monitoring_agent_pod)
           ) | list
         )
       }}

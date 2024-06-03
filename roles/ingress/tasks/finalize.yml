@@ -36,3 +36,4 @@
     monitoring_agent_prometheus_endpoints:
       traefik: ingress:8082
     monitoring_agent_postgres_instances: []
+    monitoring_agent_redis_instances: []

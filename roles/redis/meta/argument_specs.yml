@@ -19,6 +19,11 @@ argument_specs:
         required: true
         description: >-
           The path on disk where Redis will store it's data for persistence
+      redis_metrics_password:
+        type: str
+        required: true
+        description: >-
+          The password to allow the metric gathering agent to connect to Redis
       redis_network:
         type: str
         required: true

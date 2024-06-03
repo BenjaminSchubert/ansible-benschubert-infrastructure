@@ -104,6 +104,11 @@ argument_specs:
         required: true
         description:
           - The path on disk where the Redis instance should store its data
+      auth_redis_metrics_password:
+        type: str
+        required: true
+        description:
+          - The password to allow the metric gathering agent to connect to Redis
       auth_redis_password:
         type: str
         required: true

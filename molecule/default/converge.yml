@@ -18,6 +18,8 @@
             status_code:
               - 200
               - 304
+          tags:
+            - molecule-idempotence-notest
 
     # FIXME: find out how to do replacements for molecule that support default
     #        values of '{}'

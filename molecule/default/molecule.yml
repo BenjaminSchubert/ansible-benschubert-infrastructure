@@ -80,9 +80,12 @@ provisioner:
         auth_authentik_superadmin_bootstrap_email: ${AUTHENTIK_EMAIL:-null}
         auth_authentik_superadmin_bootstrap_password: password
         auth_authentik_superadmin_bootstrap_token: superadmintoken
+        auth_monitor_agent_config_path: "{{ data }}/auth/agent/config"
+        auth_monitor_agent_data_path: "{{ data }}/auth/agent/data"
         auth_postgres_password: verysecretpassword
         auth_postgres_data_path: "{{ data }}/auth/postgres"
         auth_redis_password: veryredispassword
+        auth_redis_metrics_password: verymetricspassword
         auth_redis_config_path: "{{ data }}/auth/redis/config/"
         auth_redis_data_path: "{{ data }}/auth/redis/data/"
         auth_authentik_configuration_path: "{{ data }}/auth/authentik"

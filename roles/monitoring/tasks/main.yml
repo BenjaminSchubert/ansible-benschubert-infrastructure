@@ -26,3 +26,4 @@
         username: grafana
         password: "{{ monitoring_grafana_postgres_password }}"
         database: grafana
+    monitoring_agent_redis_instances: []

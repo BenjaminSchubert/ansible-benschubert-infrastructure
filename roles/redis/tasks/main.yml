@@ -8,6 +8,7 @@
     - "{{ redis_config_path }}"
     - "{{ redis_data_path }}"
 
+# FIXME: should this be stored as a secret?
 - name: Create the redis.conf configuration
   become_method: containers.podman.podman_unshare
   become: true
@@ -15,6 +16,7 @@
     content: |
       user ping on nopass +ping
       user default on ~* &* +@all -@dangerous -@admin +keys >{{ redis_password }}
+      user metrics on ~* &* +client +info +latency >{{ redis_metrics_password }}
     dest: "{{ redis_config_path }}/redis.conf"
     mode: "0o400"
   register: _configuration
