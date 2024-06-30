@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
@@ -36,23 +36,23 @@ class LocalhostVerifyAdapter(requests.adapters.HTTPAdapter):
         self._verify = verify
         super().__init__()
 
-    def add_headers(self, request: requests.Request, **kwargs: Any) -> None:
-        assert "HOST" not in request.headers
-        request.headers["HOST"] = urlparse(request.url).hostname
-        super().add_headers(request, **kwargs)  # type: ignore[no-untyped-call]
-
-    def get_connection(
+    def get_connection_with_tls_context(
         self,
-        url: str,
-        proxies: dict[str, str] | None = None,
+        request: requests.PreparedRequest,
+        verify: bool | str | None,
+        proxies: Mapping[str, str] | None = None,
+        cert: tuple[str, str] | str | None = None,
     ) -> urllib3.connectionpool.ConnectionPool:
-        scheme = urlparse(url).scheme
-        return cast(
-            urllib3.connectionpool.ConnectionPool,
-            super().get_connection(  # type: ignore[no-untyped-call]
-                f"{scheme}://{self._real_target}:{self._port}",
-                proxies,
-            ),
+        url = urlparse(request.url)
+
+        # Mypy is wrong here, all those are strings
+        request.headers["HOST"] = url.hostname  # type: ignore[assignment]
+        request.url = url._replace(  # type: ignore[assignment]
+            netloc=f"{self._real_target}:{self._port}"  # type: ignore[arg-type]
+        ).geturl()
+
+        return super().get_connection_with_tls_context(
+            request, verify, proxies, cert
         )
 
     def send(

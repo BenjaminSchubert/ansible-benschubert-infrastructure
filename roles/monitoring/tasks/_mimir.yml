@@ -16,7 +16,7 @@
   ansible.builtin.template:
     src: mimir.yml.j2
     dest: "{{ monitoring_mimir_config_path }}/mimir.yaml"
-    mode: 0o400
+    mode: "0o400"
 
 - name: Create the Mimir network
   containers.podman.podman_network:

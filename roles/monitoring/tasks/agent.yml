@@ -79,7 +79,7 @@
   ansible.builtin.template:
     src: agent-config.alloy.j2
     dest: "{{ monitoring_agent_config_path }}/config.alloy"
-    mode: 0o400
+    mode: "0o400"
   register: _configuration
 
 - name: Create the Agent's pod

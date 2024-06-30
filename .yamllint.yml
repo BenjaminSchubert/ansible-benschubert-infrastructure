@@ -12,15 +12,20 @@ yaml-files:
   - .ansible-lint
 
 rules:
+  braces:
+    max-spaces-inside: 1
   comments:
     level: error
-  comments-indentation:
-    level: error
+    min-spaces-from-content: 1
+  comments-indentation: false
   document-start:
     level: error
   line-length:
     max: 100
     allow-non-breakable-words: true
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
   quoted-strings:
     quote-type: double
     required: only-when-needed

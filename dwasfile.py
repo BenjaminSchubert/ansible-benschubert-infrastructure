@@ -139,9 +139,6 @@ def sanity(step: StepRunner) -> None:
         "sanity",
         "--local",
         f"--python={sys.version_info.major}.{sys.version_info.minor}",
-        # We don't care about python2 support
-        "--skip-test=future-import-boilerplate",
-        "--skip-test=metaclass-boilerplate",
         # We use asserts to help mypy, not for workflows
         "--skip-test=no-assert",
     ]

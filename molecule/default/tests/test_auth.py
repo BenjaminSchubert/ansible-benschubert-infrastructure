@@ -35,8 +35,9 @@ def test_no_tasks_failed(
         timeout=10,
     )
 
-    print(yaml.dump(resp.json()))
     assert resp.status_code == HTTPStatus.OK
+    print(yaml.dump(resp.json()))
+
     failed_tasks = {
         task["full_name"]: {
             "description": task["description"],
