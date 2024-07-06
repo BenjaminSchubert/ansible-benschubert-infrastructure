@@ -39,16 +39,18 @@
     state: started
     image: docker.io/grafana/mimir
     command: --config.file=/etc/mimir/mimir.yaml
-    healthcheck: wget -O- http://localhost:9009
+    # FIXME: the image from 2.13 now doesn't have curl or wget
+    # healthcheck: wget -O- http://localhost:9009
     read_only: true
     volumes:
       - "{{ monitoring_mimir_config_path }}/mimir.yaml:/etc/mimir/mimir.yaml:ro,U,Z"
       - "{{ monitoring_mimir_data_path }}:/tmp/mimir:U,Z"
 
-- name: Ensure the mimir container is healthy
-  ansible.builtin.command: podman healthcheck run monitoring-mimir-mimir
-  register: _healthcheck
-  until: _healthcheck is not failed
+- name: Ensure the mimir container is up
+  containers.podman.podman_container_info:
+    name: monitoring-mimir-mimir
+  register: _containers
+  until: _containers.containers[0].State.Status == "running"
   retries: 3
   changed_when: false
 
