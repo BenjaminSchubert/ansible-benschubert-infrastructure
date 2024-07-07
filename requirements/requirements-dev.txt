@@ -1,5 +1,7 @@
 -r requirements.txt
 -r requirements-tests.txt
 ansible-lint
-molecule
+# FIXME: molecule 6 installs collections globally instead of locally, which
+#        defeats the isolation. (Check for files in ~/.ansible when updating
+molecule >=5,<6
 molecule-plugins[podman]

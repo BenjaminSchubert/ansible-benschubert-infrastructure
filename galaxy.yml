@@ -43,6 +43,7 @@ description: |
 dependencies:
   community.grafana: ">=1.5.0"
   containers.podman: ">=1.10.0"
+  community.general: ">=9.1.0"
 
 readme: README.md
 license_file: LICENSE
@@ -62,4 +63,3 @@ manifest:
     - include .yamllint.yml
     - include dwasfile.py
     - include pyproject.toml
-    - include requirements.yml
