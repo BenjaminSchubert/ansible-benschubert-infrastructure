@@ -8,7 +8,6 @@ http:
       priority: 10
       tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
       middlewares:
-        - mimir-host-header@file
         - mimir-auth@file
 
     mimir-auth:
@@ -39,8 +38,3 @@ http:
           - X-authentik-meta-provider
           - X-authentik-meta-app
           - X-authentik-meta-version
-
-    mimir-host-header:
-      headers:
-        customRequestHeaders:
-          X-Forwarded-Host: "{{ hostname }}:{{ ingress_exposed_https_port }}"

@@ -1,6 +1,6 @@
 from collections.abc import Mapping
-from typing import Any
-from urllib.parse import urlparse
+from typing import Any, cast
+from urllib.parse import ParseResult, urlparse
 
 import requests
 import requests.adapters
@@ -43,12 +43,11 @@ class LocalhostVerifyAdapter(requests.adapters.HTTPAdapter):
         proxies: Mapping[str, str] | None = None,
         cert: tuple[str, str] | str | None = None,
     ) -> urllib3.connectionpool.ConnectionPool:
-        url = urlparse(request.url)
+        url = cast(ParseResult, urlparse(request.url))
 
-        # Mypy is wrong here, all those are strings
-        request.headers["HOST"] = url.hostname  # type: ignore[assignment]
-        request.url = url._replace(  # type: ignore[assignment]
-            netloc=f"{self._real_target}:{self._port}"  # type: ignore[arg-type]
+        request.headers["HOST"] = f"{url.hostname}:{self._port}"
+        request.url = url._replace(
+            netloc=f"{self._real_target}:{self._port}"
         ).geturl()
 
         return super().get_connection_with_tls_context(

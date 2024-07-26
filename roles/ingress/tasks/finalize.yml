@@ -9,7 +9,7 @@
     group: admin
     meta_description: The dashboard for Traefik
     # yamllint disable-line rule:line-length
-    icon_url: https://{{ ingress_traefik_dashboard_hostname }}:{{ ingress_exposed_https_port }}/dashboard/icons/favicon-32x32.png
+    icon_url: https://{{ ingress_traefik_dashboard_hostname }}:{{ ingress_https_port }}/dashboard/icons/favicon-32x32.png
     provider_proxy:
       hostname: "{{ ingress_traefik_dashboard_hostname }}"
 

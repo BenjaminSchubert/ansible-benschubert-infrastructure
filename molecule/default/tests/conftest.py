@@ -1,7 +1,6 @@
-import os
 from collections.abc import Iterator
 from http import HTTPStatus
-from typing import Any, TypedDict
+from typing import Any, TypedDict, cast
 
 import pytest
 import requests
@@ -29,20 +28,20 @@ def hostvars(host: Host, cache: _TCache) -> dict[str, Any]:
     return cache["hostvars"]
 
 
-@pytest.fixture(scope="session")
-def exposed_http_port() -> str:
-    return os.environ.get("HTTP_PORT", "16080")
+@pytest.fixture(scope="module")
+def http_port(hostvars: dict[str, Any]) -> str:
+    return cast(str, hostvars["ingress_http_port"])
 
 
-@pytest.fixture(scope="session")
-def exposed_https_port() -> str:
-    return os.environ.get("HTTPS_PORT", "16443")
+@pytest.fixture(scope="module")
+def https_port(hostvars: dict[str, Any]) -> str:
+    return cast(str, hostvars["ingress_https_port"])
 
 
 @pytest.fixture(scope="module")
 def session(
     hostvars: dict[str, Any],
-    exposed_https_port: str,
+    https_port: str,
     cache: dict[str, Any],
     tmp_path_factory: pytest.TempPathFactory,
 ) -> Iterator[requests.Session]:
@@ -74,7 +73,7 @@ def session(
                 f"https://{hostname}",
                 LocalhostVerifyAdapter(
                     "localhost",
-                    exposed_https_port,
+                    https_port,
                     hostname,
                     verify,
                 ),

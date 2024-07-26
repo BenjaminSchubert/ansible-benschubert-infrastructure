@@ -8,35 +8,20 @@ argument_specs:
         reverse proxy and gateway to expose the rest of the services in this
         collection.
     options:
-      ingress_exposed_https_port:
-        type: int
-        required: false
-        default: 443
-        description:
-          - The port under which Traefik is exposed to the outside world. This
-            is different from the C(ingress_https_port), which is the port at
-            which Traefik is exposed on the machine. A secure setup would use a
-            high port for the other, and use a firewall rule to redirect 443 to
-            there.
       ingress_http_port:
         type: int
         required: false
-        default: 16080
+        default: null
         description:
           - The port that Traefik should use to expose its http interface on the
-            host. This is supposed to be a port different than 80, to allow
-            Traefik to run in a rootless container, and leverage another reverse
-            proxy or a firewall rule to redirect 80 there.
+            host.
       ingress_https_port:
         type: int
         required: false
-        default: 16443
+        default: null
         description:
           - The port that Traefik should use to expose its https interface on
-            the host. This is supposed to be a port different than 443, to allow
-            Traefik to run in a rootless container, and leverage another reverse
-            proxy or a firewall rule to redirect 443
-            (or C(ingress_exposed_https_port)) there.
+            the host.
       ingress_networks:
         type: list
         elements: str
@@ -118,7 +103,7 @@ argument_specs:
           - This is used to ensure that the service is now available
       ingress_https_port:
         type: int
-        default: 16443
+        default: 8443
         description:
           - The port at which the service is exposed via the ingress, in order
             to be able to make API calls to the service
@@ -181,19 +166,13 @@ argument_specs:
         required: true
         description:
           - The hostname under which to expose the Traefik dashboard
-      ingress_exposed_https_port:
+      ingress_https_port:
         type: int
         required: false
         default: 443
         description:
           - The port under which Traefik is exposed to the outside world. This
             is used to be able to show the icon of Traefik on
-      ingress_https_port:
-        type: int
-        default: 16443
-        description:
-          - The port at which the service is exposed via the ingress, in order
-            to be able to make API calls to the service
       ingress_traefik_certificates_resolvers:
         type: dict
         default: {}

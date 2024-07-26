@@ -27,18 +27,11 @@ argument_specs:
           - The path on disk to a custom certificate to validate the TLS
             certificates when ansible makes requests if they are not available
             in the root certificate authorities
-      ingress_exposed_https_port:
-        type: int
-        required: false
-        default: 443
-        description:
-          - The port at which the service is exposed to the outside world.
       ingress_https_port:
         type: int
-        default: 16443
+        default: 8443
         description:
-          - The port at which the service is exposed via the ingress, in order
-            to be able to make API calls to the service
+          - The port at which the service is exposed via the ingress
       ingress_traefik_certificates_resolvers:
         type: dict
         default: {}
@@ -158,7 +151,7 @@ argument_specs:
             in the root certificate authorities
       ingress_https_port:
         type: int
-        default: 16443
+        default: 8443
         description:
           - The port at which the service is exposed via the ingress, in order
             to be able to make API calls to the service

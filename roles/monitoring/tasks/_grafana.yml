@@ -32,10 +32,10 @@
     group: admin
     meta_description: Grafana
     # yamllint disable-line rule:line-length
-    icon_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_exposed_https_port }}/public/img/grafana_icon.svg
+    icon_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}/public/img/grafana_icon.svg
     provider_oauth2:
       # yamllint disable-line rule:line-length
-      redirect_uris: https://{{ monitoring_grafana_hostname }}:{{ ingress_exposed_https_port }}/login/generic_oauth
+      redirect_uris: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}/login/generic_oauth
       scopes:
         - profile
         - email
@@ -113,13 +113,13 @@
       GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET__FILE: /run/secrets/monitoring-grafana-client-secret
       GF_AUTH_GENERIC_OAUTH_SCOPES: openid profile email
       # yamllint disable-line rule:line-length
-      GF_AUTH_GENERIC_OAUTH_AUTH_URL: https://{{ auth_authentik_hostname }}:{{ ingress_exposed_https_port }}/application/o/authorize/
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/application/o/authorize/
       # yamllint disable-line rule:line-length
       GF_AUTH_GENERIC_OAUTH_TOKEN_URL: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/application/o/token/
       # yamllint disable-line rule:line-length
       GF_AUTH_GENERIC_OAUTH_API_URL: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/application/o/userinfo/
       # yamllint disable-line rule:line-length
-      GF_AUTH_SIGNOUT_REDIRECT_URL: https://{{ auth_authentik_hostname }}:{{ ingress_exposed_https_port }}/application/o/grafana/end-session/
+      GF_AUTH_SIGNOUT_REDIRECT_URL: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/application/o/grafana/end-session/
       GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: >-
         {{ '1' if (not ingress_validate_certs or ingress_custom_ca_cert) else omit }}
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: >-
@@ -133,7 +133,7 @@
       GF_DATABASE_USER: grafana
       GF_DATABASE_PASSWORD__FILE: /run/secrets/monitoring-grafana-postgres-password
       # Misc
-      GF_SERVER_ROOT_URL: https://{{ monitoring_grafana_hostname }}:{{ ingress_exposed_https_port }}
+      GF_SERVER_ROOT_URL: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}
       GF_SERVER_DOMAIN: "{{ monitoring_grafana_hostname }}"
       GF_SERVER_ENFORCE_DOMAIN: "1"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "0"

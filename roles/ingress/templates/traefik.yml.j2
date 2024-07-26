@@ -9,16 +9,15 @@ log:
 
 entryPoints:
   web:
-    address: ":16080"
+    address: ":8080"
     http:
       redirections:
         entryPoint:
-          # Here we need to redirect to 443 manually, as this is exposed outside
-          # at 443 via firewall rules but really binds to 16443
-          to: :{{ ingress_exposed_https_port }}
+          permanent: true
           scheme: https
+          to: web-secure
   web-secure:
-    address: ":16443"
+    address: ":8443"
   metrics:
     address: ":8082"
 

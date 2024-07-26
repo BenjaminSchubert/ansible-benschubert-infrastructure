@@ -60,8 +60,8 @@
     network: "{{ ingress_networks + ['ingress'] }}"
     network_aliases: "{{ ingress_network_aliases }}"
     publish:
-      - "{{ ingress_http_port }}:16080"
-      - "{{ ingress_https_port }}:16443"
+      - "{{ ingress_http_port }}:8080"
+      - "{{ ingress_https_port }}:8443"
     userns: auto:size=1024
 
 - name: Setup the traefik container
@@ -77,7 +77,7 @@
     healthcheck: traefik healthcheck
     read_only: true
     expose:
-      - 16443
+      - 8443
     env: "{{
       (ingress_traefik_environment_variables or {})
       | combine(

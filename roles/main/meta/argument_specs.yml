@@ -137,35 +137,20 @@ argument_specs:
       ##
       # Ingress
       ##
-      ingress_exposed_https_port:
+      ingress_http_port:
+        type: int
+        required: false
+        default: 80
+        description:
+          - The port that Traefik should use to expose its http interface on the
+            host.
+      ingress_https_port:
         type: int
         required: false
         default: 443
         description:
-          - The port under which Traefik is exposed to the outside world. This
-            is different from the C(ingress_https_port), which is the port at
-            which Traefik is exposed on the machine. A secure setup would use a
-            high port for the other, and use a firewall rule to redirect 443 to
-            there.
-      ingress_http_port:
-        type: int
-        required: false
-        default: 16080
-        description:
-          - The port that Traefik should use to expose its http interface on the
-            host. This is supposed to be a port different than 80, to allow
-            Traefik to run in a rootless container, and leverage another reverse
-            proxy or a firewall rule to redirect 80 there.
-      ingress_https_port:
-        type: int
-        required: false
-        default: 16443
-        description:
           - The port that Traefik should use to expose its https interface on
-            the host. This is supposed to be a port different than 443, to allow
-            Traefik to run in a rootless container, and leverage another reverse
-            proxy or a firewall rule to redirect 443
-            (or rather C(ingress_exposed_https_port)) there.
+            the host.
       ingress_additional_networks:
         type: list
         elements: str

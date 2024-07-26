@@ -8,24 +8,15 @@ http:
       priority: 10
       tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
       middlewares:
-        - traefik-host-header@file
         - authentik@file
 
     traefik-api-auth:
       rule: Host(`{{ hostname }}`) && PathPrefix(`/outpost.goauthentik.io/`)
       priority: 15
       service: authentik@file
-      middlewares:
-        - traefik-host-header@file
 
     traefik-icon:
       rule: Host(`{{ hostname }}`) && PathPrefix(`/dashboard/icons/favicon-32x32.png`)
       service: api@internal
       priority: 15
       tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
-
-  middlewares:
-    traefik-host-header:
-      headers:
-        customRequestHeaders:
-          X-Forwarded-Host: "{{ hostname }}:{{ ingress_exposed_https_port }}"

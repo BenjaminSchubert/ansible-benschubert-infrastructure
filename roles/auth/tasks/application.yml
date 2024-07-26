@@ -56,8 +56,7 @@
     provider:
       name: "{{ application_name }}"
       authorization_flow: "{{ _authorization_flow.data.pk }}"
-      external_host: >-
-        https://{{ provider_proxy.hostname }}:{{ ingress_exposed_https_port }}
+      external_host: https://{{ provider_proxy.hostname }}:{{ ingress_https_port }}
       mode: forward_single
   register: _provider_proxy_result
 
@@ -101,7 +100,7 @@
     outpost:
       name: authentik Embedded Outpost
       config:
-        authentik_host: https://{{ auth_authentik_hostname }}:{{ ingress_exposed_https_port }}
+        authentik_host: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
 
 - name: Register the application against the internal provider
   when: provider_proxy | default(false)
