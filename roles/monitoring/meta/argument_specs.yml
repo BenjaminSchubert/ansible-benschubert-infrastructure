@@ -8,7 +8,8 @@ argument_specs:
         services.
       - "It will configure the following:"
       - L(Grafana, https://grafana.com/)
-      - L(Mimir, https://grafana.com/oss/mimir/)
+      - L(Mimir, https://grafana.com/oss/mimir/), including L(AlertManager,
+        https://grafana.com/docs/mimir/latest/references/architecture/components/alertmanager/)
       - L(Grafana Alloy, https://grafana.com/oss/alloy-opentelemetry-collector/)
     options:
       auth_authentik_hostname:

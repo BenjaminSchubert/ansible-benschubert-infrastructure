@@ -3,5 +3,6 @@
 ansible-lint
 # FIXME: molecule 6 installs collections globally instead of locally, which
 #        defeats the isolation. (Check for files in ~/.ansible when updating
+#        See https://github.com/ansible/molecule/issues/4015
 molecule >=5,<6
 molecule-plugins[podman]

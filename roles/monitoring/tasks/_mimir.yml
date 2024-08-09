@@ -1,22 +1,32 @@
 ---
-- name: Ensure the mimir paths exist
+- name: Ensure the Mimir paths exist
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: "0o700"
+    owner: 8193
+    group: 8193
   loop:
-    - "{{ monitoring_mimir_config_path }}"
-    - "{{ monitoring_mimir_data_path }}"
+    - "{{ monitoring_mimir_config_path }}/alertmanager"
+    - "{{ monitoring_mimir_data_path }}/tmp"
 
-- name: Create the Mimir configuration file
+- name: Create the Mimir configuration files
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
-    src: mimir.yml.j2
-    dest: "{{ monitoring_mimir_config_path }}/mimir.yaml"
+    src: "{{ item.src }}"
+    dest: "{{ monitoring_mimir_config_path }}/{{ item.dst }}"
     mode: "0o400"
+    owner: 8193
+    group: 8193
+  register: _configuration
+  loop:
+    - src: mimir.yml.j2
+      dst: mimir.yml
+    - src: mimir-alertmanager-fallback-config.yml.j2
+      dst: alertmanager-fallback-config.yml
 
 - name: Create the Mimir network
   containers.podman.podman_network:
@@ -37,14 +47,16 @@
     name: monitoring-mimir-mimir
     pod: monitoring-mimir
     state: started
+    force_restart: "{{ _configuration.changed }}"
     image: docker.io/grafana/mimir
-    command: --config.file=/etc/mimir/mimir.yaml
+    command: --config.file=/etc/mimir/mimir.yml
     # FIXME: the image from 2.13 now doesn't have curl or wget
     # healthcheck: wget -O- http://localhost:9009
     read_only: true
     volumes:
-      - "{{ monitoring_mimir_config_path }}/mimir.yaml:/etc/mimir/mimir.yaml:ro,U,Z"
-      - "{{ monitoring_mimir_data_path }}:/tmp/mimir:U,Z"
+      - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
+      - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
+      - "{{ monitoring_mimir_data_path }}:/data:U,Z"
 
 - name: Ensure the mimir container is up
   containers.podman.podman_container_info:
@@ -54,7 +66,7 @@
   retries: 3
   changed_when: false
 
-- name: Create an application for mimir on Authentik
+- name: Create an application for Mimir on Authentik
   ansible.builtin.import_role:
     name: auth
     tasks_from: application
@@ -68,7 +80,7 @@
     provider_proxy:
       hostname: "{{ monitoring_mimir_hostname }}"
 
-- name: Setup an ingress for mimir
+- name: Setup an ingress for Mimir
   ansible.builtin.import_role:
     name: benschubert.infrastructure.ingress
     tasks_from: provider
@@ -78,7 +90,7 @@
     hostname: "{{ monitoring_mimir_hostname }}"
     expected_status_code: 302
 
-- name: Register Mimir as a datasource on grafana
+- name: Register Mimir as a datasource on Grafana
   community.grafana.grafana_datasource:
     name: mimir
     ds_type: prometheus
@@ -88,6 +100,15 @@
     grafana_password: "{{ monitoring_grafana_admin_password }}"
     is_default: true
     validate_certs: false
-  tags:
-    # FIXME: our registration doesn't look idempotent anymore?
-    - molecule-idempotence-notest
+
+- name: Register Mimir's AlertManager as a datasource on Grafana
+  community.grafana.grafana_datasource:
+    name: alertmanager
+    ds_type: alertmanager
+    ds_url: http://monitoring-mimir:9009/
+    additional_json_data:
+      implementation: mimir
+    grafana_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}
+    grafana_user: "{{ monitoring_grafana_admin_user }}"
+    grafana_password: "{{ monitoring_grafana_admin_password }}"
+    validate_certs: false

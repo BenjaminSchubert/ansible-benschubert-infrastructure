@@ -45,6 +45,7 @@ disable = [
     "redefined-outer-name",
     "too-few-public-methods",
     "too-many-arguments",
+    "too-many-positional-arguments",
     "wrong-import-position",
     # Duplicate code can't be disabled on a per problem basis
     "duplicate-code",
