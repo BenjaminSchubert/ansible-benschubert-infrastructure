@@ -5,6 +5,7 @@ ingress_networks:
 
 ingress_network_aliases:
   - "{{ auth_authentik_hostname }}"
+  - "{{ monitoring_loki_hostname }}"
   - "{{ monitoring_mimir_hostname }}"
 
 ingress_additional_networks: []

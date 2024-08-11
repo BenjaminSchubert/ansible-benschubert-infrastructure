@@ -7,6 +7,10 @@
   ansible.builtin.import_tasks:
     file: _mimir.yml
 
+- name: Setup Loki
+  ansible.builtin.import_tasks:
+    file: _loki.yml
+
 - name: Monitor the monitoring services
   ansible.builtin.import_role:
     name: monitoring
@@ -25,6 +29,9 @@
         alerting_rules_template: mimir-alerts.yml.j2
       - name: grafana
         address: monitoring-grafana:3000
+      - name: loki
+        address: monitoring-loki:3100
+        alerting_rules_template: loki-alerts.yml.j2
     monitoring_agent_postgres_instances:
       - instance: monitoring-grafana-postgres
         username: grafana

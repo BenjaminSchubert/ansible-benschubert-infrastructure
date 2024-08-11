@@ -28,3 +28,37 @@ prometheus.remote_write "monitor" {
         {% endif %}
     }
 }
+
+loki.relabel "journal" {
+  forward_to = []
+
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+  rule {
+    source_labels = ["__journal_container_name"]
+    target_label  = "container"
+  }
+}
+
+loki.source.journal "read"  {
+  forward_to    = [loki.write.endpoint.receiver]
+  relabel_rules = loki.relabel.journal.rules
+  labels        = {component = "loki.source.journal"}
+}
+
+loki.write "endpoint" {
+  endpoint {
+    url ="https://{{ monitoring_loki_hostname }}:{{ ingress_https_port }}/loki/api/v1/push"
+    basic_auth {
+      username = "{{ username }}"
+      password = "{{ password }}"
+    }
+    {% if (not ingress_validate_certs) or ingress_custom_ca_cert_url is not none %}
+    tls_config {
+        insecure_skip_verify = true
+    }
+    {% endif %}
+  }
+}

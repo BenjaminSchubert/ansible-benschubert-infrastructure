@@ -17,6 +17,7 @@ platforms:
       ${AUTHENTIK_HOSTNAME:-auth.test}: 127.0.0.1
       ${TRAEFIK_HOSTNAME:-traefik.test}: 127.0.0.1
       ${GRAFANA_HOSTNAME:-grafana.test}: 127.0.0.1
+      ${LOKI_HOSTNAME:-loki.test}: 127.0.0.1
       ${MIMIR_HOSTNAME:-mimir.test}: 127.0.0.1
     security_opts:
       - label=disable
@@ -59,6 +60,7 @@ provisioner:
         auth_authentik_hostname: ${AUTHENTIK_HOSTNAME:-auth.test}
         ingress_traefik_dashboard_hostname: ${TRAEFIK_HOSTNAME:-traefik.test}
         monitoring_grafana_hostname: ${GRAFANA_HOSTNAME:-grafana.test}
+        monitoring_loki_hostname: ${LOKI_HOSTNAME:-loki.test}
         monitoring_mimir_hostname: ${MIMIR_HOSTNAME:-mimir.test}
 
         ##
@@ -103,6 +105,8 @@ provisioner:
         monitoring_grafana_postgres_password: postgresgrafanapassword
         monitoring_grafana_postgres_data_path: "{{ data }}/monitoring/grafana/postgres"
         monitoring_grafana_data_path: "{{ data }}/monitoring/grafana/grafana"
+        monitoring_loki_config_path: "{{ data }}/monitoring/loki/config"
+        monitoring_loki_data_path: "{{ data }}/monitoring/loki/data"
         monitoring_mimir_config_path: "{{ data }}/monitoring/mimir/config"
         monitoring_mimir_data_path: "{{ data }}/monitoring/mimir/data"
         monitoring_monitor_agent_config_path: "{{ data }}/monitoring/agent/config"

@@ -92,6 +92,11 @@ def test_services_are_up(
             "1",
         ),
         (
+            "loki",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
+            "1",
+        ),
+        (
             "mimir",
             "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
             "1",

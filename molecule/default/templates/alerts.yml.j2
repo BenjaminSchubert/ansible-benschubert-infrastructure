@@ -1,0 +1,24 @@
+{{ template_warning }}
+---
+groups:
+  - name: Logs
+    rules:
+      - alert: HighContainerLogRate
+        expr: sum by (container) (rate({container=~".+"}[1m])) > 10
+        for: 1m
+        labels:
+          severity: warning
+          category: logs
+        annotations:
+          title: High LogRate Alert for container {{ '{{' }}$labels.container{{ '}}' }}
+          description: The container {{ '{{' }}$labels.container{{ '}}' }} is generating a lot of logs
+
+      - alert: ErrorInContainerLogs
+        expr: sum by(container) (rate({container=~".+"} |= `` | detected_level = `error` [1m])) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+          category: logs
+        annotations:
+          title: High amount of errors in logs for container {{ '{{' }}$labels.container{{ '}}' }}"
+          description: "{{ '{{' }}$value{{ '}}' }} Errors occurred in logs for container {{ '{{' }}$labels.container{{ '}}' }}"

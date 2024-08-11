@@ -17,4 +17,5 @@ runs in rootless podman containers on the same machine.
 - [Authentik](https://goauthentik.io/) to handle SSO
 - [Grafana](https://grafana.com/) for viewing metrics and logs
 - [Mimir](https://grafana.com/oss/mimir/) to ingest logs and metrics, and provide an [AlertManager](https://prometheus.io/docs/alerting/latest/alertmanager/) deployment
+- [Loki](https://grafana.com/oss/loki/) to store logs and handle alerts based on logs
 - [Grafana Alloy](https://grafana.com/oss/alloy-opentelemetry-collector/) to publish metrics and logs

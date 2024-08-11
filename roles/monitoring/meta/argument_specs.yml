@@ -10,6 +10,7 @@ argument_specs:
       - L(Grafana, https://grafana.com/)
       - L(Mimir, https://grafana.com/oss/mimir/), including L(AlertManager,
         https://grafana.com/docs/mimir/latest/references/architecture/components/alertmanager/)
+      - L(Loki, https://grafana.com/oss/loki/)
       - L(Grafana Alloy, https://grafana.com/oss/alloy-opentelemetry-collector/)
     options:
       auth_authentik_hostname:
@@ -99,11 +100,26 @@ argument_specs:
         required: true
         description:
           - The secret key to use in Grafana to encrypt various sensitive data
+      monitoring_loki_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the Loki configuration files should be stored.
+      monitoring_loki_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the Loki data should be stored.
+      monitoring_loki_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which the Loki instance is reachable.
       monitoring_mimir_hostname:
         type: str
         required: true
         description:
-          - The hostname at which the Mimir instance is reachable
+          - The hostname at which the Mimir instance is reachable.
       monitoring_mimir_config_path:
         type: str
         required: true
