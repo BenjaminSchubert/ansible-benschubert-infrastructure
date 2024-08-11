@@ -1,0 +1,11 @@
+{% set log_instance = "(instance {{ $labels.instance }})" %}
+{% set log_values_and_labels = "VALUE = {{ $value }}\\n  LABELS = {{ $labels }}" -%}
+
+- alert: LokiRequestErrors
+  expr: rate(loki_request_duration_seconds_count{instance="{{ name }}", status_code=~"5.."}[1m]) > 0
+  for: 0m
+  labels:
+    severity: critical
+  annotations:
+    summary: Loki encountered request errors {{ log_instance }}
+    description: Loki is encountering errors responding on the API\n  {{ log_values_and_labels }}

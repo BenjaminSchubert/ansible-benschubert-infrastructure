@@ -163,3 +163,23 @@
             service: alloy
             state: "{{ 'restarted' if _alloy_config.changed else 'started' }}"
             enabled: true
+
+        - name: Ensure the directory to store alerts exists
+          become_method: containers.podman.podman_unshare
+          become: true
+          ansible.builtin.file:
+            name: "{{ monitoring_loki_config_path }}/rules/fake"
+            state: directory
+            owner: 19218
+            group: 19218
+            mode: "0o755"
+
+        - name: Install alloy alerts
+          become: true
+          become_method: containers.podman.podman_unshare
+          ansible.builtin.template:
+            src: alerts.yml.j2
+            dest: "{{ monitoring_loki_config_path }}/rules/fake/node.yml"
+            owner: 19218
+            group: 19218
+            mode: "0o644"

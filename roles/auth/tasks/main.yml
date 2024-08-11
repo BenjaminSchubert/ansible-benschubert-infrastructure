@@ -106,7 +106,7 @@
     image: ghcr.io/goauthentik/server
     command: server
     env:
-      AUTHENTIK_LOG_LEVEL: trace
+      AUTHENTIK_LOG_LEVEL: info
       AUTHENTIK_SECRET_KEY: file:///run/secrets/auth-authentik-secret-key
       AUTHENTIK_POSTGRESQL__HOST: auth-postgres
       AUTHENTIK_POSTGRESQL__USER: authentik

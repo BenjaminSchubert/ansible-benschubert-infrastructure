@@ -35,6 +35,9 @@ description: |
   * L(Mimir, https://grafana.com/oss/mimir/),
     using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
     which allows ingesting and storing metrics and alerts.
+  * L(Loki, https://grafana.com/oss/loki/),
+    using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
+    which allows ingesting and storing logs, and connects to Mimir for alerts.
   * L(Grafana Alloy, https://grafana.com/oss/alloy-opentelemetry-collector/),
     using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
     which allows collecting metrics and logs

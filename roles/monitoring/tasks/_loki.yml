@@ -1,0 +1,92 @@
+---
+- name: Ensure the Loki paths exist
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: 19218
+    group: 19218
+    mode: "0o700"
+  loop:
+    - "{{ monitoring_loki_config_path }}/rules"
+    - "{{ monitoring_loki_data_path }}"
+
+- name: Create the Loki configuration file
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.template:
+    src: loki.yml.j2
+    dest: "{{ monitoring_loki_config_path }}/local-config.yaml"
+    mode: "0o444"
+    owner: 19218
+    group: 19218
+  register: _configuration
+
+- name: Create the Loki network
+  containers.podman.podman_network:
+    name: ingress-monitoring
+    internal: true
+
+- name: Create the Loki pod
+  containers.podman.podman_pod:
+    name: monitoring-loki
+    state: created
+    infra_name: monitoring-loki-infra
+    network:
+      - ingress-monitoring
+    userns: auto:size=10002
+
+- name: Setup the Loki container
+  containers.podman.podman_container:
+    name: monitoring-loki-loki
+    pod: monitoring-loki
+    state: started
+    image: docker.io/grafana/loki
+    healthcheck: wget -O- http://localhost:3100/ready
+    force_restart: "{{ _configuration.changed }}"
+    read_only: true
+    volumes:
+      - "{{ monitoring_loki_config_path }}:/etc/loki/:ro,U,Z"
+      - "{{ monitoring_loki_config_path }}/rules:/etc/loki/rules:U,Z"
+      - "{{ monitoring_loki_data_path }}:/data/loki:U,Z"
+
+- name: Ensure the Loki container is healthy
+  ansible.builtin.command: podman healthcheck run monitoring-loki-loki
+  register: _healthcheck
+  until: _healthcheck is not failed
+  retries: 3
+  changed_when: false
+
+- name: Create an application for Loki on Authentik
+  ansible.builtin.import_role:
+    name: auth
+    tasks_from: application
+  vars:
+    application_name: loki
+    application_slug: benschubert-infrastructure-loki
+    group: admin
+    meta_description: Loki
+    icon_url: https://grafana.com/media/docs/loki/logo-grafana-loki.png
+    provider_proxy:
+      hostname: "{{ monitoring_loki_hostname }}"
+
+- name: Setup an ingress for Loki
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+    tasks_from: provider
+  vars:
+    template_file: ingress-loki.yml.j2
+    ingress_name: loki
+    hostname: "{{ monitoring_loki_hostname }}"
+    expected_status_code: 302
+
+- name: Register Loki as a datasource on Grafana
+  community.grafana.grafana_datasource:
+    name: loki
+    ds_type: loki
+    ds_url: http://monitoring-loki:3100
+    grafana_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}
+    grafana_user: "{{ monitoring_grafana_admin_user }}"
+    grafana_password: "{{ monitoring_grafana_admin_password }}"
+    validate_certs: false

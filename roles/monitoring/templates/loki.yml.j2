@@ -1,0 +1,54 @@
+{{ template_warning }}
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /data/loki
+  storage:
+    filesystem:
+      chunks_directory: /data/loki/chunks
+      rules_directory: /data/loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+ruler:
+  alertmanager_url: http://monitoring-mimir:9009/alertmanager
+  storage:
+    type: local
+    local:
+      directory: /etc/loki/rules
+  rule_path: /data/loki/rules
+  enable_alertmanager_v2: true
+  external_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}
+  enable_api: true
+  remote_write:
+    enabled: true
+    client:
+      url: http://monitoring-mimir:9009/api/v1/push
+  wal:
+    dir: /data/loki/ruler/wal
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100
+
+schema_config:
+  configs:
+    - store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+analytics:
+  reporting_enabled: false
