@@ -83,7 +83,7 @@ def main() -> NoReturn:  # type: ignore[misc]
         supports_check_mode=True,
     )
 
-    authentik = Authentik(module, "/api/v3/propertymappings/scope/")
+    authentik = Authentik(module, "/api/v3/propertymappings/provider/scope/")
     result = authentik.get_one({"scope_name": module.params["scope_name"]})
     module.exit_json(changed=False, data=result)
 
