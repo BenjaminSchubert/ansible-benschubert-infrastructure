@@ -12,6 +12,7 @@
     name: monitoring
     tasks_from: agent
   vars:
+    monitoring_agent_product_name: monitoring
     monitoring_agent_config_path: "{{ monitoring_monitor_agent_config_path }}"
     monitoring_agent_data_path: "{{ monitoring_monitor_agent_data_path }}"
     monitoring_agent_networks:
@@ -19,8 +20,11 @@
       - monitoring-grafana-postgres
     monitoring_agent_pod: monitoring-monitor
     monitoring_agent_prometheus_endpoints:
-      mimir: monitoring-mimir:9009
-      grafana: monitoring-grafana:3000
+      - name: mimir
+        address: monitoring-mimir:9009
+        alerting_rules_template: mimir-alerts.yml.j2
+      - name: grafana
+        address: monitoring-grafana:3000
     monitoring_agent_postgres_instances:
       - instance: monitoring-grafana-postgres
         username: grafana

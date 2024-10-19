@@ -1,0 +1,17 @@
+- alert: Traefik5xxError
+  expr: rate(traefik_service_requests_total{instance="{{ name }}", code=~"5.*"}[1m]) > 0
+  for: 1m
+  labels:
+    severity: warning
+  annotations:
+    summary: Traefik returned a 5xx reponse (instance {{ '{{' }} $labels.instance {{ '}}' }})
+    description: Traefik returned a 5xx response \n  VALUE = {{ '{{' }} $value {{ '}}' }}\n  LABELS = {{ '{{' }} $labels {{ '}}' }}
+
+- alert: TraefikHigh4xxErrorRate
+  expr: sum(rate(traefik_service_requests_total{instance="{{ name }}", code=~"4.*"}[5m])) by (service) / sum(rate(traefik_service_requests_total[5m])) by (service) > 0.1
+  for: 3m
+  labels:
+    severity: critical
+  annotations:
+    summary: Traefik many HTTP 4xx errors (instance {{ '{{' }} $labels.instance {{ '}}' }})
+    description: Traefik has more than 10% of queries returning 4xx\n  VALUE = {{ '{{' }} $value {{ '}}' }}\n  LABELS = {{ '{{' }} $labels {{ '}}' }}

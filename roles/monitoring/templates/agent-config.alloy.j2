@@ -40,8 +40,8 @@ prometheus.scrape "benschubert_infrastructure_{{ monitoring_agent_pod | replace(
   targets = concat(
     [
       {"__address__" = "localhost:12345", "instance" = "agent"},
-      {% for instance, address in monitoring_agent_prometheus_endpoints.items() %}
-      {"__address__" = "{{ address }}", "instance" = "{{ instance }}"},
+      {% for instance in monitoring_agent_prometheus_endpoints %}
+      {"__address__" = "{{ instance.address }}", "instance" = "{{ instance.name }}"},
       {% endfor %}
     ],
     {% if monitoring_agent_postgres_instances %}

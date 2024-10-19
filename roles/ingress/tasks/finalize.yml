@@ -28,12 +28,15 @@
     name: monitoring
     tasks_from: agent
   vars:
+    monitoring_agent_product_name: ingress
     monitoring_agent_config_path: "{{ ingress_monitor_agent_config_path }}"
     monitoring_agent_data_path: "{{ ingress_monitor_agent_data_path }}"
     monitoring_agent_networks:
       - ingress
     monitoring_agent_pod: ingress-monitor
     monitoring_agent_prometheus_endpoints:
-      traefik: ingress:8082
+      - name: traefik
+        address: ingress:8082
+        alerting_rules_template: traefik-alerts.yml.j2
     monitoring_agent_postgres_instances: []
     monitoring_agent_redis_instances: []

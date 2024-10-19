@@ -170,3 +170,52 @@ def test_redis_deployments_are_up(
             "1",
         )
     }
+
+
+def test_no_alerts_are_firing(
+    hostvars: dict[str, Any],
+    session: requests.Session,
+    authentik_credentials: tuple[str, str],
+) -> None:
+    resp = session.get(
+        f"https://{hostvars['monitoring_mimir_hostname']}/prometheus/api/v1/query",
+        params={"query": "cortex_alertmanager_alerts"},
+        allow_redirects=False,
+        auth=authentik_credentials,
+        timeout=10,
+    )
+    print(resp.text)
+    assert resp.status_code == HTTPStatus.OK
+    result = resp.json()
+    assert result["status"] == "success"
+    entries = {
+        (r["metric"]["state"], r["value"][1]) for r in result["data"]["result"]
+    }
+    assert entries == {
+        ("active", "0"),
+        ("suppressed", "0"),
+        ("unprocessed", "0"),
+    }
+
+
+def test_all_alerts_are_valid(
+    hostvars: dict[str, Any],
+    session: requests.Session,
+    authentik_credentials: tuple[str, str],
+) -> None:
+    resp = session.get(
+        f"https://{hostvars['monitoring_mimir_hostname']}/prometheus/api/v1/query",
+        params={"query": "cortex_alertmanager_alerts_invalid_total"},
+        allow_redirects=False,
+        auth=authentik_credentials,
+        timeout=10,
+    )
+    print(resp.text)
+    assert resp.status_code == HTTPStatus.OK
+    result = resp.json()
+    assert result["status"] == "success"
+    entries = {
+        (r["metric"]["instance"], r["value"][1])
+        for r in result["data"]["result"]
+    }
+    assert entries == {("mimir", "0")}
