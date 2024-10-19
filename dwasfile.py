@@ -16,7 +16,7 @@ from dwas.predefined import mypy, pylint, ruff, sphinx
 
 ARTIFACTS_PATH = Path().parent.joinpath("_artifacts")
 LOGGER = logging.getLogger(__name__)
-PYTHON_FILES = ["dwasfile.py", "docs/conf.py", "plugins", "molecule/"]
+PYTHON_FILES = ["dwasfile.py", "docs/", "plugins", "molecule/"]
 
 
 def _install_collection(step: StepRunner) -> dict[str, str]:
@@ -100,8 +100,9 @@ register_managed_step(
     mypy(files=PYTHON_FILES),
     dependencies=[
         "mypy",
-        "-rrequirements/requirements-types.txt",
+        "-rrequirements/requirements-docs.txt",
         "-rrequirements/requirements-tests.txt",
+        "-rrequirements/requirements-types.txt",
     ],
 )
 register_managed_step(

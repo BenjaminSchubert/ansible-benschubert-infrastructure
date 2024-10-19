@@ -5,3 +5,4 @@ collections:
   - name: https://github.com/ansible-collections/community.grafana.git
     type: git
     version: main
+  - name: containers.podman
