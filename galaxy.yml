@@ -6,6 +6,7 @@ version: 0.0.1
 authors:
   - Benjamin Schubert <contact@benschubert.me>
 
+# yamllint disable rule:line-length
 description: |
   A collection to deploy all the infrastructure services that are part of my Homelab.
 
@@ -38,7 +39,7 @@ description: |
   This collection globally expects that B(podman is already configured) on the
   host, and that the user running the role has enough B(user namespaces)
   available to isolate every pod.
-
+# yamllint enable rule:line-length
 
 dependencies:
   community.grafana: ">=1.5.0"
@@ -47,6 +48,7 @@ dependencies:
 
 readme: README.md
 license_file: LICENSE
+repository: https://github.com/BenjaminSchubert/ansible-benschubert-infrastructure/
 
 manifest:
   omit_default_directives: true

@@ -23,19 +23,24 @@ def pods(host: Host) -> list[str]:
 
 
 def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
-    result = host.run(f"podman inspect {' '.join(containers)}")
+    mount_format = "{{ '{{' }} json .Mounts {{ '}}' }}"
+    result = host.run(
+        f"podman inspect --format '{mount_format}' {' '.join(containers)}",
+    )
     assert result.succeeded
 
-    container_infos = json.loads(result.stdout)
+    containers_mounts = [
+        json.loads(line) for line in result.stdout.strip().splitlines()
+    ]
 
     volumes_mounted = defaultdict(list)
 
-    for container_name, container_info in zip(
+    for container_name, mounts in zip(
         containers,
-        container_infos,
+        containers_mounts,
         strict=True,
     ):
-        for mount in container_info["Mounts"]:
+        for mount in mounts:
             if mount["Type"] == "volume":
                 volumes_mounted[container_name].append(mount["Destination"])
 

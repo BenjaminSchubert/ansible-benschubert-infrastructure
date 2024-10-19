@@ -1,0 +1,178 @@
+---
+# All the checks run here (except for secret scanning) can be run locally with:
+#
+#   dwas
+#
+name: ci
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  ANSIBLE: 2.17
+  PYTHON: 3.12
+
+jobs:
+  ###
+  # Linting jobs
+  ###
+  ansible-lint:
+    runs-on: ubuntu-latest
+    env:
+      # Not quite sure why we need to set this, but it gives warnings otherwise
+      ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: ansible_collections/benschubert/infrastructure/
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          cache: pip
+          python-version: ${{ env.PYTHON }}
+      - name: Install dependencies
+        run: pip install distlib
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@main
+        with:
+          requirements_file: requirements.yml
+          setup_python: false
+          working_directory: ${{ github.workspace }}/ansible_collections/benschubert/infrastructure/
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          cache: pip
+          python-version: ${{ env.PYTHON }}
+      - name: Install dependencies
+        run: >-
+          pip install
+          mypy
+          -r requirements/requirements-docs.txt
+          -r requirements/requirements-tests.txt
+          -r requirements/requirements-types.txt
+      - name: Run mypy
+        run: mypy .
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          cache: pip
+          python-version: ${{ env.PYTHON }}
+      - name: Install dependencies
+        run: >-
+          pip install
+          pylint
+          -r requirements/requirements.txt
+          -r requirements/requirements-tests.txt
+      - name: Run Pylint
+        run: pylint .
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run ruff
+        uses: astral-sh/ruff-action@v1
+      - name: Check format
+        uses: astral-sh/ruff-action@v1
+        with:
+          args: format --diff
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run sanity checks
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: stable-${{ env.ANSIBLE }}
+          coverage: never
+          origin-python-version: ${{ env.PYTHON }}
+          sanity-skip-tests: no-assert
+          target-python-version: ${{ env.PYTHON }}
+          testing-type: sanity
+  secret-scanning:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+
+  ###
+  # Tests
+  ###
+  molecule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Freeing disk space
+        run: >-
+          echo "--> Original:"
+          && df -h
+          && sudo rm -rf /opt/hostedtoolcache/{CodeQL,go,PyPy,node,Ruby}
+          && sudo rm -rf /usr/lib/{jvm,google-cloud-sdk,llvm-*,mono,heroku}
+          && sudo rm -rf /usr/share/{swift,dotnet,miniconda}
+          && echo "--> Final state:"
+          && df -h
+      - name: Increase subuids/subgids for runner
+        run: echo "${USER}:100000:655360" | sudo tee /etc/subuid /etc/subgid
+      - name: Reset podman
+        run: podman system reset --force
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          cache: pip
+          python-version: ${{ env.PYTHON }}
+      - name: Install dependencies
+        run: pip install -r requirements/requirements-dev.txt
+      - name: Run tests
+        run: molecule test
+        env:
+          PY_COLORS: 1
+          ANSIBLE_FORCE_COLOR: 1
+
+  ###
+  # Package
+  ###
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          cache: pip
+          python-version: ${{ env.PYTHON }}
+      - name: Install dependencies
+        run: pip install -r requirements/requirements.txt
+      - name: Build collection
+        run: ansible-galaxy collection build --output-path _artifacts/
+      - name: Save packaged collection
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: _artifacts/*
+          retention-days: 7

@@ -62,8 +62,8 @@ provisioner:
         # Ingress
         ##
         ingress_custom_ca_cert_url: ${TRAEFIK_CUSTOM_CA_CERT:-null}
-        ingress_http_port: "${HTTP_PORT:-8080}"
-        ingress_https_port: "${HTTPS_PORT:-8443}"
+        ingress_http_port: ${HTTP_PORT:-8080}
+        ingress_https_port: ${HTTPS_PORT:-8443}
         ingress_monitor_agent_config_path: "{{ data }}/ingress/agent/config"
         ingress_monitor_agent_data_path: "{{ data }}/ingress/agent/data"
         ingress_traefik_certificates_resolvers: ${TRAEFIK_CERTIFICATES_RESOLVER:-null}

@@ -1,5 +1,7 @@
 ---
 skip_list:
+  - galaxy[no-changelog]
+  - galaxy[tags]
   - jinja[spacing]
   - meta-no-info
   - sanity[cannot-ignore]  # Some of those rules are wrong

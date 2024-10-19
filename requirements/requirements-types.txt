@@ -1,3 +1,4 @@
 dwas
+types-docutils
 types-pyyaml
 types-requests
