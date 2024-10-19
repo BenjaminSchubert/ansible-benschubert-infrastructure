@@ -1,0 +1,184 @@
+{{ template_warning }}
+{% set job_name = "prometheus.scrape.benschubert_infrastructure_" + (monitoring_agent_pod | replace('-', '_')) %}
+{% set log_instance = "(instance {{ $labels.instance }})" %}
+{% set log_values_and_labels = "VALUE = {{ $value }}\\n  LABELS = {{ $labels }}" %}
+groups:
+- name: {{ monitoring_agent_product_name }}
+  interval: 60s
+  rules:
+  ##
+  # Alerts to ensure the prometheus jobs are running properly
+  ##
+  - alert: AlloyPrometheusJobMissing
+    expr: absent(up{job="{{ job_name }}"})
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: A Prometheus job is missing {{ log_instance }}
+      description: A Prometheus job did not report metrics\n  {{ log_values_and_labels }}
+
+  - alert: InstanceDown
+    expr: up{job="{{ job_name }}"} == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: An instance is down {{ log_instance }}
+      description: An instance is down.\n  {{ log_values_and_labels }}
+
+  - alert: PrometheusTemplateTextExpansionFailures
+    expr: increase(prometheus_template_text_expansion_failures_total{job="{{ job_name }}"}[3m]) > 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: Prometheus template text expansion failures {{ log_instance }}
+      description: Prometheus encountered {{ '{{' }} $value {{ '}}' }} template text expansion failures\n  {{ log_values_and_labels }}
+
+  - alert: PrometheusTargetScrapingSlow
+    expr: prometheus_target_interval_length_seconds{job="{{ job_name }}", quantile="0.9"} / on (interval, instance, job) prometheus_target_interval_length_seconds{job="{{ job_name }}", quantile="0.5"} > 1.05
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Prometheus target scraping slow {{ log_instance }}
+      description: Prometheus exceeded the requested interval time to scrape a target. It might need more resources.\n  {{ log_values_and_labels }}
+
+  - alert: PrometheusLargeScrape
+    expr: increase(prometheus_target_scrapes_exceeded_sample_limit_total{job="{{ job_name }}"}[10m]) > 10
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Prometheus large scrape {{ log_instance }}
+      description: Prometheus has many scrapes that exceed the sample limit\n  {{ log_values_and_labels }}
+
+  ##
+  # Alloy
+  ##
+  - alert: AlloyTooManyRestarts
+    expr: changes(alloy_resources_process_start_time_seconds{job="{{ job_name }}"}[5m]) > 2
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: Alloy too many restarts {{ log_instance }}
+      description: Grafana Alloy has restarted more than twice in the last 5 minutes. It might be crashlooping.\n  {{ log_values_and_labels }}
+
+  - alert: AlloyConfigurationReloadFailure
+    expr: alloy_config_last_load_successful{job="{{ job_name }}"} != 1
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: Grafana Alloy configuration reload failure {{ log_instance }}
+      description: Grafana Allow failed to reload a configuration file\n  {{ log_values_and_labels }}
+
+  - alert: GrafanaAlloyTargetScrapeDuplicate
+    expr: increase(prometheus_target_scrapes_sample_duplicate_timestamp_total{job="{{ job_name }}"}[5m]) > 0
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: Grafana Alloy target scrape duplicate {{ log_instance }}
+      description: Grafana Alloy had samples rejected due to duplicate timestamps but different values\n  {{ log_values_and_labels }}
+
+{% for endpoint in monitoring_agent_prometheus_endpoints %}
+{% if endpoint.alerting_rules_template | default(false) %}
+  {% set name = endpoint.name -%}
+  ##
+  # {{ endpoint.name }}
+  ##
+  {% filter indent(width=2) -%}
+    {% include endpoint.alerting_rules_template %}
+  {% endfilter %}
+{% endif %}
+{% endfor %}
+
+{% if monitoring_agent_postgres_instances %}
+  ##
+  # Postgres
+  ##
+  {% for instance in monitoring_agent_postgres_instances -%}
+  {% set instance_label = "postgresql://" + instance.instance + ":5432/" + instance.database -%}
+  - alert: PostgresExporterMissing
+    expr: absent(up{instance="{{ instance_label }}"})
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: A PostgreSQL Prometheus job is missing {{ log_instance }}
+      description: A PostgreSQL Prometheus job did not report metrics\n  {{ log_values_and_labels }}
+
+  - alert: PostgresExporterDown
+    expr: up{instance="{{ instance.instance }}"} == 1
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: PostgreSQL Exporter down {{ log_instance }}
+      description: The PostgreSQL Prometheus exporter for {{ log_instance }} is down\n  {{ log_values_and_labels }}
+
+  - alert: PostgreDown
+    expr: pg_up{instance="{{ instance_label }}"} == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: PostgreSQL down {{ log_instance }}
+      description: PostgreSQL instance is down\n  {{ log_values_and_labels }}
+
+  - alert: PostgresTooManyConnections
+    expr: sum by (instance, job, server) (pg_stat_activity_count{instance="{{ instance_label }}"}) > min by (instance, job, server) (pg_settings_max_connections{instance="{{ instance_label }}"} * 0.8)
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: PostgreSQL has too many active connections {{ log_instance }}
+      description: PostgreSQL instance has too many connections (> 80%).\n  {{ log_values_and_labels }}
+
+  - alert: PostgresDeadLocks
+    expr: increase(pg_stat_database_deadlocks{instance="{{ instance_label }}", datname!~"template.*|postgres"}[1m]) > 5
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: PostgreSQL dead locks {{ log_instance }}
+      description: PostgreSQL has dead-locks\n  {{ log_values_and_labels }}
+  {% endfor -%}
+
+{% endif %}
+{% if monitoring_agent_redis_instances %}
+  ##
+  # Redis
+  ##
+  {% for instance in monitoring_agent_redis_instances -%}
+  - alert: RedisAgentMissing
+    expr: absent(redis_up{instance="{{ instance.name }}"})
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: A Redis Prometheus job is missing {{ log_instance }}
+      description: A Redis Prometheus job did not report metrics\n  {{ log_values_and_labels }}
+
+  - alert: RedisDown
+    expr: redis_up{instance="{{ instance.name }}"} == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: A Redis instance is down {{ log_instance }}
+      description: A Redis instance is down\n  {{ log_values_and_labels }}
+
+  - alert: RedisConnectionsRejected
+    expr: increase(redis_rejected_connections_total{instance="{{ instance.name }}"}[1m]) > 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: Redis connections rejected {{ log_instance }}
+      description: Redis rejected some connections\n  {{ log_values_and_labels }}
+  {% endfor -%}
+{% endif %}

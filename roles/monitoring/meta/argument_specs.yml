@@ -217,13 +217,37 @@ argument_specs:
             required: true
             description:
               - The username to use to connect to the database
-      monitoring_agent_prometheus_endpoints:
-        type: dict
-        default: {}
+      monitoring_agent_product_name:
+        type: str
+        required: true
         description:
-          - A dictionary of C(name) to C(hostname:port) of endpoints for which
-            to collect Prometheus metrics.
-          - C(name) is an arbitrary value that is used as the instance label.
+          - A human readable name of what this agent monitors. Used in alerting
+            to group alerts together.
+      monitoring_agent_prometheus_endpoints:
+        type: list
+        elements: dict
+        default: []
+        description:
+          - A list of Prometheus endpoints to monitor
+        options:
+          name:
+            type: str
+            required: true
+            description:
+              - A human-readable name for the service to monitor. Will be also
+                used as the C(instance) label.
+          address:
+            type: str
+            required: true
+            description:
+              - The endpoint on which to fetch the Prometheus metrics
+          alerting_rules_template:
+            type: str
+            required: false
+            description:
+              - A Jinja template defining Prometheus rules to generate alerts
+              - The variable C(job_name) and C(name) are available to uniquely
+                identify the job.
       monitoring_agent_redis_instances:
         type: list
         default: []

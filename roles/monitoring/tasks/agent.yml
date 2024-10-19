@@ -141,3 +141,20 @@
   until: _healthcheck is not failed
   retries: 3
   changed_when: false
+
+- name: Ensure the directory to store alerts exists
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.file:
+    name: "{{ monitoring_mimir_config_path }}/rules/anonymous"
+    state: directory
+    mode: "0o755"
+
+- name: Install the alerts for the service
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.template:
+    src: agent-alerts.yml.j2
+    # yamllint disable-line rule:line-length
+    dest: "{{ monitoring_mimir_config_path }}/rules/anonymous/{{ monitoring_agent_product_name }}.yml"
+    mode: "0o644"

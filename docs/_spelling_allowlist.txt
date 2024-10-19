@@ -9,6 +9,7 @@ Homelab
 hostname
 hostnames
 https
+Jinja
 Mimir
 namespace
 OAuth

@@ -1,0 +1,8 @@
+- alert: AuthentikSystemTaskUnhealthy
+  expr: authentik_system_tasks_status{instance="{{ name }}", status!="successful", task_name!="update_latest_version"}> 0
+  for: 0m
+  labels:
+    severity: critical
+  annotations:
+    summary: Auhtentik system task unhealthy (instance {{ '{{' }} $labels.instance {{ '}}' }})
+    description: Authentik has an unhealthy system task\n  TASK = {{ '{{' }} $labels.task_name {{ '}}' }}\n  LABELS = {{ '{{' }} $labels {{ '}}' }}
