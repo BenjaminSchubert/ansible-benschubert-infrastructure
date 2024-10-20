@@ -6,7 +6,7 @@ short_description: Allows retrieving information about users from the Authentik 
 
 description:
   - This module allows retrieving information from users from the Authentik API
-  - See https://goauthentik.io/docs/user-group-role/user
+  - See https://docs.goauthentik.io/docs/users-sources/user/
 
 options:
   username:

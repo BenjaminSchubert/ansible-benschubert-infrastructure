@@ -7,7 +7,7 @@ short_description: Allows administration of Authentik tokens
 description:
   - This module allows the administration of Authentik tokens via the
     Authentik API.
-  - See https://docs.goauthentik.io/docs/providers/oauth2/client_credentials
+  - See https://docs.goauthentik.io/docs/add-secure-apps/providers/oauth2/client_credentials
 
 options:
   token:

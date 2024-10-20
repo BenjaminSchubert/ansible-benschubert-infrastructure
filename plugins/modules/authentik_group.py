@@ -7,7 +7,7 @@ short_description: Allows administration of Authentik groups
 description:
   - This module allows the administration of Authentik groups via the
     Authentik API.
-  - See https://goauthentik.io/docs/user-group-role/groups
+  - See https://docs.goauthentik.io/docs/users-sources/groups/
 
 options:
   group:

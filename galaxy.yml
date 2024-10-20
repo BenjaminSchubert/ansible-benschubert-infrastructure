@@ -7,35 +7,38 @@ authors:
   - Benjamin Schubert <contact@benschubert.me>
 
 # yamllint disable rule:line-length
+# FIXME: the <br /> here are in order to be able to detect newlines and replace
+#        them when generating the docs. If antsibull could support that, we could
+#        remove that hack
 description: |
   A collection to deploy all the infrastructure services that are part of my Homelab.
-
+  <br />
   The main entry point for the collection
   is R(benschubert.infrastructure.main, ansible_collections.benschubert.infrastructure.main_role) which
   puts all the other roles together in a singular, consistent deployment.
   It will ensure that all the roles are called in a consistent manner and in the
   right order.
-
+  <br />
   The following services can be configured with this collection:
-
-  - L(Traefik, https://traefik.io/),
+  <br />
+  * L(Traefik, https://traefik.io/),
     using R(the ingress role, ansible_collections.benschubert.infrastructure.ingress_role),
     which acts as a reverse proxy and connects all the services to the
     outside world.
-  - L(Authentik, https://goauthentik.io/),
+  * L(Authentik, https://goauthentik.io/),
     using R(the auth role, ansible_collections.benschubert.infrastructure.auth_role),
     which provides an authentication service to allow SSO to be used for
     the various services.
-  - L(Grafana, https://grafana.com/),
+  * L(Grafana, https://grafana.com/),
     using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
     which allows building dashboard to monitor the Homelab and more.
-  - L(Mimir, https://grafana.com/oss/mimir/),
+  * L(Mimir, https://grafana.com/oss/mimir/),
     using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
     which allows ingesting and storing metrics and alerts.
-  - L(Grafana Alloy, https://grafana.com/oss/alloy-opentelemetry-collector/),
+  * L(Grafana Alloy, https://grafana.com/oss/alloy-opentelemetry-collector/),
     using R(the monitoring role, ansible_collections.benschubert.infrastructure.monitoring_role),
     which allows collecting metrics and logs
-
+  <br />
   This collection globally expects that B(podman is already configured) on the
   host, and that the user running the role has enough B(user namespaces)
   available to isolate every pod.
@@ -49,6 +52,7 @@ dependencies:
 readme: README.md
 license_file: LICENSE
 repository: https://github.com/BenjaminSchubert/ansible-benschubert-infrastructure/
+issues: https://github.com/BenjaminSchubert/ansible-benschubert-infrastructure/issues
 
 manifest:
   omit_default_directives: true

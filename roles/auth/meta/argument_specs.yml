@@ -138,9 +138,9 @@ argument_specs:
     short_description: Setup an application and provider to protect an application via proxy
     description:
       - This role creates an
-        L(application, https://goauthentik.io/docs/applications) and a
-        L(proxy provider, https://goauthentik.io/docs/providers/proxy/) in order
-        to protect an application via Authentik.
+        L(application, https://docs.goauthentik.io/docs/applications) and a
+        L(proxy provider, https://docs.goauthentik.io/docs/add-secure-apps/providers/proxy/) in
+        order to protect an application via Authentik.
     options:
       application_name:
         type: str

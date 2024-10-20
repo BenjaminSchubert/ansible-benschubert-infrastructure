@@ -7,7 +7,7 @@ short_description: Allows administration of Authentik OAuth2 providers
 description:
   - This module allows the administration of Authentik Oauth2 providers via the
     Authentik API.
-  - See https://goauthentik.io/docs/providers/oauth2/
+  - See https://docs.goauthentik.io/docs/add-secure-apps/providers/oauth2/
 
 options:
   provider:

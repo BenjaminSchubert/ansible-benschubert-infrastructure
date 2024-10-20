@@ -44,6 +44,8 @@ intersphinx_mapping = {
     "ansible_devel": ("https://docs.ansible.com/ansible/devel/", None),
 }
 
+# Linkcheck config
+linkcheck_ignore = ["https://docs.goauthentik.io/docs/applications"]
 
 # Spelling config
 spelling_show_suggestions = True

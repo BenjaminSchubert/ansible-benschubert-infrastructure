@@ -7,7 +7,7 @@ short_description: Allows connecting Authentik providers to outposts
 description:
   - This module allows the administration of Authentik outposts connections with
     providers via the Authentik API.
-  - See https://goauthentik.io/docs/outposts/
+  - See https://docs.goauthentik.io/docs/add-secure-apps/outposts/
 
 options:
   provider_pk:

@@ -6,7 +6,7 @@ short_description: Allows retrieving information about flows from the Authentik 
 
 description:
   - This module allows retrieving information from flows from the Authentik API
-  - See https://goauthentik.io/docs/flow
+  - See https://docs.goauthentik.io/docs/add-secure-apps/flows-stages/flow/
 
 options:
   slug:

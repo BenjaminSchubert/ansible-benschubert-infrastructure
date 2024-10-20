@@ -7,7 +7,7 @@ short_description: Allows administration of Authentik outposts
 description:
   - This module allows the administration of Authentik outposts via the
     Authentik API.
-  - See https://goauthentik.io/docs/outposts/
+  - See https://docs.goauthentik.io/docs/add-secure-apps/outposts/
   - For connecting providers to outposts, please see
     benschubert.infrastructure.authentik_outpost_providers
 

@@ -6,7 +6,7 @@ short_description: Allows retrieving information about groups from the Authentik
 
 description:
   - This module allows retrieving information from groups from the Authentik API
-  - See https://goauthentik.io/docs/user-group-role/groups
+  - See https://docs.goauthentik.io/docs/users-sources/groups/
 
 options:
   name:
