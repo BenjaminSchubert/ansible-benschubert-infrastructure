@@ -7,7 +7,7 @@ short_description: Allows administration of Authentik proxy providers
 description:
   - This module allows the administration of Authentik proxy providers via the
     Authentik API.
-  - See https://goauthentik.io/docs/providers/proxy/
+  - See https://docs.goauthentik.io/docs/add-secure-apps/providers/proxy/
 
 options:
   provider:

@@ -7,7 +7,7 @@ short_description: Allows adding or removing users to groups in Authentik
 description:
   - This module allows the administration of Authentik group membership via the
     Authentik API.
-  - See https://goauthentik.io/docs/user-group-role/user
+  - See https://docs.goauthentik.io/docs/users-sources/user/
 
 options:
   group_pk:

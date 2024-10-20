@@ -6,7 +6,7 @@ short_description: Allows retrieving information about providers from the Authen
 
 description:
   - This module allows retrieving information from providers from the Authentik API
-  - See https://goauthentik.io/docs/providers/oauth2
+  - See https://docs.goauthentik.io/docs/providers
 
 options:
   name:

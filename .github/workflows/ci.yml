@@ -7,10 +7,10 @@ name: ci
 
 on:
   pull_request:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.repository }}-${{ github.ref }}-${{ github.workflow }}
@@ -175,4 +175,57 @@ jobs:
         with:
           name: package
           path: _artifacts/*
+          retention-days: 7
+
+  ###
+  # Docs
+  ###
+  docs:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ansible_collections/benschubert/infrastructure/
+    env:
+      ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: ansible_collections/benschubert/infrastructure/
+      - name: Install python
+        uses: actions/setup-python@v5
+        with:
+          cache: pip
+          python-version: ${{ env.PYTHON }}
+      - name: Install dependencies
+        run: pip install -r requirements/requirements-docs.txt
+      - name: Validate the collection's documentation
+        run: >-
+          antsibull-docs
+          --config-file=docs/antsibull-docs.cfg
+          lint-collection-docs
+          --plugin-docs
+          --validate-collection-refs=all
+          .
+      - name: Generate the collection's documentation
+        run: >-
+          antsibull-docs
+          --config-file=docs/antsibull-docs.cfg
+          collection
+          --use-current
+          --fail-on-error
+          --dest-dir=docs
+          --squash-hierarchy
+          benschubert.infrastructure
+      - name: Build documentation
+        run: sphinx-build -W --color -b=html docs/ _artifacts/docs
+      - name: Validate links
+        run: sphinx-build -W --color -b=linkcheck docs/ /tmp/linkcheck
+      - name: Validate spelling
+        run: sphinx-build -W --color -b=spelling docs/ /tmp/spelling
+      - name: Save the documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: ansible_collections/benschubert/infrastructure//_artifacts/*
           retention-days: 7

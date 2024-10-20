@@ -1,0 +1,21 @@
+---
+name: Deploy static content to Pages
+
+on:
+  workflow_run:
+    workflows:
+      - ci
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  deploy-docs:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download built artifact
+        run: echo "${{ github.event.workflow_run }}"

@@ -6,7 +6,7 @@ short_description: Allows retrieving information about OAuth2 scopes from the Au
 
 description:
   - This module allows retrieving information from OAuth2 scopes from the Authentik API
-  - See https://goauthentik.io/docs/property-mappings/
+  - See https://docs.goauthentik.io/docs/add-secure-apps/providers/property-mappings/
 
 options:
   scope_name:

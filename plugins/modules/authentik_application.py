@@ -7,7 +7,7 @@ short_description: Allows administration of Authentik applications
 description:
   - This module allows the administration of Authentik applications via the
     Authentik API.
-  - See https://goauthentik.io/docs/applications
+  - See https://docs.goauthentik.io/docs/applications
 
 options:
   application:

@@ -7,7 +7,7 @@ short_description: Allows configuring application icons from the Authentik API
 description:
   - This module allows configuring the icon urls for applications from the
     Authentik API
-  - See https://goauthentik.io/docs/applications#appearance
+  - See https://docs.goauthentik.io/docs/applications#appearance
 
 options:
   authentik_token:

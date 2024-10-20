@@ -234,6 +234,8 @@ def autodoc(step: StepRunner) -> None:
             "antsibull-docs",
             "--config-file=docs/antsibull-docs.cfg",
             "lint-collection-docs",
+            "--plugin-docs",
+            "--validate-collection-refs=all",
             str(
                 step.cache_path
                 / "ansible_collections/benschubert/infrastructure"
