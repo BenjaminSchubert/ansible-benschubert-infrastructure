@@ -52,6 +52,8 @@ dependencies:
 readme: README.md
 license_file: LICENSE
 repository: https://github.com/BenjaminSchubert/ansible-benschubert-infrastructure/
+documentation: https://benjaminschubert.github.io/ansible-benschubert-infrastructure/
+homepage: https://benjaminschubert.github.io/ansible-benschubert-infrastructure/
 issues: https://github.com/BenjaminSchubert/ansible-benschubert-infrastructure/issues
 
 manifest:

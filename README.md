@@ -1,5 +1,11 @@
 # ansible-benschubert-infrastructure
 
+[![Docs](https://github.com/BenjaminSchubert/ansible-benschubert-infrastructure/actions/workflows/docs.yml/badge.svg)](https://benjaminschubert.github.io/ansible-benschubert-infrastructure/)
+[![ci](https://github.com/BenjaminSchubert/ansible-benschubert-infrastructure/actions/workflows/ci.yml/badge.svg)](https://github.com/BenjaminSchubert/ansible-benschubert-infrastructure/actions/workflows/ci.yml)
+![GitHub License](https://img.shields.io/github/license/BenjaminSchubert/ansible-benschubert-infrastructure)
+![Static Badge](https://img.shields.io/badge/Status-Experimental-red)
+
+
 This is an ansible collection to setup some base services for a web stack.
 
 The focus of this project is towards a single-node deployment, where everything
