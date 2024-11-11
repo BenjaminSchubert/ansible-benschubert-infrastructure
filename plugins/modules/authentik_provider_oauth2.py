@@ -22,6 +22,11 @@ options:
             to the connected application
         type: str
         required: true
+      invalidation_flow:
+        description:
+          - The slug for the invalidation flow used to invalidate a session
+        type: str
+        required: true
       name:
         description: The name to give to the provider
         type: str
@@ -103,6 +108,7 @@ def main() -> NoReturn:  # type: ignore[misc]
         "options": {
             "name": {"type": "str", "required": True},
             "authorization_flow": {"type": "str", "required": True},
+            "invalidation_flow": {"type": "str", "required": True},
             "redirect_uris": {"type": "str", "required": True},
             "property_mappings": {
                 "type": "list",
