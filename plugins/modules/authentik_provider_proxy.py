@@ -27,6 +27,11 @@ options:
           - The URL at which the protected application will be hosted
         type: str
         required: true
+      invalidation_flow:
+        description:
+          - The slug for the invalidation flow used to invalidate a session
+        type: str
+        required: true
       mode:
         description:
           - The mode with which the provider operates
@@ -120,6 +125,7 @@ def main() -> NoReturn:  # type: ignore[misc]
         "options": {
             "name": {"type": "str", "required": True},
             "authorization_flow": {"type": "str", "required": True},
+            "invalidation_flow": {"type": "str", "required": True},
             "external_host": {"type": "str", "required": True},
             "mode": {
                 "type": "str",
