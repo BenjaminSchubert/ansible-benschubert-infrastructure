@@ -142,6 +142,8 @@ def sanity(step: StepRunner) -> None:
         f"--python={sys.version_info.major}.{sys.version_info.minor}",
         # We use asserts to help mypy, not for workflows
         "--skip-test=no-assert",
+        # pylint seems to be buggy, we use our own config
+        "--skip-test=pylint",
     ]
     if step.config.colors:
         command.append("--color=yes")
