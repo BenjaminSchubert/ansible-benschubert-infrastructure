@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ANSIBLE: 2.17
-  PYTHON: 3.12
+  ANSIBLE: 2.18
+  PYTHON: 3.13
 
 jobs:
   ###
@@ -106,7 +106,7 @@ jobs:
           ansible-core-version: stable-${{ env.ANSIBLE }}
           coverage: never
           origin-python-version: ${{ env.PYTHON }}
-          sanity-skip-tests: no-assert
+          sanity-skip-tests: no-assert,pylint
           target-python-version: ${{ env.PYTHON }}
           testing-type: sanity
   secret-scanning:

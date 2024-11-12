@@ -22,7 +22,7 @@
     url: https://{{ hostname }}:{{ ingress_https_port }}/
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
-    follow_redirects: false
+    follow_redirects: none
     status_code:
       - "{{ expected_status_code }}"
   register: _service
