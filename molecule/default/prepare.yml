@@ -18,18 +18,7 @@
       ansible.builtin.copy:
         content: |
           [containers]
-          netns="private"
-          userns="host"
-          ipcns="shareable"
-          utsns="private"
-          cgroupns="private"
-          cgroups="enabled"
-          log_driver = "k8s-file"
           base_hosts_file = "/etc/isolated_hosts"
-          [engine]
-          cgroup_manager = "cgroupfs"
-          events_logger="file"
-          runtime="crun"
         dest: /etc/containers/containers.conf
         mode: "0o644"
 
