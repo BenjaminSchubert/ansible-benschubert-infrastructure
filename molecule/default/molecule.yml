@@ -10,6 +10,7 @@ verifier:
 platforms:
   - name: ${CONTAINER_NAME:-benschubert-infrastructure-test-container}
     image: docker.io/debian:bookworm-slim
+    command: /usr/sbin/init
     dockerfile: Dockerfile.j2
     etc_hosts:
       ${AUTHENTIK_HOSTNAME:-auth.test}: 127.0.0.1
@@ -24,6 +25,7 @@ platforms:
     devices:
       - /dev/fuse
     privileged: true
+    tty: true
     volumes:
       - ${CONTAINER_NAME:-benschubert-infrastructure-test-container}-data:/home/podman/.local/share/containers
 
