@@ -73,3 +73,92 @@
           description: A token to allow Akadmin to access services via APIs
           expiring: false
       register: _test
+
+    ##
+    # Example on how to connect a node-exporter to mimir deployed this way
+    ##
+    - name: Install alloy on the host and configure it
+      block:
+        - name: Install grafana apt gpg signing key
+          become: true
+          ansible.builtin.get_url:
+            url: https://apt.grafana.com/gpg.key
+            dest: /etc/apt/keyrings/grafana.asc
+            mode: "0o400"
+          register: _gpg_key
+
+        - name: Dearmor the grafana gpg key
+          become: true
+          ansible.builtin.command:
+            cmd: gpg --dearmor --output /etc/apt/keyrings/grafana.gpg /etc/apt/keyrings/grafana.asc
+          when: _gpg_key.changed
+          changed_when: true
+          tags:
+            - skip_ansible_lint
+
+        - name: Add grafana apt repository
+          become: true
+          ansible.builtin.apt_repository:
+            repo: deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main
+            state: present
+            filename: grafana
+
+        - name: Install alloy
+          become: true
+          ansible.builtin.apt:
+            name: alloy
+
+        - name: Create the agent's service account to authenticate
+          benschubert.infrastructure.authentik_user:
+            authentik_token: "{{ auth_authentik_token }}"
+            authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+            ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+            validate_certs: "{{ ingress_validate_certs }}"
+            user:
+              name: host-metrics
+              username: host-metrics
+              path: service-accounts
+              type: service_account
+          register: _service_account
+
+        - name: Create the agent's service account's token
+          benschubert.infrastructure.authentik_token:
+            authentik_token: "{{ auth_authentik_token }}"
+            authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+            ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+            validate_certs: "{{ ingress_validate_certs }}"
+            token:
+              identifier: host-metrics-agent-auth-token
+              intent: app_password
+              user: "{{ _service_account.data.pk }}"
+              description: Token to authenticate the agent against mimir
+              expiring: false
+
+        - name: Retrieve the generated token
+          benschubert.infrastructure.authentik_token_value:
+            authentik_token: "{{ auth_authentik_token }}"
+            authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+            ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+            validate_certs: "{{ ingress_validate_certs }}"
+            token: host-metrics-agent-auth-token
+          register: _mimir_service_account_token
+
+        - name: Configure alloy
+          become: true
+          ansible.builtin.template:
+            src: config.alloy.j2
+            dest: /etc/alloy/config.alloy
+            mode: "0o600"
+            owner: alloy
+            group: alloy
+          vars:
+            password: "{{ _mimir_service_account_token.key }}"
+            username: host-metrics
+          register: _alloy_config
+
+        - name: Ensure alloy is running
+          become: true
+          ansible.builtin.systemd:
+            service: alloy
+            state: "{{ 'restarted' if _alloy_config.changed else 'started' }}"
+            enabled: true

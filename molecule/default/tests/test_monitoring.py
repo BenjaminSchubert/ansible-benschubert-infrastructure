@@ -1,3 +1,4 @@
+import os
 from http import HTTPStatus
 from typing import Any
 from urllib.parse import urlparse
@@ -71,14 +72,18 @@ def test_services_are_up(
             "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
             "1",
         ),
-        (
-            "auth-redis",
-            "integrations/redis",
-            "1",
-        ),
+        ("agent", "prometheus.scrape.host", "1"),
+        ("auth-redis", "integrations/redis", "1"),
         (
             "authentik",
             "prometheus.scrape.benschubert_infrastructure_auth_monitor",
+            "1",
+        ),
+        (
+            os.getenv(
+                "CONTAINER_NAME", "benschubert-infrastructure-test-container"
+            ),
+            "integrations/unix",
             "1",
         ),
         (
