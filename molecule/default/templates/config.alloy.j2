@@ -1,0 +1,30 @@
+logging {
+  level = "info"
+  format = "logfmt"
+}
+
+prometheus.exporter.unix "host" {}
+
+prometheus.scrape "host" {
+  scrape_interval = "30s"
+  targets = concat(
+    [{"__address__" = "localhost:12345", "instance" = "agent"}],
+    prometheus.exporter.unix.host.targets,
+  )
+  forward_to = [prometheus.remote_write.monitor.receiver]
+}
+
+prometheus.remote_write "monitor" {
+    endpoint {
+        url = "https://{{ monitoring_mimir_hostname }}:{{ ingress_https_port }}/api/v1/push"
+        basic_auth {
+          username = "{{ username }}"
+          password = "{{ password }}"
+        }
+        {% if (not ingress_validate_certs) or ingress_custom_ca_cert_url is not none %}
+        tls_config {
+          insecure_skip_verify = true
+        }
+        {% endif %}
+    }
+}
