@@ -1,7 +1,15 @@
 ---
-- name: Expand ocnfiguration
+- name: Expand configuration
   ansible.builtin.set_fact:
     ingress_networks: "{{ ingress_networks + ingress_additional_networks }}"
+
+- name: Validate configuration
+  ansible.builtin.assert:
+    that:
+      - auth_authentik_token is not none
+    fail_msg: >
+      'auth_authentik_token' is none and no
+      'auth_authentik_superadmin_bootstrap_token' has been provided
 
 - name: Setup Ingress
   ansible.builtin.import_role:

@@ -155,6 +155,7 @@
             password: "{{ _mimir_service_account_token.key }}"
             username: host-metrics
           register: _alloy_config
+          no_log: true
 
         - name: Ensure alloy is running
           become: true

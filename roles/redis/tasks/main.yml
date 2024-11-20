@@ -20,6 +20,7 @@
     dest: "{{ redis_config_path }}/redis.conf"
     mode: "0o400"
   register: _configuration
+  no_log: true
 
 - name: Create the Redis network
   containers.podman.podman_network:
