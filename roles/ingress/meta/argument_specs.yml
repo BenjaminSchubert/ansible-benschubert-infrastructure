@@ -103,7 +103,7 @@ argument_specs:
           - This is used to ensure that the service is now available
       ingress_https_port:
         type: int
-        default: 8443
+        default: 443
         description:
           - The port at which the service is exposed via the ingress, in order
             to be able to make API calls to the service

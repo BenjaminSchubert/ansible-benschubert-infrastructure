@@ -98,6 +98,16 @@ argument_specs:
           - It is recommended, after the bootstrap, to create a new token, and
             remove the bootstrap one, so that it does not linger in the
             environment needlessly
+      auth_monitor_agent_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where to store the monitoring's agent configuration files
+      auth_monitor_agent_data_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where to store the monitoring's agent data
       auth_postgres_data_path:
         type: str
         required: true
