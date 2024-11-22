@@ -34,8 +34,10 @@
     # yamllint disable-line rule:line-length
     icon_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}/public/img/grafana_icon.svg
     provider_oauth2:
-      # yamllint disable-line rule:line-length
-      redirect_uris: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}/login/generic_oauth
+      redirect_uris:
+        # yamllint disable-line rule:line-length
+        - url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}/login/generic_oauth
+          matching_mode: strict
       scopes:
         - profile
         - email

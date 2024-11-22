@@ -205,7 +205,9 @@ argument_specs:
           redirect_uris:
             description:
               - The list of valid URIs where Authentik can redirect after login
-            type: str
+              - "Each entry must be a dict of {url: <url>, matching_mode: \"strict\" | \"regex\"}"
+            type: list
+            elements: dict
             required: true
           scopes:
             description:

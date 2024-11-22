@@ -98,9 +98,6 @@ data:
     - bccf1bab-e50f-41fa-89b0-9624ae58e1e5
     - 270683ab-b0be-4aa0-b68c-91846ba6256f
     - 30e8959e-d2b4-41c5-a1d6-72c1a4742926
-    redirect_uris: |-
-      https://traefik.test/outpost.goauthentik.io/callback?X-authentik-auth-callback=true
-      https://traefik.test?X-authentik-auth-callback=true
     refresh_token_validity: days=30
     skip_path_regex: ''
     verbose_name: Proxy Provider
