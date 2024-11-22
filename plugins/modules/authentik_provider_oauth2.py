@@ -32,8 +32,11 @@ options:
         type: str
         required: true
       redirect_uris:
-        description: The URIs that are valid redirection targets after login
-        type: str
+        description:
+          - The URIs that are valid redirection targets after login.
+          - "This must be a dictionary of the form {url: <url>, matching_mode: 'strict' or 'regex'}"
+        type: list
+        elements: dict
         required: true
       property_mappings:
         description:
@@ -60,7 +63,9 @@ EXAMPLES = """
     provider:
       name: grafana-
       authorization_flow: only-admin-authorization
-      redirect_uris: https://grafana.test/login/generic_oauth
+      redirect_uris:
+        - url: https://grafana.test/login/generic_oauth
+          matching_mode: strict
       property_mappings:
         - <email_mapping>.pk
         - <openid_mapping>.pk
@@ -109,7 +114,11 @@ def main() -> NoReturn:  # type: ignore[misc]
             "name": {"type": "str", "required": True},
             "authorization_flow": {"type": "str", "required": True},
             "invalidation_flow": {"type": "str", "required": True},
-            "redirect_uris": {"type": "str", "required": True},
+            "redirect_uris": {
+                "type": "list",
+                "elements": "dict",
+                "required": True,
+            },
             "property_mappings": {
                 "type": "list",
                 "required": True,
