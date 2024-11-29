@@ -48,7 +48,7 @@
     pod: monitoring-mimir
     state: started
     force_restart: "{{ _configuration.changed }}"
-    image: docker.io/grafana/mimir
+    image: "{{ monitoring_mimir_image }}"
     command: --config.file=/etc/mimir/mimir.yml
     # FIXME: the image from 2.13 now doesn't have curl or wget
     # healthcheck: wget -O- http://localhost:9009

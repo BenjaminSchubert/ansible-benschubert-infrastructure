@@ -68,7 +68,7 @@
   containers.podman.podman_container:
     name: ingress-traefik
     pod: ingress
-    image: docker.io/traefik:latest
+    image: "{{ ingress_traefik_image }}"
     state: started
     force_restart: "{{ _configuration.changed }}"
     volumes:

@@ -78,6 +78,11 @@
     - name: monitoring-grafana-secret-key
       data: "{{ monitoring_grafana_secret_key }}"
 
+- name: Configure the postgres image if not provided explicitly
+  ansible.builtin.set_fact:
+    monitoring_grafana_postgres_image: "{{ postgres_image }}"
+  when: monitoring_grafana_postgres_image is not defined
+
 - name: Create the Grafana database
   ansible.builtin.import_role:
     name: benschubert.infrastructure.postgres
@@ -85,6 +90,7 @@
     postgres_pod: monitoring-grafana-postgres
     postgres_password_secret: monitoring-grafana-postgres-password
     postgres_data_path: "{{ monitoring_grafana_postgres_data_path }}"
+    postgres_image: "{{ monitoring_grafana_postgres_image }}"
     postgres_user: grafana
     postgres_database: grafana
     postgres_network: monitoring-grafana-postgres
@@ -104,7 +110,7 @@
     name: monitoring-grafana-grafana
     pod: monitoring-grafana
     state: started
-    image: docker.io/grafana/grafana
+    image: "{{ monitoring_grafana_image }}"
     healthcheck: curl --fail http://localhost:3000
     read_only: true
     env:

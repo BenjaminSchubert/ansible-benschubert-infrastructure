@@ -19,6 +19,10 @@ argument_specs:
         required: true
         description: >-
           The path on disk where Redis will store it's data for persistence
+      redis_image:
+        type: str
+        default: docker.io/library/redis:latest
+        description: The container image path and tag to use for Redis
       redis_metrics_password:
         type: str
         required: true

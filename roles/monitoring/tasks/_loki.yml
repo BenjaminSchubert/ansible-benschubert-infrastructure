@@ -42,7 +42,7 @@
     name: monitoring-loki-loki
     pod: monitoring-loki
     state: started
-    image: docker.io/grafana/loki
+    image: "{{ monitoring_loki_image }}"
     healthcheck: wget -O- http://localhost:3100/ready
     force_restart: "{{ _configuration.changed }}"
     read_only: true

@@ -79,12 +79,21 @@ argument_specs:
         required: true
         description:
           - The directory in which the Grafana data will be stored
+      monitoring_grafana_image:
+        type: str
+        default: docker.io/grafana/grafana:latest
+        description:
+          - The container image path and tag to use for Grafana
       monitoring_grafana_postgres_data_path:
         type: str
         required: true
         description:
           - The path on disk where the PostgreSQL instance for Grafana should
             store its data
+      monitoring_grafana_postgres_image:
+        type: str
+        default: See I(postgres_image) from the Postgres role
+        description: The container image path and tag to use for Postgres
       monitoring_grafana_postgres_password:
         type: str
         required: true
@@ -115,6 +124,11 @@ argument_specs:
         required: true
         description:
           - The hostname at which the Loki instance is reachable.
+      monitoring_loki_image:
+        type: str
+        default: docker.io/grafana/loki:latest
+        description:
+          - The container image path and tag to use for Loki
       monitoring_mimir_hostname:
         type: str
         required: true
@@ -130,6 +144,11 @@ argument_specs:
         required: true
         description:
           - The path on disk where the Mimir data should be stored.
+      monitoring_mimir_image:
+        type: str
+        default: docker.io/grafana/mimir:latest
+        description:
+          - The container image path and tag to use for Mimir
       monitoring_monitor_agent_config_path:
         type: str
         required: true
@@ -142,6 +161,10 @@ argument_specs:
         description:
           - The path at which the Grafana Alloy monitoring the monitoring stack
             should store its data
+      monitoring_monitor_agent_alloy_image:
+        type: str
+        default: See I(monitoring_agent_alloy_image) from the Monitoring role
+        description: The container image path and tag to use for Alloy
   agent:
     short_description: >-
       Configure a Grafana alloy service to monitor some systems
@@ -188,6 +211,11 @@ argument_specs:
         required: true
         description:
           - The path on disk where the agent can store it's own data
+      monitoring_agent_alloy_image:
+        type: str
+        default: docker.io/grafana/alloy:latest
+        description:
+          - The container image path and tag to use for Alloy
       monitoring_agent_networks:
         type: list
         elements: str
