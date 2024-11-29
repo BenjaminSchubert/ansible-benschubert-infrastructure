@@ -64,7 +64,6 @@ line-length = 79
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "ANN101",  # Don't force documenting 'self'
     "ANN401",  # Allow using Any as typing
     "COM812",  # Otherwise conflicts with the formatter
     "D104",  # Don't force documenting packages
