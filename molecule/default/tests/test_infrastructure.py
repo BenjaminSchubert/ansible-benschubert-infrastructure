@@ -8,7 +8,9 @@ from testinfra.host import Host
 
 @pytest.fixture(scope="module")
 def containers(host: Host) -> list[str]:
-    result = host.run("podman ps --all --format '{{ '{{' }}.Names{{ '}}' }}'")
+    result = host.run(
+        "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
+    )
     assert result.succeeded
 
     return cast(list[str], result.stdout.split())
@@ -72,11 +74,11 @@ def test_all_pods_run_in_a_user_namespace(host: Host, pods: list[str]) -> None:
     result = host.run(f"podman inspect {' '.join(pods)}")
     assert result.succeeded
 
-    assert not [
+    assert [
         pod
         for pod, info in zip(pods, json.loads(result.stdout), strict=True)
         if "user" not in info["SharedNamespaces"]
-    ]
+    ] == [], "Some pods are not running in a user namespace"
 
 
 def test_all_networks_are_internal(host: Host) -> None:
@@ -98,3 +100,24 @@ def test_all_networks_are_internal(host: Host) -> None:
         # The default podman network
         "podman",
     ]
+
+
+def test_all_containers_have_a_read_only_rootfs(
+    host: Host, containers: list[str]
+) -> None:
+    readonly_format = "{{ '{{' }} .HostConfig.ReadonlyRootfs {{ '}}' }}"
+    result = host.run(
+        f"podman inspect --format '{readonly_format}' {' '.join(containers)}"
+    )
+    assert result.succeeded
+
+    assert [
+        container
+        for container, readonly in zip(
+            containers,
+            result.stdout.strip().splitlines(),
+            strict=True,
+        )
+        # FIXME: can we make the infra containers readonly?
+        if not container.endswith("-infra") and not json.loads(readonly)
+    ] == [], "Some containers are not setup as readonly"
