@@ -24,6 +24,18 @@ def _install_collection(step: StepRunner) -> dict[str, str]:
     # FIXME: once we can set an environment variable from a step, we should
     #        have the build step take care of the installation and inject
     #        the collections path
+
+    # FIXME: remove this once a new version of the grafana collection is released
+    step.run(
+        [
+            "ansible-galaxy",
+            "collection",
+            "install",
+            "--requirements-file=requirements.yml",
+        ],
+        env=env,
+    )
+
     step.run(
         [
             "ansible-galaxy",
@@ -34,6 +46,7 @@ def _install_collection(step: StepRunner) -> dict[str, str]:
         ],
         env=env,
     )
+
     # ansible-test sanity ignores the installed part otherwise, since it's
     # in our gitignore
     step.run(
@@ -163,7 +176,7 @@ def sanity(step: StepRunner) -> None:
 def ansible_lint(step: StepRunner) -> None:
     env = _install_collection(step)
 
-    command = ["ansible-lint"]
+    command = ["ansible-lint", "--strict"]
     if step.config.colors:
         command.append("--force-color")
 
