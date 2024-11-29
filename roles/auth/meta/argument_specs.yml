@@ -80,6 +80,10 @@ argument_specs:
         type: str
         description:
           - Name of the SVG file to use as an icon for Authentik on login screen
+      auth_authentik_image:
+        type: str
+        default: ghcr.io/goauthentik/server:latest
+        description: The container image path and tag to use for Authentik
       auth_authentik_secret_key:
         type: str
         required: true
@@ -108,11 +112,19 @@ argument_specs:
         required: true
         description:
           - The path on disk where to store the monitoring's agent data
+      auth_monitor_agent_alloy_image:
+        type: str
+        default: See I(monitoring_agent_alloy_image) from the Monitoring role
+        description: The container image path and tag to use for Alloy
       auth_postgres_data_path:
         type: str
         required: true
         description:
           - The path on disk where the PostgreSQL instance should store its data
+      auth_postgres_image:
+        type: str
+        default: See I(postgres_image) from the Postgres role
+        description: The container image path and tag to use for Postgres
       auth_postgres_password:
         type: str
         required: true
@@ -129,6 +141,10 @@ argument_specs:
         required: true
         description:
           - The path on disk where the Redis instance should store its data
+      auth_redis_image:
+        type: str
+        default: See I(redis_image) from the Redis role
+        description: The container image path and tag to use for Redis
       auth_redis_metrics_password:
         type: str
         required: true

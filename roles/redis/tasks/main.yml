@@ -40,7 +40,7 @@
   containers.podman.podman_container:
     name: "{{ redis_pod }}-redis"
     pod: "{{ redis_pod }}"
-    image: docker.io/library/redis:latest
+    image: "{{ redis_image }}"
     command: [redis-server, /etc/redis.conf]
     user: redis
     state: started

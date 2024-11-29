@@ -23,6 +23,11 @@
     hostname: "{{ ingress_traefik_dashboard_hostname }}"
     expected_status_code: 302
 
+- name: Configure the Alloy image if not provided explicitly
+  ansible.builtin.set_fact:
+    ingress_monitor_agent_alloy_image: "{{ monitoring_agent_alloy_image }}"
+  when: ingress_monitor_agent_alloy_image is not defined
+
 - name: Monitor Traefik
   ansible.builtin.import_role:
     name: monitoring
@@ -31,6 +36,7 @@
     monitoring_agent_product_name: ingress
     monitoring_agent_config_path: "{{ ingress_monitor_agent_config_path }}"
     monitoring_agent_data_path: "{{ ingress_monitor_agent_data_path }}"
+    monitoring_agent_alloy_image: "{{ ingress_monitor_agent_alloy_image }}"
     monitoring_agent_networks:
       - ingress
     monitoring_agent_pod: ingress-monitor

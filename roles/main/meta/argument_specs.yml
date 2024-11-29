@@ -79,6 +79,10 @@ argument_specs:
         type: str
         description:
           - Name of the SVG file to use as an icon for Authentik on login screen
+      auth_authentik_image:
+        type: str
+        default: See I(auth_authentik_image) in the auth role
+        description: The container image path and tag to use for Authentik
       auth_authentik_secret_key:
         type: str
         required: true
@@ -117,12 +121,20 @@ argument_specs:
         required: true
         description:
           - The path on disk where to store the monitoring's agent data
+      auth_monitor_agent_alloy_image:
+        type: str
+        default: See I(monitoring_agent_alloy_image) from the Monitoring role
+        description: The container image path and tag to use for Alloy
       auth_postgres_data_path:
         type: str
         required: true
         description:
           - The path on disk where the PostgreSQL instance for Authentik should
             store its data
+      auth_postgres_image:
+        type: str
+        default: See I(postgres_image) from the Postgres role
+        description: The container image path and tag to use for Postgres
       auth_postgres_password:
         type: str
         required: true
@@ -140,6 +152,10 @@ argument_specs:
         description:
           - The path on disk where the Authentik Redis instance should store its
             data
+      auth_redis_image:
+        type: str
+        default: See I(redis_image) from the Redis role
+        description: The container image path and tag to use for Redis
       auth_redis_metrics_password:
         type: str
         required: true
@@ -193,6 +209,10 @@ argument_specs:
         description:
           - The path on disk where to store the monitoring's agent data for the
             ingress services
+      ingress_monitor_agent_alloy_image:
+        type: str
+        default: See I(monitoring_agent_alloy_image) from the Monitoring role
+        description: The container image path and tag to use for Alloy
       ingress_networks:
         type: list
         elements: str
@@ -240,6 +260,10 @@ argument_specs:
           - The path on disk to a custom certificate to validate the TLS
             certificates if they are not available in the root certificate
             authorities
+      ingress_traefik_image:
+        type: str
+        default: See I(ingress_traefik_image) in the ingress role
+        description: The container image path and tag to use for Traefik
       ingress_traefik_dashboard_hostname:
         type: str
         required: true
@@ -283,12 +307,21 @@ argument_specs:
         required: true
         description:
           - The directory in which the Grafana data will be stored
+      monitoring_grafana_image:
+        type: str
+        default: See I(monitoring_grafana_image) from the monitoring role
+        description:
+          - The container image path and tag to use for Grafana
       monitoring_grafana_postgres_data_path:
         type: str
         required: true
         description:
           - The path on disk where the PostgreSQL instance for Grafana should
             store its data
+      monitoring_grafana_postgres_image:
+        type: str
+        default: See I(postgres_image) from the Postgres role
+        description: The container image path and tag to use for Postgres
       monitoring_grafana_postgres_password:
         type: str
         required: true
@@ -319,6 +352,11 @@ argument_specs:
         required: true
         description:
           - The hostname at which the Loki instance is reachable.
+      monitoring_loki_image:
+        type: str
+        default: See I(monitoring_loki_image) from the monitoring role
+        description:
+          - The container image path and tag to use for Loki
       monitoring_mimir_hostname:
         type: str
         required: true
@@ -334,6 +372,11 @@ argument_specs:
         required: true
         description:
           - The path on disk where the Mimir data should be stored.
+      monitoring_mimir_image:
+        type: str
+        default: See I(monitoring_mimir_image) from the monitoring role
+        description:
+          - The container image path and tag to use for Mimir
       monitoring_monitor_agent_config_path:
         type: str
         required: true
@@ -346,6 +389,10 @@ argument_specs:
         description:
           - The path at which the Grafana Alloy monitoring the monitoring stack
             should store its data
+      monitoring_monitor_agent_alloy_image:
+        type: str
+        default: See I(monitoring_agent_alloy_image) from the Monitoring role
+        description: The container image path and tag to use for Alloy
 
       ##
       # Miscellaneous

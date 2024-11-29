@@ -161,6 +161,10 @@ argument_specs:
         required: true
         description:
           - The path on disk where to store the monitoring's agent data
+      ingress_monitor_agent_alloy_image:
+        type: str
+        default: See I(monitoring_agent_alloy_image) from the Monitoring role
+        description: The container image path and tag to use for Alloy
       ingress_traefik_dashboard_hostname:
         type: str
         required: true
@@ -184,6 +188,10 @@ argument_specs:
           - "'storage' MUST be set as C(/etc/traefik/acme.json)"
           - See L(Traefik's documentation,
             https://doc.traefik.io/traefik/https/acme/) for more information
+      ingress_traefik_image:
+        type: str
+        default: docker.io/traefik:latest
+        description: The container image path and tag to use for Traefik
       ingress_validate_certs:
         type: bool
         default: true

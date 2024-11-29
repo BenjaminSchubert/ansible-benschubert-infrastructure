@@ -95,7 +95,7 @@
     name: "{{ monitoring_agent_pod }}-agent"
     pod: "{{ monitoring_agent_pod }}"
     state: started
-    image: docker.io/grafana/alloy
+    image: "{{ monitoring_agent_alloy_image }}"
     command:
       - run
       - --disable-reporting

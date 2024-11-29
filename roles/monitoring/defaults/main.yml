@@ -4,3 +4,7 @@ monitoring_grafana_admin_user: admin
 monitoring_grafana_admin_password: "{{ monitoring_grafana_admin_bootstrap_password }}"
 monitoring_agent_prometheus_endpoints: {}
 monitoring_agent_postgres_instances: []
+monitoring_agent_alloy_image: docker.io/grafana/alloy:latest
+monitoring_grafana_image: docker.io/grafana/grafana:latest
+monitoring_loki_image: docker.io/grafana/loki:latest
+monitoring_mimir_image: docker.io/grafana/mimir:latest
