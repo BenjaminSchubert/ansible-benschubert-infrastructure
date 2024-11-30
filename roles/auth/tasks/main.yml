@@ -36,6 +36,15 @@
     dest: "{{ auth_authentik_configuration_path }}/{{ auth_authentik_background }}"
     mode: "0o644"
   when: auth_authentik_background | default(false)
+  register: _background
+
+- name: Copy the icon for authentik
+  ansible.builtin.copy:
+    src: "{{ auth_authentik_icon }}"
+    dest: "{{ auth_authentik_configuration_path }}/{{ auth_authentik_icon }}"
+    mode: "0o644"
+  when: auth_authentik_icon | default(false)
+  register: _icon
 
 - name: Create the required secrets
   containers.podman.podman_secret:
@@ -146,10 +155,17 @@
             auth_authentik_configuration_path
             + "/"
             + auth_authentik_background
-            + ":/web/dist/assets/images/flow_background.jpg:ro,z"
+            + ":/web/dist/assets/images/flow_background.jpg:ro,Z"
           ]
           if (auth_authentik_background | default(false))
           else []
+        ) + (
+          [
+            auth_authentik_configuration_path
+            + "/"
+            + auth_authentik_icon
+            + ":/web/dist/assets/icons/icon_left_brand.svg:ro,Z"
+          ] if (auth_authentik_icon | default(false)) else []
         )
       }}
     secrets: >-
@@ -165,6 +181,7 @@
         )
       }}
     read_only: true
+    force_restart: "{{ _background.changed or _icon.changed }}"
 
 - name: Ensure the Authentik container is healthy
   ansible.builtin.command: podman healthcheck run auth-authentik
