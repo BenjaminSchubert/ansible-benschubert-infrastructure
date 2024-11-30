@@ -23,7 +23,7 @@ entries:
     domain: authentik-default
     default: true
   attrs:
-    branding_title: Ben's world
+    branding_title: {{ auth_authentik_branding_title }}
     flow_authentication: !Find [authentik_flows.flow, [slug, benschubert-infrastructure-authentication-flow]]
     flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
     flow_user_settings: !Find [authentik_flows.flow, [slug, default-user-settings-flow]]

@@ -14,6 +14,11 @@ argument_specs:
       ##
       # Auth related variables
       ##
+      auth_authentik_authentication_page_title:
+        type: str
+        default: Welcome, please login
+        description:
+          - The title to show users when they are trying to login on Authentik
       auth_authentik_background:
         type: str
         description:
@@ -70,6 +75,10 @@ argument_specs:
         required: true
         description:
           - The hostname under which Authentik should be reachable
+      auth_authentik_icon:
+        type: str
+        description:
+          - Name of the SVG file to use as an icon for Authentik on login screen
       auth_authentik_secret_key:
         type: str
         required: true

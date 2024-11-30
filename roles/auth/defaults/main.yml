@@ -2,6 +2,8 @@
 ingress_validate_certs: true
 ingress_https_port: 443
 
+auth_authentik_authentication_page_title: Welcome, please login
+auth_authentik_branding_title: Authentik
 auth_authentik_superadmin_bootstrap_email: null
 auth_authentik_superadmin_bootstrap_password: null
 auth_authentik_superadmin_bootstrap_token: null

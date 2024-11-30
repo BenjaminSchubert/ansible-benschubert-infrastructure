@@ -95,6 +95,7 @@ provisioner:
         auth_authentik_configuration_path: "{{ data }}/auth/authentik"
         auth_authentik_email_config: ${EMAIL_CONFIG:-null}
         auth_authentik_background: ${AUTHENTIK_WALLPAPER:-null}
+        auth_authentik_icon: ${AUTHENTIK_ICON:-null}
 
         ##
         # Monitoring
