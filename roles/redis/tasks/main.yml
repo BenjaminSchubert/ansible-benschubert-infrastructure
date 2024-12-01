@@ -49,6 +49,7 @@
       - "{{ redis_config_path }}/redis.conf:/etc/redis.conf:ro,U,Z"
       - "{{ redis_data_path }}/:/data:rw,U,Z"
     healthcheck: redis-cli --user ping --pass '' ping | grep PONG
+    pull: newer
     read_only: true
 
 - name: Ensure the Redis container is healthy

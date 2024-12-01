@@ -71,6 +71,7 @@
     image: "{{ ingress_traefik_image }}"
     state: started
     force_restart: "{{ _configuration.changed }}"
+    pull: newer
     volumes:
       - "{{ ingress_traefik_configuration_files_path }}/config:/etc/traefik:ro,U,Z"
       - "{{ ingress_traefik_configuration_files_path }}/acme.json:/etc/traefik/acme.json:rw,U,Z"

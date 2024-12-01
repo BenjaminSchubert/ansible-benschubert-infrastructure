@@ -156,6 +156,7 @@
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
       AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
     healthcheck: /lifecycle/ak healthcheck
+    pull: newer
     volumes: >-
       {{
         [
@@ -242,6 +243,7 @@
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
       AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
     healthcheck: /lifecycle/ak healthcheck
+    pull: newer
     volumes:
       # yamllint disable-line rule:line-length
       - "{{ auth_authentik_configuration_path }}/blueprints:/blueprints/benschubert-infrastructure:ro,Z"
