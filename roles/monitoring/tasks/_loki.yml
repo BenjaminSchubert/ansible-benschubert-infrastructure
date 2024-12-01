@@ -46,6 +46,7 @@
     healthcheck: wget -O- http://localhost:3100/ready
     force_restart: "{{ _configuration.changed }}"
     read_only: true
+    pull: newer
     volumes:
       - "{{ monitoring_loki_config_path }}:/etc/loki/:ro,U,Z"
       - "{{ monitoring_loki_config_path }}/rules:/etc/loki/rules:U,Z"

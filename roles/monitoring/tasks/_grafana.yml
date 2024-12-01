@@ -149,6 +149,7 @@
       GF_SECURITY_SECRET_KEY__FILE: /run/secrets/monitoring-grafana-secret-key
       GF_SECURITY_ADMIN_USER: "{{ monitoring_grafana_admin_user }}"
       GF_SECURITY_ADMIN_PASSWORD: "{{ monitoring_grafana_admin_bootstrap_password }}"
+    pull: newer
     secrets:
       - monitoring-grafana-postgres-password,target=/run/secrets/monitoring-grafana-postgres-password
       - monitoring-grafana-client-secret,target=/run/secrets/monitoring-grafana-client-secret

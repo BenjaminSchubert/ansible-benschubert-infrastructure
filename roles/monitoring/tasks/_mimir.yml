@@ -52,6 +52,7 @@
     command: --config.file=/etc/mimir/mimir.yml
     # FIXME: the image from 2.13 now doesn't have curl or wget
     # healthcheck: wget -O- http://localhost:9009
+    pull: newer
     read_only: true
     volumes:
       - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"

@@ -106,6 +106,7 @@
     #        we should be able to set it to curl/wget
     # healthcheck: wget -O- http://localhost:9009/-/healthy
     healthcheck: /bin/true
+    pull: newer
     read_only: true
     secrets: >-
       {{
