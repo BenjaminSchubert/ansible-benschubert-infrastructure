@@ -21,7 +21,7 @@ prometheus.remote_write "monitor" {
           username = "{{ username }}"
           password = "{{ password }}"
         }
-        {% if (not ingress_validate_certs) or ingress_custom_ca_cert_url is not none %}
+        {% if (not ingress_validate_certs) or ingress_custom_ca_cert is not none %}
         tls_config {
           insecure_skip_verify = true
         }
@@ -55,7 +55,7 @@ loki.write "endpoint" {
       username = "{{ username }}"
       password = "{{ password }}"
     }
-    {% if (not ingress_validate_certs) or ingress_custom_ca_cert_url is not none %}
+    {% if (not ingress_validate_certs) or ingress_custom_ca_cert is not none %}
     tls_config {
         insecure_skip_verify = true
     }
