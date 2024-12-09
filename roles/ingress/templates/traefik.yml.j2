@@ -9,7 +9,7 @@ log:
 
 entryPoints:
   web:
-    address: ":8080"
+    address: ":{{ ingress_http_port }}"
     http:
       redirections:
         entryPoint:
@@ -17,7 +17,7 @@ entryPoints:
           scheme: https
           to: web-secure
   web-secure:
-    address: ":8443"
+    address: ":{{ ingress_https_port }}"
   metrics:
     address: ":8082"
 

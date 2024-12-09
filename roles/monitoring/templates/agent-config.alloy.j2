@@ -63,7 +63,7 @@ prometheus.remote_write "monitor" {
           username = "{{ monitoring_agent_pod }}"
           password = local.file.mimir_authentication_key.content
         }
-        {% if (not ingress_validate_certs) or ingress_custom_ca_cert_url is not none %}
+        {% if (not ingress_validate_certs) or ingress_custom_ca_cert is not none %}
         tls_config {
           insecure_skip_verify = true
         }
