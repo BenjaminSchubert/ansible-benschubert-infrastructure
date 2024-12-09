@@ -106,7 +106,7 @@ argument_specs:
         default: "{{ auth_authentik_superadmin_bootstrap_token }}"
         description:
           - The token to use to connect to Authentik
-          - Defaults to I(auth_authentik_superadmin_bootstrap_password) if not
+          - Defaults to I(auth_authentik_superadmin_bootstrap_token) if not
             set
           - It is recommended, after the bootstrap, to create a new token, and
             remove the bootstrap one, so that it does not linger in the
