@@ -134,6 +134,20 @@ argument_specs:
         default: docker.io/grafana/loki:latest
         description:
           - The container image path and tag to use for Loki
+      monitoring_mimir_additional_networks:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of additional podman networks that need to be attached to the
+            Mimir pod.
+          - This is useful if you want to configure a SMTP gateway for sending
+            emails via AlertManager.
+      monitoring_mimir_alertmanager_config_template:
+        type: str
+        default: mimir-alertmanager-fallback-config.yml.j2
+        description:
+          - The name of the template to use to configure the AlertManager routing
       monitoring_mimir_hostname:
         type: str
         required: true
@@ -154,6 +168,14 @@ argument_specs:
         default: docker.io/grafana/mimir:latest
         description:
           - The container image path and tag to use for Mimir
+      monitoring_mimir_secrets:
+        type: dict
+        default: {}
+        description:
+          - "A list of secrets to inject into the Mimir container as
+            <key: value>"
+          - The secrets will be exposed under /run/secrets/monitoring-mimir-<key>
+            with the key having '_' replaced by '-'
       monitoring_monitor_agent_config_path:
         type: str
         required: true

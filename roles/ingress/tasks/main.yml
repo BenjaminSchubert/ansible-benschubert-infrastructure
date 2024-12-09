@@ -45,12 +45,12 @@
 
 - name: Create the required secrets
   containers.podman.podman_secret:
-    name: "{{ 'ingress-traefik-' + item.key.lower().replace('_', '-') }}"
+    name: ingress-traefik-{{ item.key.lower().replace('_', '-') }}
     data: "{{ item.value }}"
     state: present
     skip_existing: true
   no_log: true
-  loop: "{{ (ingress_traefik_secrets or {}) | dict2items }}"
+  loop: "{{ ingress_traefik_secrets | dict2items }}"
 
 - name: Create the ingress pod
   containers.podman.podman_pod:
@@ -78,11 +78,11 @@
     healthcheck: traefik healthcheck
     read_only: true
     env: "{{
-      (ingress_traefik_environment_variables or {})
+     ingress_traefik_environment_variables
       | combine(
-        (ingress_traefik_secrets or {}).keys()
+        ingress_traefik_secrets
         | zip(
-          (ingress_traefik_secrets or {}).keys()
+          ingress_traefik_secrets
           | map('lower')
           | map('replace', '_', '-')
           | map('regex_replace', '^(.*)$', '/run/secrets/ingress-traefik-\\1')
@@ -93,7 +93,7 @@
       }}"
     secrets: |
       {{
-        (ingress_traefik_secrets or {}).keys()
+        ingress_traefik_secrets
         | map('lower')
         | map('regex_replace', '_', '-')
         | map('regex_replace', '^(.*)$', 'ingress-traefik-\1')

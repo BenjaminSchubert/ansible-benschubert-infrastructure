@@ -1,0 +1,16 @@
+{{ template_warning }}
+route:
+  group_wait: 0s
+  receiver: admin
+
+receivers:
+  - name: admin
+    email_configs:
+      - smarthost: mailpit:1025
+        to: testing@github.com.benschubert.infrastructure
+        auth_username: mailpit
+        auth_password_file: /run/secrets/monitoring-mimir-auth-password
+        from: testing@github.com.benschubert.infrastructure
+        require_tls: false
+        headers:
+          subject: 'Prometheus Mail Alerts'

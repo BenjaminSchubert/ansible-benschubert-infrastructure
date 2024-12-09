@@ -8,3 +8,6 @@ monitoring_agent_alloy_image: docker.io/grafana/alloy:latest
 monitoring_grafana_image: docker.io/grafana/grafana:latest
 monitoring_loki_image: docker.io/grafana/loki:latest
 monitoring_mimir_image: docker.io/grafana/mimir:latest
+monitoring_mimir_additional_networks: []
+monitoring_mimir_alertmanager_config_template: mimir-alertmanager-fallback-config.yml.j2
+monitoring_mimir_secrets: {}
