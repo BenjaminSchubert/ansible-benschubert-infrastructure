@@ -74,9 +74,13 @@ provisioner:
         auth_worker_additional_networks:
           - auth-worker-mailpit
 
+        monitoring_mimir_additional_networks:
+          - monitoring-mimir-mailpit
+
         mailpit_test_gateway_networks:
           - ingress-mailpit
           - auth-worker-mailpit
+          - monitoring-mimir-mailpit
 
         ##
         # Ingress
@@ -129,8 +133,11 @@ provisioner:
         monitoring_grafana_data_path: "{{ data }}/monitoring/grafana/data"
         monitoring_loki_config_path: "{{ data }}/monitoring/loki/config"
         monitoring_loki_data_path: "{{ data }}/monitoring/loki/data"
+        monitoring_mimir_alertmanager_config_template: alertmanager-fallback-config.yml.j2
         monitoring_mimir_config_path: "{{ data }}/monitoring/mimir/config"
         monitoring_mimir_data_path: "{{ data }}/monitoring/mimir/data"
+        monitoring_mimir_secrets:
+          auth_password: mailpit-password
         monitoring_monitor_agent_config_path: "{{ data }}/monitoring/agent/config"
         monitoring_monitor_agent_data_path: "{{ data }}/monitoring/agent/data"
 

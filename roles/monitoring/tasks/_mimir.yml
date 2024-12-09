@@ -25,21 +25,30 @@
   loop:
     - src: mimir.yml.j2
       dst: mimir.yml
-    - src: mimir-alertmanager-fallback-config.yml.j2
+    - src: "{{ monitoring_mimir_alertmanager_config_template }}"
       dst: alertmanager-fallback-config.yml
+
+- name: Create the Mimir secrets
+  containers.podman.podman_secret:
+    name: monitoring-mimir-{{ item.key.lower().replace("_", "-") }}
+    data: "{{ item.value }}"
+    state: present
+    skip_existing: true
+  no_log: true
+  loop: "{{ monitoring_mimir_secrets | dict2items }}"
 
 - name: Create the Mimir network
   containers.podman.podman_network:
-    name: ingress-monitoring
+    name: "{{ item }}"
     internal: true
+  loop: "{{ ['ingress-monitoring'] + monitoring_mimir_additional_networks }}"
 
 - name: Create the Mimir pod
   containers.podman.podman_pod:
     name: monitoring-mimir
     state: created
     infra_name: monitoring-mimir-infra
-    network:
-      - ingress-monitoring
+    network: "{{ ['ingress-monitoring'] + monitoring_mimir_additional_networks }}"
     userns: auto:size=1024
 
 - name: Setup the Mimir container
@@ -54,6 +63,13 @@
     # healthcheck: wget -O- http://localhost:9009
     pull: newer
     read_only: true
+    secrets: |
+      {{
+        monitoring_mimir_secrets
+        | map('lower')
+        | map('regex_replace', '_', '-')
+        | map('regex_replace', '^(.*)$', 'monitoring-mimir-\1')
+      }}
     volumes:
       - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
       - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"

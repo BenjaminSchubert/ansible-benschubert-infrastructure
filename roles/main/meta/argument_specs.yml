@@ -168,6 +168,16 @@ argument_specs:
         description:
           - The password that Authentik will use to connect to Redis
           - This is also used to configure the Redis instance
+      auth_worker_additional_networks:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of additional podman networks that need to be attached to the
+            Authentik worker pod.
+          - This is useful if you want to configure a SMTP gateway for sending
+            emails via Authentik. For example, this would allow validating and
+            resetting emails.
 
       ##
       # Ingress
@@ -363,6 +373,20 @@ argument_specs:
         default: See I(monitoring_loki_image) from the monitoring role
         description:
           - The container image path and tag to use for Loki
+      monitoring_mimir_additional_networks:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of additional podman networks that need to be attached to the
+            Mimir pod.
+          - This is useful if you want to configure a SMTP gateway for sending
+            emails via AlertManager.
+      monitoring_mimir_alertmanager_config_template:
+        type: str
+        default: mimir-alertmanager-fallback-config.yml.j2
+        description:
+          - The name of the template to use to configure the AlertManager routing
       monitoring_mimir_hostname:
         type: str
         required: true
@@ -383,6 +407,14 @@ argument_specs:
         default: See I(monitoring_mimir_image) from the monitoring role
         description:
           - The container image path and tag to use for Mimir
+      monitoring_mimir_secrets:
+        type: dict
+        default: {}
+        description:
+          - "A list of secrets to inject into the Mimir container as
+            <key: value>"
+          - The secrets will be exposed under /run/secrets/monitoring-mimir-<key>
+            with the key having '_' replaced by '-'
       monitoring_monitor_agent_config_path:
         type: str
         required: true
