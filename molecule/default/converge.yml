@@ -72,7 +72,6 @@
           user: "{{ user.data.pk }}"
           description: A token to allow Akadmin to access services via APIs
           expiring: false
-      register: _test
 
     ##
     # Example on how to connect a node-exporter to mimir deployed this way
