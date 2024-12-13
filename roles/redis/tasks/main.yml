@@ -58,3 +58,31 @@
   until: _healthcheck is not failed
   retries: 3
   changed_when: false
+
+- name: Install Redis dashboards
+  ansible.builtin.import_role:
+    name: monitoring
+    tasks_from: dashboard
+  vars:
+    content: >-
+      {%
+        set _dashboard_data = lookup(
+          'ansible.builtin.url',
+          'https://grafana.com/api/dashboards/763/revisions/latest/download',
+          split_lines=False,
+        ) | from_json
+      %}
+      {{
+        _dashboard_data
+        | combine(
+          {
+            "templating": {
+              "list": (_dashboard_data)["templating"]["list"]
+              | rejectattr("name", "equalto", "namespace")
+            }
+          }
+        )
+        | to_json(indent=4)
+        | regex_replace("\${DS_PROM}", "mimir")
+      }}
+    destination: redis/redis.json

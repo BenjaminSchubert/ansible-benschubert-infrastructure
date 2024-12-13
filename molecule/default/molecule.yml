@@ -105,7 +105,8 @@ provisioner:
         monitoring_grafana_admin_bootstrap_password: supersecretpassword
         monitoring_grafana_postgres_password: postgresgrafanapassword
         monitoring_grafana_postgres_data_path: "{{ data }}/monitoring/grafana/postgres"
-        monitoring_grafana_data_path: "{{ data }}/monitoring/grafana/grafana"
+        monitoring_grafana_config_path: "{{ data }}/monitoring/grafana/config"
+        monitoring_grafana_data_path: "{{ data }}/monitoring/grafana/data"
         monitoring_loki_config_path: "{{ data }}/monitoring/loki/config"
         monitoring_loki_data_path: "{{ data }}/monitoring/loki/data"
         monitoring_mimir_config_path: "{{ data }}/monitoring/mimir/config"

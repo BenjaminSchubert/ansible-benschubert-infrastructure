@@ -46,3 +46,21 @@
   until: _healthcheck is not failed
   retries: 3
   changed_when: false
+
+- name: Install Postgres dashboard
+  ansible.builtin.import_role:
+    name: monitoring
+    tasks_from: dashboard
+  vars:
+    content: >-
+      {{
+        lookup(
+          'ansible.builtin.url',
+          'https://grafana.com/api/dashboards/455/revisions/latest/download',
+          split_lines=False,
+        )
+        | regex_replace("\${DS_PROMETHEUS}", "mimir")
+        | from_json
+        | to_json(indent=4)
+      }}
+    destination: postgres/postgres-overview.json

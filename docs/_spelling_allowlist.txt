@@ -3,6 +3,7 @@ auth
 authentik
 benjaminschubert
 benschubert
+github
 Grafana
 hardcoded
 Homelab

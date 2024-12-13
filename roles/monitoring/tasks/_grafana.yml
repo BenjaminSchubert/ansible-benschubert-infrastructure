@@ -13,9 +13,21 @@
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
-    path: "{{ monitoring_grafana_data_path }}"
+    path: "{{ item }}"
     state: directory
-    mode: "0o700"
+    mode: "0o755"
+  loop:
+    - "{{ monitoring_grafana_data_path }}"
+    - "{{ monitoring_grafana_config_path }}/provisioning/dashboards"
+    - "{{ monitoring_grafana_config_path }}/dashboards"
+
+- name: Create the Grafana provisioning configuration
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.template:
+    src: grafana-dashboard-provision.yml.j2
+    dest: "{{ monitoring_grafana_config_path }}/provisioning/dashboards/benschubert-services.yml"
+    mode: "0o744"
 
 - name: Create the Grafana network
   containers.podman.podman_network:
@@ -156,6 +168,8 @@
       - monitoring-grafana-secret-key,target=/run/secrets/monitoring-grafana-secret-key
     volumes:
       - "{{ monitoring_grafana_data_path }}:/var/lib/grafana:rw,U,Z"
+      - "{{ monitoring_grafana_config_path }}/provisioning:/etc/grafana/provisioning:ro,U,Z"
+      - "{{ monitoring_grafana_config_path }}/dashboards:/etc/grafana/dashboards:ro,U,Z"
 
 - name: Ensure the grafana container is healthy
   ansible.builtin.command: podman healthcheck run monitoring-grafana-grafana
@@ -173,3 +187,27 @@
     ingress_name: grafana
     hostname: "{{ monitoring_grafana_hostname }}"
     expected_status_code: 302
+
+- name: Install Grafana dashboards
+  ansible.builtin.include_role:
+    name: monitoring
+    tasks_from: dashboard
+  vars:
+    # yamllint disable rule:line-length
+    content: >-
+      {{
+        lookup(
+          "ansible.builtin.url",
+          "https://raw.githubusercontent.com/grafana/grafana/refs/heads/main/public/app/plugins/datasource/prometheus/dashboards/grafana_stats.json",
+          split_lines=False,
+        )
+        | regex_replace("\${DS_PROMETHEUS}", "mimir")
+        | regex_replace(
+          'job=\\"grafana\\"',
+          'instance=\\"grafana\\", job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitor\\"',
+        )
+        | from_json
+        | to_json(indent=4)
+      }}
+    # yamllint enable rule:line-length
+    destination: monitoring/grafana.json

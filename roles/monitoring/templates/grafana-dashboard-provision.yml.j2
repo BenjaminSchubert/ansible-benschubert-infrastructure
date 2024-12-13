@@ -1,0 +1,14 @@
+{{ template_warning }}
+---
+apiVersion: 1
+
+providers:
+  - name: benschubert.services
+    orgId: 1
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 300
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: true

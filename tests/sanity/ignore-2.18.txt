@@ -16,3 +16,4 @@ plugins/modules/authentik_token_value.py validate-modules:no-log-needed
 plugins/modules/authentik_user_group.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_user.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_user_info.py validate-modules:missing-gplv3-license
+plugins/modules/github_content.py validate-modules:missing-gplv3-license

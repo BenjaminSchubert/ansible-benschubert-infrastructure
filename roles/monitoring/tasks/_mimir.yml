@@ -58,6 +58,7 @@
       - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
       - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
       - "{{ monitoring_mimir_data_path }}:/data:U,Z"
+  register: _mimir_container_info
 
 - name: Ensure the mimir container is up
   containers.podman.podman_container_info:
@@ -113,3 +114,101 @@
     grafana_user: "{{ monitoring_grafana_admin_user }}"
     grafana_password: "{{ monitoring_grafana_admin_password }}"
     validate_certs: false
+
+- name: Get the list of compiled dashboards for Mimir from GitHub
+  benschubert.infrastructure.github_content:
+    owner: grafana
+    path: operations/mimir-mixin-compiled-baremetal/dashboards
+    ref: >-
+      {{ _mimir_container_info.container['Config']['Labels']['org.opencontainers.image.revision'] }}
+    repo: mimir
+  register: _mimir_dashboard_list
+
+- name: Install Mimir dashboards
+  ansible.builtin.include_role:
+    name: monitoring
+    tasks_from: dashboard
+  vars:
+    content: >-
+      {%-
+        set _dashboard_data = lookup(
+          "ansible.builtin.url",
+          item.download_url,
+          split_lines=False,
+        ) | from_json
+      %}
+      {{
+        _dashboard_data
+        | combine(
+          {
+            "templating": {
+              "list": (_dashboard_data)["templating"]["list"]
+              | rejectattr("name", "equalto", "namespace")
+              | rejectattr("name", "equalto", "cluster")
+            }
+          }
+        )
+        | to_json(indent=4)
+        | regex_replace(
+          'job=~\\"\(\$namespace\)\/[^"]+"',
+          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitor\\"'
+        )
+        | regex_replace(
+          'namespace=~\\"\$namespace\\"',
+          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitor\\"'
+        )
+        | regex_replace('cluster=~\\"\$cluster\\",? ?', '')
+        | regex_replace('\(cluster_job(?:_[^:]+)?:([^:]+):[^{]+{', '(\1{')
+        | regex_replace(
+          'sum\([^:]+:(cortex_distributor_received_[^:]+):rate5m{([^}]+)}\)',
+          'rate(\1_total{\2}[5m])',
+        )
+      }}
+    destination: monitoring/{{ item.name }}
+  loop: >-
+    {{
+      _mimir_dashboard_list.content
+        | rejectattr('name', 'match', '.*-resources.json$')
+        | rejectattr('name', 'match', '.*-networking.json$')
+        | rejectattr('name', 'match', '^mimir-rollout-progress.json$')
+        | rejectattr('name', 'match', '^mimir-overrides.json$')
+        | rejectattr('name', 'match', '^mimir-slow-queries.json$')
+        | rejectattr('name', 'match', '^mimir-top-tenants.json$')
+        | rejectattr('name', 'match', '^mimir-scaling.json$')
+    }}
+
+- name: Install Mimir dashboards for slow queries
+  ansible.builtin.include_role:
+    name: monitoring
+    tasks_from: dashboard
+  vars:
+    content: >-
+      {%-
+        set _dashboard_data = lookup(
+          "ansible.builtin.url",
+          item.download_url,
+          split_lines=False,
+        ) | from_json
+      %}
+      {{
+        _dashboard_data
+        | combine(
+          {
+            "templating": {
+              "list": (_dashboard_data)["templating"]["list"]
+              | rejectattr("name", "equalto", "namespace")
+              | rejectattr("name", "equalto", "cluster")
+            }
+          }
+        )
+        | to_json(indent=4)
+        | regex_replace('cluster=~\\"\$cluster\\",? ?', '')
+        | regex_replace(',? ?name=~\\"\$component\.\*\\"', '')
+        | regex_replace('namespace=~\\"\$namespace\\"', 'container=\\"monitoring-mimir-mimir\\"')
+      }}
+    destination: monitoring/{{ item.name }}
+  loop: >-
+    {{
+      _mimir_dashboard_list.content
+        | selectattr('name', 'match', '^mimir-slow-queries.json$')
+    }}
