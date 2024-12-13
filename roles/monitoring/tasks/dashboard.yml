@@ -1,0 +1,17 @@
+---
+- name: Ensure Grafana dashboard directory exists
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.file:
+    path: "{{ monitoring_grafana_config_path }}/dashboards/{{ destination | dirname }}"
+    state: directory
+    mode: "0o755"
+
+- name: Install dashboard to Grafana
+  become_method: containers.podman.podman_unshare
+  become: true
+  ansible.builtin.copy:
+    content: "{{ content }}"
+    dest: "{{ monitoring_grafana_config_path }}/dashboards/{{ destination }}"
+    mode: "0o444"
+    force: true

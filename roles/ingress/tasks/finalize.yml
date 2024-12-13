@@ -46,3 +46,18 @@
         alerting_rules_template: traefik-alerts.yml.j2
     monitoring_agent_postgres_instances: []
     monitoring_agent_redis_instances: []
+
+- name: Install Traefik dashboards
+  ansible.builtin.import_role:
+    name: monitoring
+    tasks_from: dashboard
+  vars:
+    content: |
+      {{
+        lookup(
+          'ansible.builtin.url',
+          'https://grafana.com/api/dashboards/17346/revisions/latest/download',
+          split_lines=False,
+        )
+      }}
+    destination: ingress/traefik.json

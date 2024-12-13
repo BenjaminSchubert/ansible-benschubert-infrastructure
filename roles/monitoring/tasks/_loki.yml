@@ -91,3 +91,34 @@
     grafana_user: "{{ monitoring_grafana_admin_user }}"
     grafana_password: "{{ monitoring_grafana_admin_password }}"
     validate_certs: false
+
+- name: Install Loki's dashboard
+  ansible.builtin.import_role:
+    name: monitoring
+    tasks_from: dashboard
+  vars:
+    content: |
+      {%
+        set _dashboard_data = lookup(
+          'ansible.builtin.url',
+          'https://grafana.com/api/dashboards/12611/revisions/latest/download',
+          split_lines=False,
+        ) | from_json
+      %}
+      {{
+        _dashboard_data
+        | combine(
+          {
+            "templating": {
+              "list": (_dashboard_data)["templating"]["list"]
+              | rejectattr("name", "equalto", "pod")
+              | rejectattr("name", "equalto", "stream")
+            }
+          }
+        )
+        | to_json(indent=4)
+        | regex_replace('"uid": "\d+"', '"uid": "loki"')
+        | regex_replace(', pod=~\\"\$pod\\"', '')
+        | regex_replace(', stream=~\\"\$stream\\"', '')
+      }}
+    destination: monitoring/loki.json
