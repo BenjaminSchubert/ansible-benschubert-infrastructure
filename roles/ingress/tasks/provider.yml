@@ -19,7 +19,9 @@
 
 - name: Wait until the service is accessible
   ansible.builtin.uri:
-    url: https://{{ hostname }}:{{ ingress_https_port }}/
+    url: https://{{ hostname }}{{
+        "" if ingress_https_port == 443 else ":{}".format(ingress_https_port)
+      }}/
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
     follow_redirects: none

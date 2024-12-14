@@ -69,7 +69,9 @@
     provider:
       name: "{{ application_name }}"
       authorization_flow: "{{ _authorization_flow.data.pk }}"
-      external_host: https://{{ provider_proxy.hostname }}:{{ ingress_https_port }}
+      external_host: https://{{ provider_proxy.hostname }}{{
+          "" if ingress_https_port == 443 else ":{}".format(ingress_https_port)
+        }}
       invalidation_flow: "{{ _invalidation_flow.data.pk }}"
       mode: forward_single
   register: _provider_proxy_result
