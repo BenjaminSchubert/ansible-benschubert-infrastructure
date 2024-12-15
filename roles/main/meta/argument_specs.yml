@@ -16,7 +16,7 @@ argument_specs:
       ##
       auth_authentik_authentication_page_title:
         type: str
-        default: Welcome, please login
+        default: Welcome to {{ auth_authentik_hostname }}
         description:
           - The title to show users when they are trying to login on Authentik
       auth_authentik_background:

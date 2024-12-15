@@ -32,6 +32,7 @@
     dest: "{{ auth_authentik_configuration_path }}/blueprints/{{ item }}.yaml"
     mode: "0o644"
   loop:
+    - flow-enrollment
     - flow-login
     - flow-recovery
     - tenant
@@ -274,7 +275,7 @@
   register: _healthcheck
   until: _healthcheck is not failed
   delay: 5
-  retries: 3
+  retries: 15
   changed_when: false
 
 - name: Setup an ingress for Authentik

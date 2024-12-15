@@ -1,0 +1,130 @@
+metadata:
+  name: benschubert-infrastructure - Enrollment Flow
+version: 1
+context: {}
+entries:
+- attrs:
+    authentication: none
+    denied_action: message_continue
+    designation: enrollment
+    layout: stacked
+    name: benschubert-infrastructure-enrollment
+    policy_engine_mode: any
+    title: {{ auth_authentik_authentication_page_title }} Please provide your informations.
+  conditions: []
+  identifiers:
+    slug: benschubert-infrastructure-enrollment
+  model: authentik_flows.flow
+  permissions: []
+  state: present
+- attrs:
+    create_users_as_inactive: true
+    user_creation_mode: always_create
+    user_type: internal
+  conditions: []
+  identifiers:
+    name: benschubert-infrastructure-enrollment-write
+  model: authentik_stages_user_write.userwritestage
+  permissions: []
+  state: present
+- attrs:
+    activate_user_on_success: true
+    subject: {{ auth_authentik_authentication_page_title }}, please validate your email
+    use_global_settings: true
+  conditions: []
+  identifiers:
+    name: benschubert-infrastructure-confirm-email
+  model: authentik_stages_email.emailstage
+  permissions: []
+  state: present
+- attrs: {}
+  conditions: []
+  identifiers:
+    name: benschubert-infrastructure-invite-new-user
+  model: authentik_stages_invitation.invitationstage
+  permissions: []
+  state: present
+- attrs:
+    fields:
+    - !Find [authentik_stages_prompt.prompt, [name, default-source-enrollment-field-username]]
+    - !Find [authentik_stages_prompt.prompt, [name, initial-setup-field-email]]
+    - !Find [authentik_stages_prompt.prompt, [name, initial-setup-field-password]]
+    - !Find [authentik_stages_prompt.prompt, [name, initial-setup-field-password-repeat]]
+  conditions: []
+  identifiers:
+    name: benschubert-infrastructure-enrollment-prompt
+  model: authentik_stages_prompt.promptstage
+  permissions: []
+  state: present
+- attrs:
+    invalid_response_action: retry
+    policy_engine_mode: any
+    re_evaluate_policies: true
+  conditions: []
+  identifiers:
+    order: 0
+    stage: !Find [authentik_stages_invitation.invitationstage, [name, benschubert-infrastructure-invite-new-user]]
+    target: !Find [authentik_flows.flow, [slug, benschubert-infrastructure-enrollment]]
+  model: authentik_flows.flowstagebinding
+  permissions: []
+  state: present
+- attrs:
+    invalid_response_action: retry
+    policy_engine_mode: any
+    re_evaluate_policies: true
+  conditions: []
+  identifiers:
+    order: 1
+    stage: !Find [authentik_stages_prompt.promptstage, [name, benschubert-infrastructure-enrollment-prompt]]
+    target: !Find [authentik_flows.flow, [slug, benschubert-infrastructure-enrollment]]
+  model: authentik_flows.flowstagebinding
+  permissions: []
+  state: present
+- attrs:
+    invalid_response_action: retry
+    policy_engine_mode: any
+    re_evaluate_policies: true
+  conditions: []
+  identifiers:
+    order: 3
+    stage: !Find [authentik_stages_user_write.userwritestage, [name, benschubert-infrastructure-enrollment-write]]
+    target: !Find [authentik_flows.flow, [slug, benschubert-infrastructure-enrollment]]
+  model: authentik_flows.flowstagebinding
+  permissions: []
+  state: present
+- attrs:
+    invalid_response_action: retry
+    policy_engine_mode: any
+    re_evaluate_policies: true
+  conditions: []
+  identifiers:
+    order: 4
+    stage: !Find [authentik_stages_email.emailstage, [name, benschubert-infrastructure-confirm-email]]
+    target: !Find [authentik_flows.flow, [slug, benschubert-infrastructure-enrollment]]
+  model: authentik_flows.flowstagebinding
+  permissions: []
+  state: present
+- attrs:
+    invalid_response_action: retry
+    policy_engine_mode: any
+    re_evaluate_policies: true
+  conditions: []
+  identifiers:
+    order: 5
+    stage: !Find [authentik_stages_authenticator_validate.authenticatorvalidatestage, [name, benschubert-infrastructure-authentication-mfa-validation]]
+    target: !Find [authentik_flows.flow, [slug, benschubert-infrastructure-enrollment]]
+  model: authentik_flows.flowstagebinding
+  permissions: []
+  state: present
+- attrs:
+    invalid_response_action: retry
+    policy_engine_mode: any
+    re_evaluate_policies: true
+  conditions: []
+  identifiers:
+    order: 6
+    stage: !Find [authentik_stages_user_login.userloginstage, [name, default-source-enrollment-login]]
+    target: !Find [authentik_flows.flow, [slug, benschubert-infrastructure-enrollment]]
+  model: authentik_flows.flowstagebinding
+  permissions: []
+  state: present
