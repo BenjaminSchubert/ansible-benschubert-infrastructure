@@ -29,6 +29,7 @@
     - flow-login
     - flow-recovery
     - tenant
+    - flow-enrollment
 
 - name: Copy the background for authentik
   ansible.builtin.copy:
