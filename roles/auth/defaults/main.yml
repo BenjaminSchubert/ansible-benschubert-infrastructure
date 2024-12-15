@@ -2,7 +2,7 @@
 ingress_validate_certs: true
 ingress_https_port: 443
 
-auth_authentik_authentication_page_title: Welcome, please login
+auth_authentik_authentication_page_title: Welcome to {{ auth_authentik_hostname }}!
 auth_authentik_branding_title: Authentik
 auth_authentik_image: ghcr.io/goauthentik/server:latest
 auth_authentik_superadmin_bootstrap_email: null
