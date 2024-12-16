@@ -50,6 +50,8 @@ loki.source.journal "read"  {
 
 loki.write "endpoint" {
   endpoint {
+    batch_wait = "30s"
+    batch_size = "10MiB"
     url ="https://{{ monitoring_loki_hostname }}:{{ ingress_https_port }}/loki/api/v1/push"
     basic_auth {
       username = "{{ username }}"
