@@ -22,8 +22,8 @@ platforms:
     security_opts:
       - label=disable
     published_ports:
-      - 127.0.0.1:${HTTP_PORT:-8080}:8080
-      - 127.0.0.1:${HTTPS_PORT:-8443}:8443
+      - 127.0.0.1:${HTTP_PORT:-8080}:${HTTP_PORT:-8080}
+      - 127.0.0.1:${HTTPS_PORT:-8443}:${HTTPS_PORT:-8443}
     devices:
       - /dev/fuse
     privileged: true
