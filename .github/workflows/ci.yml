@@ -124,6 +124,13 @@ jobs:
   # Tests
   ###
   molecule:
+    strategy:
+      matrix:
+        include:
+          - http: 80
+            https: 443
+          - http: 8080
+            https: 8443
     runs-on: ubuntu-latest
     steps:
       - name: Freeing disk space
@@ -148,11 +155,16 @@ jobs:
           python-version: ${{ env.PYTHON }}
       - name: Install dependencies
         run: pip install -r requirements/requirements-dev.txt
+      - name: Allow binding to lower ports
+        run: sudo sysctl net.ipv4.ip_unprivileged_port_start=80
+        if: ${{ matrix.https == 443 }}
       - name: Run tests
         run: molecule test
         env:
           PY_COLORS: 1
           ANSIBLE_FORCE_COLOR: 1
+          HTTP_PORT: ${{ matrix.http }}
+          HTTPS_PORT: ${{ matrix.https }}
 
   ###
   # Package

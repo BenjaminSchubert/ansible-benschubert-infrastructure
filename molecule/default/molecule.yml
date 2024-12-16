@@ -30,6 +30,8 @@ platforms:
     tty: true
     volumes:
       - ${CONTAINER_NAME:-benschubert-infrastructure-test-container}-data:/home/podman/.local/share/containers
+    extra_opts:
+      - --sysctl=net.ipv4.ip_unprivileged_port_start=${HTTP_PORT:-1024}
 
 provisioner:
   name: ansible

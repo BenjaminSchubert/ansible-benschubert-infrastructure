@@ -26,7 +26,7 @@ class LocalhostVerifyAdapter(requests.adapters.HTTPAdapter):
     def __init__(
         self,
         real_target: str,
-        port: str,
+        port: int,
         server_hostname: str,
         verify: bool | str,
     ) -> None:
@@ -44,8 +44,13 @@ class LocalhostVerifyAdapter(requests.adapters.HTTPAdapter):
         cert: tuple[str, str] | str | None = None,
     ) -> urllib3.connectionpool.ConnectionPool:
         url = cast(ParseResult, urlparse(request.url))
+        assert url.hostname is not None
 
-        request.headers["HOST"] = f"{url.hostname}:{self._port}"
+        if self._port == 443:  # noqa: PLR2004
+            request.headers["HOST"] = url.hostname
+        else:
+            request.headers["HOST"] = f"{url.hostname}:{self._port}"
+
         request.url = url._replace(
             netloc=f"{self._real_target}:{self._port}"
         ).geturl()
