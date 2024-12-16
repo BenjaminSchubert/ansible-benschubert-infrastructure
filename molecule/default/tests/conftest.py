@@ -29,19 +29,19 @@ def hostvars(host: Host, cache: _TCache) -> dict[str, Any]:
 
 
 @pytest.fixture(scope="module")
-def http_port(hostvars: dict[str, Any]) -> str:
-    return cast(str, hostvars["ingress_http_port"])
+def http_port(hostvars: dict[str, Any]) -> int:
+    return cast(int, hostvars["ingress_http_port"])
 
 
 @pytest.fixture(scope="module")
-def https_port(hostvars: dict[str, Any]) -> str:
-    return cast(str, hostvars["ingress_https_port"])
+def https_port(hostvars: dict[str, Any]) -> int:
+    return cast(int, hostvars["ingress_https_port"])
 
 
 @pytest.fixture(scope="module")
 def session(
     hostvars: dict[str, Any],
-    https_port: str,
+    https_port: int,
     cache: dict[str, Any],
     tmp_path_factory: pytest.TempPathFactory,
 ) -> Iterator[requests.Session]:

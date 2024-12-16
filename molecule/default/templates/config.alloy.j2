@@ -1,3 +1,4 @@
+{%- set port = "" if ingress_https_port == 443 else ":{}".format(ingress_https_port) %}
 logging {
   level = "info"
   format = "logfmt"
@@ -16,7 +17,7 @@ prometheus.scrape "host" {
 
 prometheus.remote_write "monitor" {
     endpoint {
-        url = "https://{{ monitoring_mimir_hostname }}:{{ ingress_https_port }}/api/v1/push"
+        url = "https://{{ monitoring_mimir_hostname }}{{ port }}/api/v1/push"
         basic_auth {
           username = "{{ username }}"
           password = "{{ password }}"
@@ -52,7 +53,7 @@ loki.write "endpoint" {
   endpoint {
     batch_wait = "30s"
     batch_size = "10MiB"
-    url ="https://{{ monitoring_loki_hostname }}:{{ ingress_https_port }}/loki/api/v1/push"
+    url ="https://{{ monitoring_loki_hostname }}{{ port }}/loki/api/v1/push"
     basic_auth {
       username = "{{ username }}"
       password = "{{ password }}"
