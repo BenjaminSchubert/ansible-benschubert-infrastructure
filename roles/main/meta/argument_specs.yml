@@ -302,6 +302,12 @@ argument_specs:
         description:
           - The name of the admin user for Grafana. This user will not exist on
             the Authentik service
+      monitoring_grafana_config_path:
+        type: str
+        required: true
+        description:
+          - The path to where the Grafana configuration is kept
+          - This is used to install dashboards for viewing metrics
       monitoring_grafana_data_path:
         type: str
         required: true

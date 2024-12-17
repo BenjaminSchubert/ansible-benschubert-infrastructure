@@ -169,6 +169,12 @@ argument_specs:
         description:
           - The port at which the service is exposed via the ingress, in order
             to be able to make API calls to the service
+      monitoring_grafana_config_path:
+        type: str
+        required: true
+        description:
+          - The path to where the Grafana configuration is kept
+          - This is used to install dashboards for viewing metrics
       template_warning:
         type: str
         required: true

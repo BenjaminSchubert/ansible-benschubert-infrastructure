@@ -155,7 +155,8 @@ argument_specs:
         type: str
         required: true
         description:
-          - The path on disk where to store the monitoring's agent configuration files
+          - The path on disk where to store the monitoring's agent configuration
+            file-system
       ingress_monitor_agent_data_path:
         type: str
         required: true
@@ -198,6 +199,12 @@ argument_specs:
         description:
           - Whether the TLS certificate should be verified when ansible makes
             API calls
+      monitoring_grafana_config_path:
+        type: str
+        required: true
+        description:
+          - The path to where the Grafana configuration is kept
+          - This is used to install a basic dashboard for viewing metrics
       template_warning:
         type: str
         required: true

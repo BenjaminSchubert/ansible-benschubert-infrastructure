@@ -74,6 +74,11 @@ argument_specs:
         description:
           - The name of the admin user for Grafana. This user will not exist on
             the Authentik service
+      monitoring_grafana_config_path:
+        type: str
+        required: true
+        description:
+          - The path to where the Grafana configuration is to be kept
       monitoring_grafana_data_path:
         type: str
         required: true
@@ -315,3 +320,25 @@ argument_specs:
             required: true
             description:
               - The username to use to authenticate against Redis
+  dashboard:
+    short_description: Install the provided dashboard on Grafana
+    description:
+      - This role allows setting up a dashboard on Grafana
+    options:
+      content:
+        type: str
+        required: true
+        description:
+          - The JSON content of the dashboard to setup
+      destination:
+        type: str
+        required: true
+        description:
+          - The name of the dashboard on the file-system. Can contain one level
+            of directory
+          - For example, C(mydashboard.json) or C(services/grafana.json)
+      monitoring_grafana_config_path:
+        type: str
+        required: true
+        description:
+          - The path to where the Grafana configuration is kept

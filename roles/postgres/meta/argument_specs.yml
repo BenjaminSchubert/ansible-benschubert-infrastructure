@@ -5,6 +5,13 @@ argument_specs:
       Configure a PostgreSQL instance using podman
     description: []
     options:
+      monitoring_grafana_config_path:
+        type: str
+        required: true
+        description:
+          - The path to where the Grafana configuration is kept
+          - This is used to install a basic PostgreSQL dashboard for viewing
+            metrics
       postgres_data_path:
         type: str
         required: true
