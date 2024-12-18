@@ -156,6 +156,16 @@ argument_specs:
         description:
           - The password that Authentik will use to connect to Redis
           - This is also used to configure the Redis instance
+      auth_worker_additional_networks:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of additional podman networks that need to be attached to the
+            Authentik worker pod.
+          - This is useful if you want to configure a SMTP gateway for sending
+            emails via Authentik. For example, this would allow validating and
+            resetting emails.
       ingress_custom_ca_cert:
         type: str
         description:

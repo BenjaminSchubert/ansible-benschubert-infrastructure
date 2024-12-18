@@ -71,7 +71,7 @@ def test_all_containers_succeed_healthchecks(
 
 
 def test_all_pods_run_in_a_user_namespace(host: Host, pods: list[str]) -> None:
-    result = host.run(f"podman inspect {' '.join(pods)}")
+    result = host.run(f"podman pod inspect {' '.join(pods)}")
     assert result.succeeded
 
     assert [

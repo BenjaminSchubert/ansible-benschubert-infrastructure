@@ -1,0 +1,62 @@
+---
+- name: Configure the mailpit authentication
+  containers.podman.podman_secret:
+    name: mailpit-smtp-auth
+    # yamllint disable-line rule:line-length
+    data: "{{ mailpit_test_gateway_smtp_username }}:{{ mailpit_test_gateway_smtp_password | password_hash('sha512') }}"
+    skip_existing: true
+  no_log: true
+
+- name: Create the Mailpit pod
+  containers.podman.podman_pod:
+    name: mailpit
+    state: created
+    infra_name: mailpit-infra
+    network: "{{ mailpit_test_gateway_networks }}"
+    userns: auto:size=1024
+
+- name: Setup a Mailpit container
+  containers.podman.podman_container:
+    name: mailpit-mailpit
+    pod: mailpit
+    image: docker.io/axllent/mailpit:latest
+    state: started
+    env:
+      MP_SMTP_AUTH_FILE: /run/secrets/mailpit-smtp-auth
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    healthcheck: /mailpit readyz
+    pull: newer
+    read_only: true
+    secrets:
+      - mailpit-smtp-auth
+
+- name: Ensure the Mailpit container is healthy
+  ansible.builtin.command: podman healthcheck run mailpit-mailpit
+  register: _healthcheck
+  until: _healthcheck is not failed
+  retries: 3
+  changed_when: false
+
+- name: Create an application for Mailpit on Authentik
+  ansible.builtin.import_role:
+    name: auth
+    tasks_from: application
+  vars:
+    application_name: MailPit
+    application_slug: benschubert-infrastructure-mailpit
+    group: admin
+    meta_description: Mailpit
+    # yamllint disable-line rule:line-length
+    icon_url: https://{{ mailpit_test_gateway_mailpit_hostname }}:{{ ingress_https_port }}/mailpit.svg
+    provider_proxy:
+      hostname: "{{ mailpit_test_gateway_mailpit_hostname }}"
+
+- name: Setup a provider for Mailpit
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+    tasks_from: provider
+  vars:
+    template_file: ingress-mailpit.yml.j2
+    ingress_name: mailpit
+    hostname: "{{ mailpit_test_gateway_mailpit_hostname }}"
+    expected_status_code: 302

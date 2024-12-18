@@ -45,6 +45,13 @@ description: |
   This collection globally expects that B(podman is already configured) on the
   host, and that the user running the role has enough B(user namespaces)
   available to isolate every pod.
+  <br />
+  This role also provide some testing utilities to help with setting up the
+  infrastructure:
+  <br />
+  * L(Mailpit, https://mailpit.axllent.org/),
+    using R(the mailpit_test_gateway, ansible_collections.benschubert.infrastructure.mailpit_test_gateway_role),
+    which allows validating that messages can be sent correctly
 # yamllint enable rule:line-length
 
 dependencies:

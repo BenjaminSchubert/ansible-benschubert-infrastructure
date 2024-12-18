@@ -1,0 +1,39 @@
+---
+argument_specs:
+  main:
+    short_description: Setup a Mailpit STMP gateway
+    description:
+      - This allow setting up a L(Mailpit, https://mailpit.axllent.org/) SMTP
+        Gateway, to allow testing the setup without actually sending emails
+      - Note that this B(is for testing only), and is not meant to be used in
+        production.
+      - It will be possible to see the emails that would have been sent when
+        connecting to C(mailpit_test_gateway_mailpit_hostname)
+    options:
+      ingress_https_port:
+        type: int
+        default: 443
+        description:
+          - The port at which the service is exposed via the ingress, in order
+            to be able to make API calls to the service
+      mailpit_test_gateway_mailpit_hostname:
+        type: str
+        required: true
+        description:
+          - The hostname at which to expose the Mailpit web UI
+      mailpit_test_gateway_networks:
+        type: list
+        elements: str
+        required: true
+        description:
+          - The list of networks that the gateway should be attached to
+      mailpit_test_gateway_smtp_password:
+        type: str
+        required: true
+        description:
+          - The password used to authenticate against the SMTP gateway
+      mailpit_test_gateway_smtp_username:
+        type: str
+        required: true
+        description:
+          - The username used to authenticate against the SMTP gateway

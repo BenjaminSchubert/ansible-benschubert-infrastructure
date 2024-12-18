@@ -9,3 +9,4 @@ auth_authentik_superadmin_bootstrap_email: null
 auth_authentik_superadmin_bootstrap_password: null
 auth_authentik_superadmin_bootstrap_token: null
 auth_authentik_token: "{{ auth_authentik_superadmin_bootstrap_token }}"
+auth_worker_additional_networks: []

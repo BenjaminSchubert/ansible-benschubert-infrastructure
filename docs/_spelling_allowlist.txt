@@ -11,6 +11,8 @@ hostname
 hostnames
 https
 Jinja
+Mailpit
+mailpit
 Mimir
 namespace
 OAuth
