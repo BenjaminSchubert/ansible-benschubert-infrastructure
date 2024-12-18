@@ -33,6 +33,10 @@
       ansible.builtin.import_role:
         name: benschubert.infrastructure.main
 
+    - name: Install the mail gateway
+      ansible.builtin.import_role:
+        name: benschubert.infrastructure.mailpit_test_gateway
+
     - name: Get the Grafana group info
       benschubert.infrastructure.authentik_group_info:
         authentik_token: "{{ auth_authentik_token }}"

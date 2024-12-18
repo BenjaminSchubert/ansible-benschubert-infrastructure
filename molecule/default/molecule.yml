@@ -19,6 +19,7 @@ platforms:
       ${GRAFANA_HOSTNAME:-grafana.test}: 127.0.0.1
       ${LOKI_HOSTNAME:-loki.test}: 127.0.0.1
       ${MIMIR_HOSTNAME:-mimir.test}: 127.0.0.1
+      ${MAILPIT_HOSTNAME:-mailpit.test}: 127.0.0.1
     security_opts:
       - label=disable
     published_ports:
@@ -64,6 +65,18 @@ provisioner:
         monitoring_grafana_hostname: ${GRAFANA_HOSTNAME:-grafana.test}
         monitoring_loki_hostname: ${LOKI_HOSTNAME:-loki.test}
         monitoring_mimir_hostname: ${MIMIR_HOSTNAME:-mimir.test}
+        mailpit_test_gateway_mailpit_hostname: ${MAILPIT_HOSTNAME:-mailpit.test}
+
+        # Networks
+        ingress_additional_networks:
+          - ingress-mailpit
+
+        auth_worker_additional_networks:
+          - auth-worker-mailpit
+
+        mailpit_test_gateway_networks:
+          - ingress-mailpit
+          - auth-worker-mailpit
 
         ##
         # Ingress
@@ -95,7 +108,12 @@ provisioner:
         auth_redis_config_path: "{{ data }}/auth/redis/config/"
         auth_redis_data_path: "{{ data }}/auth/redis/data/"
         auth_authentik_configuration_path: "{{ data }}/auth/authentik"
-        auth_authentik_email_config: ${EMAIL_CONFIG:-null}
+        auth_authentik_email_config:
+          host: mailpit
+          port: 1025
+          from: testing@github.com.benschubert.infrastructure
+          username: mailpit
+          password: mailpit-password
         auth_authentik_background: ${AUTHENTIK_WALLPAPER:-null}
         auth_authentik_icon: ${AUTHENTIK_ICON:-null}
 
@@ -115,3 +133,9 @@ provisioner:
         monitoring_mimir_data_path: "{{ data }}/monitoring/mimir/data"
         monitoring_monitor_agent_config_path: "{{ data }}/monitoring/agent/config"
         monitoring_monitor_agent_data_path: "{{ data }}/monitoring/agent/data"
+
+        ##
+        # Mailpit for testing
+        ##
+        mailpit_test_gateway_smtp_username: mailpit
+        mailpit_test_gateway_smtp_password: mailpit-password

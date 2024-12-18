@@ -11,6 +11,12 @@
   tags:
     - skip_ansible_lint
 
+- name: Create the required network
+  containers.podman.podman_network:
+    name: "{{ item }}"
+    internal: true
+  loop: "{{ auth_worker_additional_networks }}"
+
 - name: Ensure the paths for authentik exist
   ansible.builtin.file:
     path: "{{ auth_authentik_configuration_path }}/{{ item }}"
@@ -114,9 +120,9 @@
     name: auth-worker
     state: created
     infra_name: auth-worker-infra
-    network:
-      - auth-postgres
-      - auth-redis
+    network: "{{
+        ['auth-postgres', 'auth-redis'] + auth_worker_additional_networks
+      }}"
     userns: auto:size=1024
 
 - name: Setup the Authentik server container
