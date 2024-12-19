@@ -52,7 +52,8 @@
           changed_when: false
           loop: "{{ _containers_failing }}"
           register: _container_logs
-          # no_log: true
+
+        - debug: var=_container_logs
 
         - name: Show all containers states
           ansible.builtin.fail:
@@ -71,7 +72,7 @@
 
               {% for item, logs in _containers_failing | zip(_container_logs) %}
                 {{ item["Name"] }}:
-                  {{ logs.stdout | indent() }}
+                  {{ logs | indent() }}
               {% endfor %}
 
     - name: Install the mail gateway
