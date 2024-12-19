@@ -39,23 +39,40 @@
           containers.podman.podman_container_info:
           register: _containers
 
+        - name: Gather failing containers
+          ansible.builtin.set_fact:
+            _containers_failing: "{{ _containers_failing | default([]) + [item] }}"
+          loop: "{{ _containers.containers | sort(attribute='Name') }}"
+          when: item['State']['Health']['Status'] not in ['healthy', '']
+          no_log: true
+
+        - name: Gather logs from failing containers
+          ansible.builtin.command:
+            cmd: podman logs --tail 20 {{ item["Name"] }}
+          changed_when: false
+          loop: "{{ _containers_failing }}"
+          register: _container_logs
+          # no_log: true
+
         - name: Show all containers states
           ansible.builtin.fail:
             msg: |
-              Containers state:
-              {% for container in _containers.containers | sort(attribute='Name') %}
-                {% set st = container["State"] %}
-                {{ container["Name"] }}: {{ st["Status"] }} {{st["Health"]["Status"] or "-" }}
+              Containers item:
+              {% for item in _containers.containers | sort(attribute='Name') %}
+                {% set state = item["State"] %}
+                {{ item["Name"] }}: {{ state["Status"] }} {{ state["Health"]["Status"] or "-" }}
               {% endfor %}
 
               Failing healthchecks:
-              {% for container in _containers.containers | sort(attribute='Name') %}
-              {% if container["State"]["Health"]["Status"] not in ["healthy", ""] %}
-                {{ container["Name"] }}:
-                  {{ container["State"]["Health"]["Log"][-1]["Output"] | indent() }}
-              {% endif %}
+              {% for item in _containers_failing %}
+                {{ item["Name"] }}:
+                  {{ item["State"]["Health"]["Log"][-1]["Output"] | indent() }}
               {% endfor %}
 
+              {% for item, logs in _containers_failing | zip(_container_logs) %}
+                {{ item["Name"] }}:
+                  {{ logs.stdout | indent() }}
+              {% endfor %}
 
     - name: Install the mail gateway
       ansible.builtin.import_role:
