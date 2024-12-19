@@ -30,8 +30,32 @@
         ingress_traefik_secrets: "{{ ingress_traefik_secrets or {} }}"
 
     - name: Setup everything
-      ansible.builtin.import_role:
-        name: benschubert.infrastructure.main
+      block:
+        - name: Execute the main role
+          ansible.builtin.import_role:
+            name: benschubert.infrastructure.main
+      rescue:
+        - name: Gather facts for all containers
+          containers.podman.podman_container_info:
+          register: _containers
+
+        - name: Show all containers states
+          ansible.builtin.fail:
+            msg: |
+              Containers state:
+              {% for container in _containers.containers | sort(attribute='Name') %}
+                {% set st = container["State"] %}
+                {{ container["Name"] }}: {{ st["Status"] }} {{st["Health"]["Status"] or "-" }}
+              {% endfor %}
+
+              Failing healthchecks:
+              {% for container in _containers.containers | sort(attribute='Name') %}
+              {% if container["State"]["Health"]["Status"] not in ["healthy", ""] %}
+                {{ container["Name"] }}:
+                  {{ container["State"]["Health"]["Log"][-1]["Output"] | indent() }}
+              {% endif %}
+              {% endfor %}
+
 
     - name: Install the mail gateway
       ansible.builtin.import_role:
