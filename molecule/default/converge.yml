@@ -30,8 +30,55 @@
         ingress_traefik_secrets: "{{ ingress_traefik_secrets or {} }}"
 
     - name: Setup everything
-      ansible.builtin.import_role:
-        name: benschubert.infrastructure.main
+      block:
+        - name: Execute the main role
+          ansible.builtin.import_role:
+            name: benschubert.infrastructure.main
+      rescue:
+        - name: Gather facts for all containers
+          containers.podman.podman_container_info:
+          register: _containers
+
+        - name: Gather failing containers
+          ansible.builtin.set_fact:
+            _containers_failing: "{{ _containers_failing | default([]) + [item] }}"
+          loop: "{{ _containers.containers | sort(attribute='Name') }}"
+          when: item['State']['Health']['Status'] not in ['healthy', '']
+          loop_control:
+            label: "{{ item['Name'] }}"
+
+        - name: Gather logs from failing containers
+          ansible.builtin.command:
+            cmd: podman logs --tail 20 {{ item["Name"] }}
+          changed_when: false
+          loop: "{{ _containers_failing | default([]) }}"
+          register: _container_logs
+          loop_control:
+            label: "{{ item['Name'] }}"
+
+        - name: Show all containers states
+          ansible.builtin.fail:
+            msg: |
+              Containers item:
+              {% for item in _containers.containers | sort(attribute='Name') %}
+                {% set state = item["State"] %}
+                {{ item["Name"] }}: {{ state["Status"] }} {{ state["Health"]["Status"] or "-" }}
+              {% endfor %}
+
+              {% if _containers_failing %}
+              Failing healthchecks:
+              {% for item in _containers_failing %}
+                {{ item["Name"] }}:
+                  {{ item["State"]["Health"]["Log"][-1]["Output"] | indent() }}
+              {% endfor %}
+
+              {% for item, logs in _containers_failing | zip(_container_logs.results) %}
+                {{ item["Name"] }}:
+                  {{ logs.stderr | indent() }}
+              {% endfor %}
+              {% else %}
+              All containers are healthy!
+              {% endif %}
 
     - name: Install the mail gateway
       ansible.builtin.import_role:
