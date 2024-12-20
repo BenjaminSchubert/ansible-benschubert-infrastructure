@@ -74,6 +74,17 @@ argument_specs:
         description:
           - The name of the admin user for Grafana. This user will not exist on
             the Authentik service
+      monitoring_grafana_allowlisted_groups:
+        type: list
+        elements: str
+        default: null
+        description:
+          - A list of groups to restrict Grafana to.
+          - Users not in any of the specified groups won't be able to see or
+            login to Grafana.
+          - C(null) or C([]) doesn't restrict the access.
+          - When setting this, you should at least add
+            C({{ monitoring_grafana_admin_group_name }}) to it.
       monitoring_grafana_config_path:
         type: str
         required: true
@@ -114,6 +125,15 @@ argument_specs:
         required: true
         description:
           - The secret key to use in Grafana to encrypt various sensitive data
+      monitoring_loki_allowlisted_groups:
+        type: list
+        elements: str
+        default: null
+        description:
+          - A list of groups to restrict Loki to.
+          - Users not in any of the specified groups won't be able to see or
+            login to Loki.
+          - C(null) or C([]) doesn't restrict the access.
       monitoring_loki_config_path:
         type: str
         required: true
@@ -148,6 +168,15 @@ argument_specs:
         default: mimir-alertmanager-fallback-config.yml.j2
         description:
           - The name of the template to use to configure the AlertManager routing
+      monitoring_mimir_allowlisted_groups:
+        type: list
+        elements: str
+        default: null
+        description:
+          - A list of groups to restrict Mimir to.
+          - Users not in any of the specified groups won't be able to see or
+            login to Mimir.
+          - C(null) or C([]) doesn't restrict the access.
       monitoring_mimir_hostname:
         type: str
         required: true
@@ -192,6 +221,14 @@ argument_specs:
         type: str
         default: See I(monitoring_agent_alloy_image) from the Monitoring role
         description: The container image path and tag to use for Alloy
+      monitoring_monitor_agent_user_group:
+        type: str
+        default: null
+        description:
+          - A group name to which to add the role account that is created for
+            monitoring the monitoring stack.
+          - This is useful if you want to restrict apps per user, so you can
+            have those bots publish their metrics correctly.
   agent:
     short_description: >-
       Configure a Grafana alloy service to monitor some systems
@@ -342,6 +379,14 @@ argument_specs:
             required: true
             description:
               - The username to use to authenticate against Redis
+      monitoring_agent_user_group:
+        type: str
+        default: null
+        description:
+          - A group name to which to add the role account that is created for
+            monitoring the requested services.
+          - This is useful if you want to restrict apps per user, so you can
+            have those bots publish their metrics correctly.
   dashboard:
     short_description: Install the provided dashboard on Grafana
     description:

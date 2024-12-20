@@ -3,6 +3,7 @@ plugins/modules/authentik_application_icon_url.py validate-modules:missing-gplv3
 plugins/modules/authentik_flow_info.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_group.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_group_info.py validate-modules:missing-gplv3-license
+plugins/modules/authentik_policy_binding.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_propertymappings_scope_info.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_provider_oauth2.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_provider_info.py validate-modules:missing-gplv3-license

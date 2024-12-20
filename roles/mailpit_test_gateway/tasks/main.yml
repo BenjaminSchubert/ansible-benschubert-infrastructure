@@ -42,6 +42,7 @@
     name: benschubert.infrastructure.auth
     tasks_from: application
   vars:
+    allowlisted_groups: "{{ mailpit_test_gateway_allowlisted_groups }}"
     application_name: MailPit
     application_slug: benschubert-infrastructure-mailpit
     group: admin

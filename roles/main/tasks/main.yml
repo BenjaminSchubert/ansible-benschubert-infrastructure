@@ -2,6 +2,12 @@
 - name: Expand configuration
   ansible.builtin.set_fact:
     ingress_networks: "{{ ingress_networks + ingress_additional_networks }}"
+    auth_monitor_agent_user_group: >-
+      {{ auth_monitor_agent_user_group or default_monitor_agent_user_group or omit }}
+    monitoring_monitor_agent_user_group: >-
+      {{ monitoring_monitor_agent_user_group or default_monitor_agent_user_group or omit }}
+    ingress_monitor_agent_user_group: >-
+      {{ ingress_monitor_agent_user_group or default_monitor_agent_user_group or omit }}
 
 - name: Validate configuration
   ansible.builtin.assert:

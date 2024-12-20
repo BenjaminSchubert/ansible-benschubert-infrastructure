@@ -39,6 +39,7 @@
     name: benschubert.infrastructure.auth
     tasks_from: application
   vars:
+    allowlisted_groups: "{{ monitoring_grafana_allowlisted_groups }}"
     application_name: grafana
     application_slug: benschubert-infrastructure-grafana
     group: admin
