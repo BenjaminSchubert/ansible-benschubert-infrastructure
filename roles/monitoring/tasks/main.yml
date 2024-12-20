@@ -44,3 +44,4 @@
         password: "{{ monitoring_grafana_postgres_password }}"
         database: grafana
     monitoring_agent_redis_instances: []
+    monitoring_agent_user_group: "{{ monitoring_monitor_agent_user_group }}"

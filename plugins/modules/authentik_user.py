@@ -12,7 +12,7 @@ description:
 options:
   user:
     description:
-      - The configuration for the specified group
+      - The configuration for the specified user
     type: dict
     required: true
     suboptions:

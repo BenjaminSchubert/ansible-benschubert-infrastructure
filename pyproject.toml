@@ -45,6 +45,7 @@ disable = [
     "redefined-outer-name",
     "too-few-public-methods",
     "too-many-arguments",
+    "too-many-branches",
     "too-many-positional-arguments",
     "unused-argument",
     "wrong-import-position",
@@ -65,6 +66,7 @@ line-length = 79
 select = ["ALL"]
 ignore = [
     "ANN401",  # Allow using Any as typing
+    "C901",  # Disable complexity checks
     "COM812",  # Otherwise conflicts with the formatter
     "D104",  # Don't force documenting packages
     "D107",  # Don't document __init__
@@ -80,7 +82,8 @@ ignore = [
 ]
 
 pycodestyle.max-line-length = 119
-pylint.max-args = 7
+pylint.max-args = 8
+pylint.max-branches = 13
 
 [tool.ruff.lint.per-file-ignores]
 "docs/*" = [

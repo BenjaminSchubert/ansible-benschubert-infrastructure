@@ -97,6 +97,7 @@
       group: "{{ group }}"
       open_in_new_tab: true
       meta_description: "{{ meta_description }}"
+  register: _app
 
 - name: Configure the application icon for {{ application_name }}
   benschubert.infrastructure.authentik_application_icon_url:
@@ -127,3 +128,31 @@
     validate_certs: "{{ ingress_validate_certs }}"
     outpost_name: authentik Embedded Outpost
     provider_pk: "{{ _provider_result.data.pk }}"
+
+- name: Restrict access to the application to the selected groups for {{ application_name }}
+  when: allowlisted_groups
+  block:
+    - name: Ensure the requested group exists for {{ application_name }}
+      benschubert.infrastructure.authentik_group:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        group:
+          name: "{{ item }}"
+      loop: "{{ allowlisted_groups or [] }}"
+      register: _groups
+
+    - name: Restrict access to the provided group for {{ application_name }}
+      benschubert.infrastructure.authentik_policy_binding:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        binding:
+          group: "{{ item.data.pk }}"
+          order: 0
+          target: "{{ _app.data.pk }}"
+      loop: "{{ _groups.results }}"
+      loop_control:
+        label: "{{ item.data.name }}"

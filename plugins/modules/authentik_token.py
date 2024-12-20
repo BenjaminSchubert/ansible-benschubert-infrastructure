@@ -25,8 +25,9 @@ options:
         description:
           - "The intended usage for the token:"
           - "C(app_password): for authenticating against other applications"
+          - "C(api): for authenticating with the Authentik API"
         type: str
-        choices: [app_password]
+        choices: [app_password, api]
         required: true
       user:
         description:
@@ -96,7 +97,7 @@ def main() -> NoReturn:  # type: ignore[misc]
             "identifier": {"type": "str", "required": True},
             "intent": {
                 "type": "str",
-                "choices": ["app_password"],
+                "choices": ["app_password", "api"],
                 "required": True,
             },
             "user": {"type": "int", "required": True},

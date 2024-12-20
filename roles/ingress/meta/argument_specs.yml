@@ -166,6 +166,23 @@ argument_specs:
         type: str
         default: See I(monitoring_agent_alloy_image) from the Monitoring role
         description: The container image path and tag to use for Alloy
+      ingress_monitor_agent_user_group:
+        type: str
+        default: null
+        description:
+          - A group name to which to add the user that is created for monitoring
+            Traefik.
+          - This is useful if you want to restrict apps per user, so you can
+            have those bots publish their metrics correctly.
+      ingress_traefik_allowlisted_groups:
+        type: list
+        elements: str
+        default: null
+        description:
+          - A list of groups to restrict the Traefik dashboard to.
+          - Users not in any of the specified groups won't be able to see or
+            login to the dashboard.
+          - C(null) or C([]) doesn't restrict the access.
       ingress_traefik_dashboard_hostname:
         type: str
         required: true

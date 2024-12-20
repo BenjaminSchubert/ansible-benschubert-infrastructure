@@ -16,6 +16,15 @@ argument_specs:
         description:
           - The port at which the service is exposed via the ingress, in order
             to be able to make API calls to the service
+      mailpit_test_gateway_allowlisted_groups:
+        type: list
+        elements: str
+        default: null
+        description:
+          - A list of groups to restrict Mailpit to.
+          - Users not in any of the specified groups won't be able to see or
+            login to Mailpit.
+          - C(null) or C([]) doesn't restrict the access.
       mailpit_test_gateway_mailpit_hostname:
         type: str
         required: true

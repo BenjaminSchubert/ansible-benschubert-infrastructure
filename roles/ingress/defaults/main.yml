@@ -2,6 +2,9 @@
 ingress_http_port: 80
 ingress_https_port: 443
 
+ingress_monitor_agent_user_group: null
+
+ingress_traefik_allowlisted_groups: null
 ingress_traefik_certificates_resolvers: {}
 ingress_traefik_environment_variables: {}
 ingress_traefik_image: docker.io/traefik:latest

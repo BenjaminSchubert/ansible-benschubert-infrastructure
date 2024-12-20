@@ -84,15 +84,6 @@
       ansible.builtin.import_role:
         name: benschubert.infrastructure.mailpit_test_gateway
 
-    - name: Get the Grafana group info
-      benschubert.infrastructure.authentik_group_info:
-        authentik_token: "{{ auth_authentik_token }}"
-        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
-        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-        validate_certs: "{{ ingress_validate_certs }}"
-        name: "{{ monitoring_grafana_admin_group_name }}"
-      register: group
-
     - name: Get the akadmin user info
       benschubert.infrastructure.authentik_user_info:
         authentik_token: "{{ auth_authentik_token }}"
@@ -102,14 +93,26 @@
         username: akadmin
       register: user
 
-    - name: Add akadmin to the grafana admin group
-      benschubert.infrastructure.authentik_user_group:
-        authentik_token: "{{ auth_authentik_token }}"
-        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
-        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-        validate_certs: "{{ ingress_validate_certs }}"
-        user_pk: "{{ user.data.pk }}"
-        group_pk: "{{ group.data.pk }}"
+    - name: Add akadmin to the admin group
+      when: test_akadmin_user_group
+      block:
+        - name: Get the Grafana group info
+          benschubert.infrastructure.authentik_group_info:
+            authentik_token: "{{ auth_authentik_token }}"
+            authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+            ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+            validate_certs: "{{ ingress_validate_certs }}"
+            name: "{{ test_akadmin_user_group }}"
+          register: _group
+
+        - name: Add akadmin to the admin group
+          benschubert.infrastructure.authentik_user_group:
+            authentik_token: "{{ auth_authentik_token }}"
+            authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+            ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+            validate_certs: "{{ ingress_validate_certs }}"
+            user_pk: "{{ user.data.pk }}"
+            group_pk: "{{ _group.data.pk }}"
 
     - name: Create a token to access services as akadmin
       benschubert.infrastructure.authentik_token:
@@ -122,6 +125,31 @@
           intent: app_password
           user: "{{ user.data.pk }}"
           description: A token to allow Akadmin to access services via APIs
+          expiring: false
+
+    - name: Create a non-privileged user
+      benschubert.infrastructure.authentik_user:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        user:
+          name: molecule-unprivileged-test-user
+          username: molecule-unprivileged-test-user
+          type: internal
+      register: _molecule_unprivileged_user
+
+    - name: Create a token to access Authentik as molecule-unprivileged-test-user
+      benschubert.infrastructure.authentik_token:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        token:
+          identifier: molecule-unprivileged-test-user-password
+          intent: api
+          user: "{{ _molecule_unprivileged_user.data.pk }}"
+          description: A token to allow the unprivileged user to talk to Authentik
           expiring: false
 
     ##
@@ -170,6 +198,28 @@
               path: service-accounts
               type: service_account
           register: _service_account
+
+        - name: Add the service account to the requested group
+          when: default_monitor_agent_user_group
+          block:
+            - name: Ensure the requested group exists
+              benschubert.infrastructure.authentik_group:
+                authentik_token: "{{ auth_authentik_token }}"
+                authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+                ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+                validate_certs: "{{ ingress_validate_certs }}"
+                group:
+                  name: "{{ default_monitor_agent_user_group }}"
+              register: _service_account_group
+
+            - name: Add the service account to the group
+              benschubert.infrastructure.authentik_user_group:
+                authentik_token: "{{ auth_authentik_token }}"
+                authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+                ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+                validate_certs: "{{ ingress_validate_certs }}"
+                group_pk: "{{ _service_account_group.data.pk }}"
+                user_pk: "{{ _service_account.data.pk }}"
 
         - name: Create the agent's service account's token
           benschubert.infrastructure.authentik_token:
