@@ -31,6 +31,8 @@
         name: "{{ item.Name }}"
         state: absent
       loop: "{{ _all_pods.pods }}"
+      loop_control:
+        label: "{{ item.Name }}"
 
     - name: Gather info about all present secrets
       ansible.builtin.command:

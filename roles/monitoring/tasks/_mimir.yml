@@ -30,12 +30,11 @@
 
 - name: Create the Mimir secrets
   containers.podman.podman_secret:
-    name: monitoring-mimir-{{ item.key.lower().replace("_", "-") }}
-    data: "{{ item.value }}"
+    name: monitoring-mimir-{{ item.lower().replace("_", "-") }}
+    data: "{{ monitoring_mimir_secrets[item] }}"
     state: present
     skip_existing: true
-  no_log: true
-  loop: "{{ monitoring_mimir_secrets | dict2items }}"
+  loop: "{{ monitoring_mimir_secrets.keys() }}"
 
 - name: Create the Mimir network
   containers.podman.podman_network:
@@ -192,6 +191,8 @@
         | rejectattr('name', 'match', '^mimir-top-tenants.json$')
         | rejectattr('name', 'match', '^mimir-scaling.json$')
     }}
+  loop_control:
+    label: "{{ item.name }}"
 
 - name: Install Mimir dashboards for slow queries
   ansible.builtin.include_role:
@@ -228,3 +229,5 @@
       _mimir_dashboard_list.content
         | selectattr('name', 'match', '^mimir-slow-queries.json$')
     }}
+  loop_control:
+    label: "{{ item.name }}"
