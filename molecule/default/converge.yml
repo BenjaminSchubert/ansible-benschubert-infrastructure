@@ -65,7 +65,7 @@
                 {{ item["Name"] }}: {{ state["Status"] }} {{ state["Health"]["Status"] or "-" }}
               {% endfor %}
 
-              {% if _containers_failing %}
+              {% if _containers_failing | default(false) %}
               Failing healthchecks:
               {% for item in _containers_failing %}
                 {{ item["Name"] }}:
