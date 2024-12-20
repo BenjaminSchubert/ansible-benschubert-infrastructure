@@ -116,6 +116,14 @@ argument_specs:
         type: str
         default: See I(monitoring_agent_alloy_image) from the Monitoring role
         description: The container image path and tag to use for Alloy
+      auth_monitor_agent_user_group:
+        type: str
+        default: null
+        description:
+          - A group name to which to add the role account that is created for
+            monitoring Authentik.
+          - This is useful if you want to restrict apps per user, so you can
+            have those bots publish their metrics correctly.
       auth_postgres_data_path:
         type: str
         required: true
@@ -199,6 +207,15 @@ argument_specs:
         L(proxy provider, https://docs.goauthentik.io/docs/add-secure-apps/providers/proxy/) in
         order to protect an application via Authentik.
     options:
+      allowlisted_groups:
+        type: list
+        elements: str
+        default: null
+        description:
+          - A list of groups to restrict the application to.
+          - Users not in any of the specified groups won't be able to see or
+            login to the application.
+          - C(null) or C([]) doesn't restrict the access.
       application_name:
         type: str
         required: true

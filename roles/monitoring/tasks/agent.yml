@@ -23,6 +23,28 @@
       type: service_account
   register: _service_account
 
+- name: Add the service account to the requested group for {{ monitoring_agent_product_name }}
+  when: monitoring_agent_user_group
+  block:
+    - name: Ensure the requested group exists for {{ monitoring_agent_product_name }}
+      benschubert.infrastructure.authentik_group:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        group:
+          name: "{{ monitoring_agent_user_group }}"
+      register: _service_account_group
+
+    - name: Add the service account to the group for {{ monitoring_agent_product_name }}
+      benschubert.infrastructure.authentik_user_group:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        group_pk: "{{ _service_account_group.data.pk }}"
+        user_pk: "{{ _service_account.data.pk }}"
+
 - name: Create the agent's service account's token for {{ monitoring_agent_product_name }}
   benschubert.infrastructure.authentik_token:
     authentik_token: "{{ auth_authentik_token }}"

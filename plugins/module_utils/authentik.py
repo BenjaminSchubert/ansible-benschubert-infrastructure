@@ -177,6 +177,7 @@ def execute(  # type: ignore[misc]
     compare: Callable[
         [dict[str, Any] | None, dict[str, Any] | None], bool
     ] = _compare,
+    find: Callable[[Authentik], dict[str, Any] | None] | None = None,
 ) -> NoReturn:
     """
     Ensure the selected Authentik resource is in the desired state.
@@ -192,22 +193,24 @@ def execute(  # type: ignore[misc]
                   if it exists. If 'present', this acts as a PATCH query, and
                   updates the current value without modifying non-specified
                   fields.
+    :param find: If there is no API to find the exact value, this can be a
+                 callable that returns the value while talking to the API.
     """
     authentik = Authentik(module, api_slug)
 
     if pk := desired_value.get(pk_name):
         existing_value = authentik.get(pk)
-    else:
-        if search_query is None:
-            module.fail_json(
-                msg="No search query provided and no primary key.",
-            )
-
-        assert search_query is not None
+    elif find is not None:
+        existing_value = find(authentik)
+    elif search_query is not None:
         existing_value = authentik.get_one(search_query)
+    else:
+        module.fail_json(
+            msg="No search query provided, no custom find method and no primary key.",
+        )
 
     if state == "absent":
-        if existing_value is None:
+        if existing_value is None:  # pylint: disable=possibly-used-before-assignment
             module.exit_json(
                 changed=False,
                 msg="entry is already absent",

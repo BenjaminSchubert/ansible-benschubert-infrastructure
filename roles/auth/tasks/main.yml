@@ -320,3 +320,4 @@
       - name: auth-redis
         user: metrics
         password: "{{ auth_redis_metrics_password }}"
+    monitoring_agent_user_group: "{{ auth_monitor_agent_user_group }}"

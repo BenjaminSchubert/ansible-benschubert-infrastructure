@@ -87,6 +87,17 @@ provisioner:
           - auth-worker-mailpit
           - monitoring-mimir-mailpit
 
+        # Group membership
+        default_monitor_agent_user_group: ${MONITOR_AGENT_USER_GROUP:-null}
+        test_akadmin_user_group: ${TEST_AKADMIN_USER_GROUP:-null}
+        monitoring_grafana_admin_group_name: ${GRAFANA_ADMIN_GROUP_NAME:-Grafana Admins}
+
+        ingress_traefik_allowlisted_groups: ${TRAEFIK_ALLOWLISTED_GROUPS:-null}
+        monitoring_grafana_allowlisted_groups: ${GRAFANA_ALLOWLISTED_GROUPS:-null}
+        monitoring_loki_allowlisted_groups: ${LOKI_ALLOWLISTED_GROUPS:-null}
+        monitoring_mimir_allowlisted_groups: ${MIMIR_ALLOWLISTED_GROUPS:-null}
+        mailpit_test_gateway_allowlisted_groups: ${MAILPIT_ALLOWLISTED_GROUPS:-null}
+
         ##
         # Ingress
         ##
