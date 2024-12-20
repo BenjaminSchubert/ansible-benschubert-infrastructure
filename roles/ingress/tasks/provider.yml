@@ -1,12 +1,12 @@
 ---
-- name: Get the mode of the parent directory
+- name: Get the mode of the parent directory for {{ ingress_name }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.stat:
     path: "{{ ingress_traefik_configuration_files_path }}/config/providers"
   register: _providers_info
 
-- name: Create the provider configuration for Traefik
+- name: Create the provider configuration for Traefik for {{ ingress_name }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
@@ -17,7 +17,7 @@
     owner: "{{ _providers_info.stat.uid }}"
     group: "{{ _providers_info.stat.gid }}"
 
-- name: Wait until the service is accessible
+- name: Wait until the service is accessible for {{ ingress_name }}
   ansible.builtin.uri:
     url: https://{{ hostname }}{{
         "" if ingress_https_port == 443 else ":{}".format(ingress_https_port)

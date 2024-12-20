@@ -1,5 +1,5 @@
 ---
-- name: Ensure the Agent's paths exist
+- name: Ensure the Agent's paths exist for {{ monitoring_agent_product_name }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
@@ -10,7 +10,7 @@
     - "{{ monitoring_agent_config_path }}"
     - "{{ monitoring_agent_data_path }}"
 
-- name: Create the agent's service account to authenticate
+- name: Create the agent's service account to authenticate for {{ monitoring_agent_product_name }}
   benschubert.infrastructure.authentik_user:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -23,7 +23,7 @@
       type: service_account
   register: _service_account
 
-- name: Create the agent's service account's token
+- name: Create the agent's service account's token for {{ monitoring_agent_product_name }}
   benschubert.infrastructure.authentik_token:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -36,7 +36,7 @@
       description: Token to authenticate the agent against mimir
       expiring: false
 
-- name: Retrieve the generated token
+- name: Retrieve the generated token for {{ monitoring_agent_product_name }}
   benschubert.infrastructure.authentik_token_value:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -45,14 +45,16 @@
     token: "{{ monitoring_agent_pod }}-agent-auth-token"
   register: _service_account_token
 
-- name: Create the mimir authentication secret
+- name: Create the mimir authentication secret for {{ monitoring_agent_product_name }}
   containers.podman.podman_secret:
     name: "{{ monitoring_agent_pod }}-mimir-credentials"
     data: "{{ _service_account_token.key }}"
     state: present
     skip_existing: true
 
-- name: Create the secrets for the postgresql connection strings
+- name: >-
+    Create the secrets for the postgresql connection strings
+    for {{ monitoring_agent_product_name }}
   containers.podman.podman_secret:
     name: "{{
         '{}-postgres-{}'.format(
@@ -71,7 +73,7 @@
   loop_control:
     label: "{{ monitoring_agent_postgres_instances[item].instance }}"
 
-- name: Create the secrets for the redis passwords
+- name: Create the secrets for the redis passwords for {{ monitoring_agent_product_name }}
   containers.podman.podman_secret:
     name: "{{ monitoring_agent_pod }}-redis-{{ monitoring_agent_redis_instances[item].name }}"
     data: "{{ monitoring_agent_redis_instances[item].password }}"
@@ -81,7 +83,7 @@
   loop_control:
     label: "{{  monitoring_agent_redis_instances[item].name }}"
 
-- name: Create the agent default configuration file
+- name: Create the agent default configuration file for {{ monitoring_agent_product_name }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
@@ -90,7 +92,7 @@
     mode: "0o400"
   register: _configuration
 
-- name: Create the Agent's pod
+- name: Create the Agent's pod for {{ monitoring_agent_product_name }}
   containers.podman.podman_pod:
     name: "{{ monitoring_agent_pod }}"
     state: created
@@ -98,7 +100,7 @@
     network: "{{ monitoring_agent_networks }}"
     userns: auto:size=1024
 
-- name: Setup the Alloy's container
+- name: Setup the Alloy's container for {{ monitoring_agent_product_name }}
   containers.podman.podman_container:
     name: "{{ monitoring_agent_pod }}-agent"
     pod: "{{ monitoring_agent_pod }}"
@@ -144,14 +146,14 @@
       - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,U,Z"
       - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:U,Z"
 
-- name: Ensure the agent container is healthy
+- name: Ensure the agent container is healthy for {{ monitoring_agent_product_name }}
   ansible.builtin.command: podman healthcheck run {{ monitoring_agent_pod }}-agent
   register: _healthcheck
   until: _healthcheck is not failed
   retries: 3
   changed_when: false
 
-- name: Ensure the directory to store alerts exists
+- name: Ensure the directory to store alerts exists for {{ monitoring_agent_product_name }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
@@ -159,7 +161,7 @@
     state: directory
     mode: "0o755"
 
-- name: Install the alerts for the service
+- name: Install the alerts for the service for {{ monitoring_agent_product_name }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:

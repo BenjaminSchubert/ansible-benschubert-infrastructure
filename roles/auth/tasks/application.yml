@@ -1,14 +1,14 @@
 ---
 # FIXME: 'mutually_exclusive' or 'required_one_of' are not available for role
 #        validation, thus make it ourselves
-- name: Ensure the provider is provided
+- name: Ensure the provider is provided for {{ application_name }}
   ansible.builtin.assert:
     that:
       - (provider_oauth2 | default(None)) or (provider_proxy | default(None))
       - not ((provider_oauth2 | default(None)) and (provider_proxy | default(None)))
     fail_msg: Either provider_oauth2 or provider_proxy needs to be passed but not both
 
-- name: Get consent flow for applications
+- name: Get consent flow for applications for {{ application_name }}
   benschubert.infrastructure.authentik_flow_info:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -20,7 +20,7 @@
   retries: 5
   delay: 5
 
-- name: Get invalidation flow for applications
+- name: Get invalidation flow for applications for {{ application_name }}
   benschubert.infrastructure.authentik_flow_info:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -32,10 +32,10 @@
   retries: 5
   delay: 5
 
-- name: Generate the OAuth2 provider
+- name: Generate the OAuth2 provider for {{ application_name }}
   when: provider_oauth2 | default(false)
   block:
-    - name: Get the ids of the requested scopes
+    - name: Get the ids of the requested scopes for {{ application_name }}
       benschubert.infrastructure.authentik_propertymappings_scope_info:
         authentik_token: "{{ auth_authentik_token }}"
         authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -45,7 +45,7 @@
       loop: "{{ provider_oauth2.scopes }}"
       register: _scopes
 
-    - name: Generate the OAuth2 provider itself
+    - name: Generate the OAuth2 provider itself for {{ application_name }}
       benschubert.infrastructure.authentik_provider_oauth2:
         authentik_token: "{{ auth_authentik_token }}"
         authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -59,7 +59,7 @@
           redirect_uris: "{{ provider_oauth2.redirect_uris }}"
       register: _provider_oauth2_result
 
-- name: Generate the proxy provider
+- name: Generate the proxy provider for {{ application_name }}
   when: provider_proxy | default(false)
   benschubert.infrastructure.authentik_provider_proxy:
     authentik_token: "{{ auth_authentik_token }}"
@@ -76,7 +76,7 @@
       mode: forward_single
   register: _provider_proxy_result
 
-- name: Retrieve proxy
+- name: Retrieve proxy for {{ application_name }}
   ansible.builtin.set_fact:
     _provider_result: >-
       {{
@@ -84,7 +84,7 @@
         | ternary(_provider_oauth2_result, _provider_proxy_result)
       }}
 
-- name: Generate the application
+- name: Generate the application for {{ application_name }}
   benschubert.infrastructure.authentik_application:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -98,7 +98,7 @@
       open_in_new_tab: true
       meta_description: "{{ meta_description }}"
 
-- name: Configure the application icon
+- name: Configure the application icon for {{ application_name }}
   benschubert.infrastructure.authentik_application_icon_url:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -107,7 +107,7 @@
     slug: "{{ application_slug }}"
     url: "{{ icon_url }}"
 
-- name: Configure the internal outpost
+- name: Configure the internal outpost for {{ application_name }}
   benschubert.infrastructure.authentik_outpost:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -118,7 +118,7 @@
       config:
         authentik_host: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
 
-- name: Register the application against the internal provider
+- name: Register the application against the internal provider for {{ application_name }}
   when: provider_proxy | default(false)
   benschubert.infrastructure.authentik_outpost_provider:
     authentik_token: "{{ auth_authentik_token }}"

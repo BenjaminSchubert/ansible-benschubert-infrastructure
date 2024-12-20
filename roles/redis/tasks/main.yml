@@ -1,5 +1,5 @@
 ---
-- name: Ensure the Redis paths exists
+- name: Ensure the Redis paths exists for {{ redis_pod }}
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -9,7 +9,7 @@
     - "{{ redis_data_path }}"
 
 # FIXME: should this be stored as a secret?
-- name: Create the redis.conf configuration
+- name: Create the redis.conf configuration for {{ redis_pod }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.copy:
@@ -22,12 +22,12 @@
   register: _configuration
   no_log: true
 
-- name: Create the Redis network
+- name: Create the Redis network for {{ redis_pod }}
   containers.podman.podman_network:
     name: "{{ redis_network }}"
     internal: true
 
-- name: Create the Redis pod
+- name: Create the Redis pod for {{ redis_pod }}
   containers.podman.podman_pod:
     name: "{{ redis_pod }}"
     state: created
@@ -36,7 +36,7 @@
       - "{{ redis_network }}"
     userns: auto:size=1024
 
-- name: Setup a Redis container
+- name: Setup a Redis container for {{ redis_pod }}
   containers.podman.podman_container:
     name: "{{ redis_pod }}-redis"
     pod: "{{ redis_pod }}"
@@ -52,14 +52,14 @@
     pull: newer
     read_only: true
 
-- name: Ensure the Redis container is healthy
+- name: Ensure the Redis container is healthy for {{ redis_pod }}
   ansible.builtin.command: podman healthcheck run {{ redis_pod }}-redis
   register: _healthcheck
   until: _healthcheck is not failed
   retries: 3
   changed_when: false
 
-- name: Install Redis dashboards
+- name: Install Redis dashboards for {{ redis_pod }}
   ansible.builtin.import_role:
     name: monitoring
     tasks_from: dashboard

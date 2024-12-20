@@ -1,5 +1,5 @@
 ---
-- name: Ensure the PostgreSQL database path exists
+- name: Ensure the PostgreSQL database path exists for {{ postgres_database }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
@@ -7,12 +7,12 @@
     state: directory
     mode: "0o700"
 
-- name: Create the PostgreSQL network
+- name: Create the PostgreSQL network for {{ postgres_database }}
   containers.podman.podman_network:
     name: "{{ postgres_network }}"
     internal: true
 
-- name: Create the PostgreSQL pod
+- name: Create the PostgreSQL pod for {{ postgres_database }}
   containers.podman.podman_pod:
     name: "{{ postgres_pod }}"
     state: created
@@ -21,7 +21,7 @@
       - "{{ postgres_network }}"
     userns: auto:size=1024
 
-- name: Setup a PostgreSQL container
+- name: Setup a PostgreSQL container for {{ postgres_database }}
   containers.podman.podman_container:
     name: "{{ postgres_pod }}-postgres"
     pod: "{{ postgres_pod }}"
@@ -40,14 +40,14 @@
     pull: newer
     read_only: true
 
-- name: Ensure the PostgreSQL container is healthy
+- name: Ensure the PostgreSQL container is healthy for {{ postgres_database }}
   ansible.builtin.command: podman healthcheck run {{ postgres_pod }}-postgres
   register: _healthcheck
   until: _healthcheck is not failed
   retries: 3
   changed_when: false
 
-- name: Install Postgres dashboard
+- name: Install Postgres dashboard for {{ postgres_database }}
   ansible.builtin.import_role:
     name: monitoring
     tasks_from: dashboard

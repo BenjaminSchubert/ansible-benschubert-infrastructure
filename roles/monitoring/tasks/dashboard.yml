@@ -1,5 +1,5 @@
 ---
-- name: Ensure Grafana dashboard directory exists
+- name: Ensure Grafana dashboard directory exists for {{ destination | basename }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
@@ -7,7 +7,7 @@
     state: directory
     mode: "0o755"
 
-- name: Install dashboard to Grafana
+- name: Install dashboard to Grafana for {{ destination | basename}}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.copy:
