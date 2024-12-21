@@ -36,7 +36,7 @@
 
 - name: Create an application for Grafana on Authentik
   ansible.builtin.import_role:
-    name: auth
+    name: benschubert.infrastructure.auth
     tasks_from: application
   vars:
     application_name: grafana
@@ -190,7 +190,7 @@
 
 - name: Install Grafana dashboards
   ansible.builtin.include_role:
-    name: monitoring
+    name: benschubert.infrastructure.monitoring
     tasks_from: dashboard
   vars:
     # yamllint disable rule:line-length

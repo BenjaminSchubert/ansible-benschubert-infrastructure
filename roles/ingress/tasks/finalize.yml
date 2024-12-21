@@ -1,7 +1,7 @@
 ---
 - name: Create an application for Traefik on authentik
   ansible.builtin.import_role:
-    name: auth
+    name: benschubert.infrastructure.auth
     tasks_from: application
   vars:
     application_name: Traefik's dashboard
@@ -30,7 +30,7 @@
 
 - name: Monitor Traefik
   ansible.builtin.import_role:
-    name: monitoring
+    name: benschubert.infrastructure.monitoring
     tasks_from: agent
   vars:
     monitoring_agent_product_name: ingress
@@ -49,7 +49,7 @@
 
 - name: Install Traefik dashboards
   ansible.builtin.import_role:
-    name: monitoring
+    name: benschubert.infrastructure.monitoring
     tasks_from: dashboard
   vars:
     content: |
