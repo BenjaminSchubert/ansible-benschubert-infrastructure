@@ -85,7 +85,7 @@ def main() -> NoReturn:  # type: ignore[misc]
         module.fail_json(
             msg=(
                 f"Error contacting github at {info['url']}."
-                " Received a {info['status']}:\n{response.read()}"
+                f" Received a {info['status']}:\n{response.read()}"
             )
         )
 
