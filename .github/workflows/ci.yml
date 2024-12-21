@@ -124,13 +124,12 @@ jobs:
   # Tests
   ###
   molecule:
+    name: molecule (${{ matrix.setup }})
     strategy:
       matrix:
-        include:
-          - http: 80
-            https: 443
-          - http: 8080
-            https: 8443
+        setup:
+          - default
+          - privileged
     runs-on: ubuntu-latest
     steps:
       - name: Freeing disk space
@@ -156,15 +155,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements/requirements-dev.txt
       - name: Allow binding to lower ports
-        run: sudo sysctl net.ipv4.ip_unprivileged_port_start=80
-        if: ${{ matrix.https == 443 }}
+        if: ${{ matrix.setup == 'privileged' }}
+        run: >-
+          sudo sysctl net.ipv4.ip_unprivileged_port_start=80
+          && cp molecule/default/privileged-env.yml .env.yml
       - name: Run tests
         run: molecule test
         env:
           PY_COLORS: 1
           ANSIBLE_FORCE_COLOR: 1
-          HTTP_PORT: ${{ matrix.http }}
-          HTTPS_PORT: ${{ matrix.https }}
 
   ###
   # Package
