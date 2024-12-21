@@ -49,7 +49,7 @@
 
 - name: Install Postgres dashboard for {{ postgres_database }}
   ansible.builtin.import_role:
-    name: monitoring
+    name: benschubert.infrastructure.monitoring
     tasks_from: dashboard
   vars:
     content: >-

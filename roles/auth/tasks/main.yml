@@ -295,7 +295,7 @@
 
 - name: Monitor Authentik
   ansible.builtin.import_role:
-    name: monitoring
+    name: benschubert.infrastructure.monitoring
     tasks_from: agent
   vars:
     monitoring_agent_product_name: auth

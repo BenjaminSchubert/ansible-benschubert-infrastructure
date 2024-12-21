@@ -61,7 +61,7 @@
 
 - name: Install Redis dashboards for {{ redis_pod }}
   ansible.builtin.import_role:
-    name: monitoring
+    name: benschubert.infrastructure.monitoring
     tasks_from: dashboard
   vars:
     content: >-

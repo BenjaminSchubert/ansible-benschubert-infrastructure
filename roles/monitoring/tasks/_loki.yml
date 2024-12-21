@@ -61,7 +61,7 @@
 
 - name: Create an application for Loki on Authentik
   ansible.builtin.import_role:
-    name: auth
+    name: benschubert.infrastructure.auth
     tasks_from: application
   vars:
     application_name: loki
@@ -94,7 +94,7 @@
 
 - name: Install Loki's dashboard
   ansible.builtin.import_role:
-    name: monitoring
+    name: benschubert.infrastructure.monitoring
     tasks_from: dashboard
   vars:
     content: |

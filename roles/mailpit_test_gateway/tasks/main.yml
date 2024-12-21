@@ -39,7 +39,7 @@
 
 - name: Create an application for Mailpit on Authentik
   ansible.builtin.import_role:
-    name: auth
+    name: benschubert.infrastructure.auth
     tasks_from: application
   vars:
     application_name: MailPit
