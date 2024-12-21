@@ -1,4 +1,7 @@
 ---
+exclude_paths:
+  - molecule/default/privileged-env.yml
+
 skip_list:
   - galaxy[no-changelog]
   - galaxy[tags]
