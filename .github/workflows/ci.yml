@@ -130,6 +130,9 @@ jobs:
         setup:
           - default
           - privileged
+    env:
+      PY_COLORS: 1
+      ANSIBLE_FORCE_COLOR: 1
     runs-on: ubuntu-latest
     steps:
       - name: Freeing disk space
@@ -159,11 +162,14 @@ jobs:
         run: >-
           sudo sysctl net.ipv4.ip_unprivileged_port_start=80
           && cp molecule/default/privileged-env.yml .env.yml
-      - name: Run tests
-        run: molecule test
-        env:
-          PY_COLORS: 1
-          ANSIBLE_FORCE_COLOR: 1
+      - name: molecule create
+        run: molecule create
+      - name: molecule converge
+        run: molecule converge
+      - name: molecule idempotence
+        run: molecule idempotence
+      - name: molecule verify
+        run: molecule verify
 
   ###
   # Package
