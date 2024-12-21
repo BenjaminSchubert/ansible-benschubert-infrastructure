@@ -4,6 +4,7 @@
     name: benschubert.infrastructure.auth
     tasks_from: application
   vars:
+    allowlisted_groups: "{{ ingress_traefik_allowlisted_groups }}"
     application_name: Traefik's dashboard
     application_slug: benschubert-infrastructure-traefik-dashboard
     group: admin
@@ -46,6 +47,7 @@
         alerting_rules_template: traefik-alerts.yml.j2
     monitoring_agent_postgres_instances: []
     monitoring_agent_redis_instances: []
+    monitoring_agent_user_group: "{{ ingress_monitor_agent_user_group }}"
 
 - name: Install Traefik dashboards
   ansible.builtin.import_role:

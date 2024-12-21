@@ -64,6 +64,7 @@
     name: benschubert.infrastructure.auth
     tasks_from: application
   vars:
+    allowlisted_groups: "{{ monitoring_loki_allowlisted_groups }}"
     application_name: loki
     application_slug: benschubert-infrastructure-loki
     group: admin
