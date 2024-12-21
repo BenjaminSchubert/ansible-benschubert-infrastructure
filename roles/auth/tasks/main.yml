@@ -11,6 +11,17 @@
   tags:
     - skip_ansible_lint
 
+# This is a big image, we can gain some time by pulling it while we prepare the
+# dependencies
+- name: Start pulling the image for Authentik
+  containers.podman.podman_image:
+    name: "{{ auth_authentik_image }}"
+    pull: true
+  async: 600
+  poll: 0
+  changed_when: false
+  register: _authentik_image_pull
+
 - name: Create the required network
   containers.podman.podman_network:
     name: "{{ item }}"
@@ -105,6 +116,24 @@
     redis_password: "{{ auth_redis_password }}"
     redis_metrics_password: "{{ auth_redis_metrics_password }}"
 
+- name: Create the auth-worker pod
+  containers.podman.podman_pod:
+    name: auth-worker
+    state: created
+    infra_name: auth-worker-infra
+    network: "{{
+        ['auth-postgres', 'auth-redis'] + auth_worker_additional_networks
+      }}"
+    userns: auto:size=1024
+
+- name: Wait for the Authentik image to be pulled
+  ansible.builtin.async_status:
+    jid: "{{ _authentik_image_pull.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 10
+  delay: 5
+
 - name: Create the auth pod
   containers.podman.podman_pod:
     name: auth
@@ -114,16 +143,6 @@
       - ingress-auth
       - auth-postgres
       - auth-redis
-    userns: auto:size=1024
-
-- name: Create the auth-worker pod
-  containers.podman.podman_pod:
-    name: auth-worker
-    state: created
-    infra_name: auth-worker-infra
-    network: "{{
-        ['auth-postgres', 'auth-redis'] + auth_worker_additional_networks
-      }}"
     userns: auto:size=1024
 
 - name: Setup the Authentik server container
@@ -203,14 +222,6 @@
     read_only: true
     force_restart: "{{ _background.changed or _icon.changed }}"
 
-- name: Ensure the Authentik container is healthy
-  ansible.builtin.command: podman healthcheck run auth-authentik
-  register: _healthcheck
-  until: _healthcheck is not failed
-  delay: 5
-  retries: 20
-  changed_when: false
-
 - name: Setup the Authentik worker container
   containers.podman.podman_container:
     name: auth-worker-authentik
@@ -269,6 +280,14 @@
         )
       }}
     read_only: true
+
+- name: Ensure the Authentik container is healthy
+  ansible.builtin.command: podman healthcheck run auth-authentik
+  register: _healthcheck
+  until: _healthcheck is not failed
+  delay: 5
+  retries: 20
+  changed_when: false
 
 - name: Ensure the Authentik worker container is healthy
   ansible.builtin.command: podman healthcheck run auth-worker-authentik
