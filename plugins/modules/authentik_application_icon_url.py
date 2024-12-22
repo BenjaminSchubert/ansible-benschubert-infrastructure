@@ -10,21 +10,6 @@ description:
   - See https://docs.goauthentik.io/docs/applications#appearance
 
 options:
-  authentik_token:
-    description:
-      - The token used to authenticate against the Authentik server
-    type: str
-    required: true
-  authentik_url:
-    description:
-      - The URL at which to contact the Authentik server
-    type: str
-    required: true
-  ca_path:
-    description:
-      - PEM formatted file that contains a CA certificate to be used for
-        validation
-    type: str
   slug:
     description:
       - The slug identifying the application for which to configure the icon
@@ -35,13 +20,9 @@ options:
       - The URL of the icon for the application
     required: true
     type: str
-  validate_certs:
-    description:
-      - If false, SSL certificates will not be validated.
-      - This should only set to false used on personally controlled sites
-        using self-signed certificates.
-    type: bool
-    default: true
+
+extends_documentation_fragment:
+  - benschubert.infrastructure.authentik
 
 author:
   - Benjamin Schubert (@benjaminschubert)

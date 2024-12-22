@@ -16,6 +16,12 @@ options:
       - PEM formatted file that contains a CA certificate to be used for
         validation
     type: str
+  timeout:
+    description:
+      - The timeout to set when contacting the Authentik Server.
+      - If your server is slow to respond, it might be necessary to bump this
+    type: int
+    default: 10
   validate_certs:
     description:
       - If false, SSL certificates will not be validated.
