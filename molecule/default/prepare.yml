@@ -45,3 +45,19 @@
         name: "{{ item }}"
         state: absent
       loop: "{{ _all_secrets.stdout_lines }}"
+
+    - name: List leftover files
+      ansible.builtin.find:
+        path: /home/podman/infrastructure
+        file_type: any
+        hidden: true
+      register: _all_files
+
+    - name: Remove leftover files
+      become: true
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ _all_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"

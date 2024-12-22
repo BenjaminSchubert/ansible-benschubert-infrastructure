@@ -40,9 +40,13 @@ RUN useradd --create-home --groups sudo --shell /bin/bash podman && \
     # And create cacheable volume for the storage
     mkdir -p /home/podman/.local/share/containers && \
     chown -R podman:podman /home/podman/.local && \
+    # And for the actual files
+    mkdir -p /home/podman/infrastructure && \
+    chown -R podman:podman /home/podman/infrastructure && \
     # Enable lingering of the session
     # Equivalent to loginctl enable-linger podman
     mkdir -p /var/lib/systemd/linger && \
     touch /var/lib/systemd/linger/podman
 
 VOLUME /home/podman/.local/share/containers
+VOLUME /home/podman/infrastructure
