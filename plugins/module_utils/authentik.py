@@ -16,6 +16,7 @@ def get_base_arguments(include_state: bool = True) -> dict[str, Any]:
         "authentik_url": {"type": "str", "required": True},
         "authentik_token": {"type": "str", "required": True, "no_log": True},
         "ca_path": {"type": "str", "required": False},
+        "timeout": {"type": "int", "default": 10},
         "validate_certs": {"type": "bool", "default": True},
     }
     if include_state:
@@ -40,6 +41,7 @@ class Authentik:
         self._url = module.params["authentik_url"]
         self._token = module.params["authentik_token"]
         self._ca_path = module.params["ca_path"]
+        self._timeout = module.params["timeout"]
         self._api_slug = api_slug
 
     def request(  # type: ignore[return]
@@ -78,6 +80,7 @@ class Authentik:
             },
             ca_path=self._ca_path,
             method=method,
+            timeout=self._timeout,
         )
 
         if info["status"] == HTTPStatus.NO_CONTENT:

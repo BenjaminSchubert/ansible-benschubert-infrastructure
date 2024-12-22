@@ -13,6 +13,7 @@
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    timeout: 15
     validate_certs: "{{ ingress_validate_certs }}"
     slug: default-provider-authorization-explicit-consent
   register: _authorization_flow
