@@ -27,12 +27,10 @@
       register: _all_pods
 
     - name: Remove all current pods and containers
-      containers.podman.podman_pod:
-        name: "{{ item.Name }}"
-        state: absent
-      loop: "{{ _all_pods.pods }}"
-      loop_control:
-        label: "{{ item.Name }}"
+      ansible.builtin.command:
+        cmd: podman pod rm {{ _all_pods.pods | map(attribute='Name') | join(' ') }}
+      changed_when: true
+      when: _all_pods.pods
 
     - name: Gather info about all present secrets
       ansible.builtin.command:
@@ -41,23 +39,13 @@
       register: _all_secrets
 
     - name: Remove all current secrets
-      containers.podman.podman_secret:
-        name: "{{ item }}"
-        state: absent
-      loop: "{{ _all_secrets.stdout_lines }}"
-
-    - name: List leftover files
-      ansible.builtin.find:
-        path: /home/podman/infrastructure
-        file_type: any
-        hidden: true
-      register: _all_files
+      ansible.builtin.command:
+        cmd: podman secret rm {{ _all_secrets.stdout_lines | join(' ') }}
+      changed_when: true
+      when: _all_secrets.stdout_lines
 
     - name: Remove leftover files
       become: true
-      ansible.builtin.file:
-        path: "{{ item.path }}"
-        state: absent
-      loop: "{{ _all_files.files }}"
-      loop_control:
-        label: "{{ item.path }}"
+      ansible.builtin.shell:
+        cmd: rm -rf /home/podman/infrastructure/*
+        removes: /home/podman/infrastructure/*
