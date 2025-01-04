@@ -48,6 +48,7 @@ provisioner:
   env:
     ANSIBLE_PIPELINING: "True"
     ANSIBLE_DIFF_ALWAYS: "True"
+    ANSIBLE_COLLECTIONS_PATH: ${MOLECULE_PROJECT_DIRECTORY}/.cache/collections
   inventory:
     host_vars:
       ${CONTAINER_NAME:-benschubert-infrastructure-test-container}:
