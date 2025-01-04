@@ -37,18 +37,14 @@ platforms:
 
 provisioner:
   name: ansible
-  config_options:
-    defaults:
-      stdout_callback: yaml
-      callbacks_enabled: ansible.posix.profile_tasks, ansible.posix.profile_roles
-    callback_profile_roles:
-      summary_only: true
-    callback_profile_tasks:
-      summary_only: true
   env:
-    ANSIBLE_PIPELINING: "True"
-    ANSIBLE_DIFF_ALWAYS: "True"
+    ANSIBLE_CALLBACKS_ENABLED: ansible.posix.profile_roles, ansible.posix.profile_tasks
+    ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
     ANSIBLE_COLLECTIONS_PATH: ${MOLECULE_PROJECT_DIRECTORY}/.cache/collections
+    ANSIBLE_DIFF_ALWAYS: "True"
+    ANSIBLE_PIPELINING: "True"
+    PROFILE_TASKS_SUMMARY_ONLY: "True"
+    PROFILE_ROLES_SUMMARY_ONLY: "True"
   inventory:
     host_vars:
       ${CONTAINER_NAME:-benschubert-infrastructure-test-container}:

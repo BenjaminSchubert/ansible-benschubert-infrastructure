@@ -16,7 +16,13 @@ from dwas.predefined import mypy, pylint, ruff, sphinx
 
 ARTIFACTS_PATH = Path().parent.joinpath("_artifacts")
 LOGGER = logging.getLogger(__name__)
-PYTHON_FILES = ["dwasfile.py", "docs/", "plugins", "molecule/"]
+PYTHON_FILES = [
+    "dwasfile.py",
+    "docs/",
+    "plugins",
+    "molecule/",
+    ".github/scripts",
+]
 
 
 def _install_collection(step: StepRunner) -> dict[str, str]:

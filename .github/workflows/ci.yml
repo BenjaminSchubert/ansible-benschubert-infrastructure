@@ -167,11 +167,23 @@ jobs:
       - name: molecule create
         run: molecule create
       - name: molecule converge
-        run: molecule converge
+        run: mkdir -p ${PWD}/.cache && molecule converge
+        env:
+          ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-converge
       - name: molecule idempotence
         run: molecule idempotence
+        env:
+          ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-idempotence
       - name: molecule verify
         run: molecule verify
+      - name: Analyse the output of molecule
+        run: >-
+          echo "## Converge" >> $GITHUB_STEP_SUMMARY &&
+          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-converge
+          | tee --append $GITHUB_STEP_SUMMARY
+          && echo "## Idempotence" >> $GITHUB_STEP_SUMMARY &&
+          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence
+          | tee --append $GITHUB_STEP_SUMMARY
 
   ###
   # Package
