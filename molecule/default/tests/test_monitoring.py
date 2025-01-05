@@ -252,3 +252,19 @@ def test_mimir_configuration_is_properly_loaded(
         for r in result["data"]["result"]
     }
     assert entries == {("mimir", "1")}
+
+
+def test_mimir_alerts_are_properly_loaded(
+    hostvars: dict[str, Any],
+    session: requests.Session,
+    authentik_credentials: tuple[str, str],
+) -> None:
+    resp = session.get(
+        f"https://{hostvars['monitoring_mimir_hostname']}//prometheus/config/v1/rules",
+        params={"query": "cortex_alertmanager_config_last_reload_successful"},
+        allow_redirects=False,
+        auth=authentik_credentials,
+        timeout=10,
+    )
+    print(resp.text)
+    assert resp.status_code == HTTPStatus.OK
