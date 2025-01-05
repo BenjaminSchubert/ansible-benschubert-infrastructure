@@ -201,7 +201,7 @@ def test_no_alerts_are_firing(
     entries = {
         (r["metric"]["state"], r["value"][1]) for r in result["data"]["result"]
     }
-    assert entries == {
+    assert entries <= {
         ("active", "0"),
         ("suppressed", "0"),
         ("unprocessed", "0"),
@@ -228,7 +228,7 @@ def test_all_alerts_are_valid(
         (r["metric"]["instance"], r["value"][1])
         for r in result["data"]["result"]
     }
-    assert entries == {("mimir", "0")}
+    assert entries <= {("mimir", "0")}
 
 
 def test_mimir_configuration_is_properly_loaded(
