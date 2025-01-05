@@ -274,12 +274,20 @@
             group: 19218
             mode: "0o755"
 
-        - name: Install alloy alerts
+        - name: Install alloy Loki alerts
           become: true
           become_method: containers.podman.podman_unshare
           ansible.builtin.template:
-            src: alerts.yml.j2
+            src: loki-alerts.yml.j2
             dest: "{{ monitoring_loki_config_path }}/rules/fake/node.yml"
             owner: 19218
             group: 19218
+            mode: "0o644"
+
+        - name: Install the alerts for the host
+          become_method: containers.podman.podman_unshare
+          become: true
+          ansible.builtin.template:
+            src: host-agent-alerts.yml.j2
+            dest: "{{ monitoring_mimir_config_path }}/rules/anonymous/node.yml"
             mode: "0o644"
