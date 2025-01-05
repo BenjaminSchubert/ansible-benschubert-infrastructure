@@ -90,7 +90,7 @@ provisioner:
 
         # Group membership
         default_monitor_agent_user_group: ${MONITOR_AGENT_USER_GROUP:-null}
-        test_akadmin_user_group: ${TEST_AKADMIN_USER_GROUP:-null}
+        test_akadmin_user_group: ${TEST_AKADMIN_USER_GROUP:-Grafana Admins}
         monitoring_grafana_admin_group_name: ${GRAFANA_ADMIN_GROUP_NAME:-Grafana Admins}
 
         ingress_traefik_allowlisted_groups: ${TRAEFIK_ALLOWLISTED_GROUPS:-null}
