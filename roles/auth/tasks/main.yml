@@ -58,7 +58,6 @@
     name: "{{ item.name }}"
     data: "{{ item.data }}"
     state: present
-    skip_existing: true
   no_log: true
   when: item.data
   loop:
