@@ -270,8 +270,6 @@
           ansible.builtin.file:
             name: "{{ monitoring_loki_config_path }}/rules/fake"
             state: directory
-            owner: 19218
-            group: 19218
             mode: "0o755"
 
         - name: Install alloy Loki alerts
@@ -280,8 +278,6 @@
           ansible.builtin.template:
             src: loki-alerts.yml.j2
             dest: "{{ monitoring_loki_config_path }}/rules/fake/node.yml"
-            owner: 19218
-            group: 19218
             mode: "0o644"
 
         - name: Install the alerts for the host

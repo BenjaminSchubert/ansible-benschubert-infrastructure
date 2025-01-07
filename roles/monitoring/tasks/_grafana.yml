@@ -115,7 +115,7 @@
     network:
       - ingress-monitoring
       - monitoring-grafana-postgres
-    userns: auto:size=1024
+    userns: auto:size=473
 
 - name: Setup the Grafana container
   containers.podman.podman_container:

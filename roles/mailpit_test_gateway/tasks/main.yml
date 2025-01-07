@@ -12,7 +12,7 @@
     state: created
     infra_name: mailpit-infra
     network: "{{ mailpit_test_gateway_networks }}"
-    userns: auto:size=1024
+    userns: auto:size=6
 
 - name: Setup a Mailpit container
   containers.podman.podman_container:

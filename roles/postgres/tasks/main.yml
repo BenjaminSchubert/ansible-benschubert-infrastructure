@@ -19,7 +19,7 @@
     infra_name: "{{ postgres_pod }}-infra"
     network:
       - "{{ postgres_network }}"
-    userns: auto:size=1024
+    userns: auto:size=1000
 
 - name: Setup a PostgreSQL container for {{ postgres_database }}
   containers.podman.podman_container:

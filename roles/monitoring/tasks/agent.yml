@@ -117,7 +117,7 @@
     state: created
     infra_name: "{{ monitoring_agent_pod }}-infra"
     network: "{{ monitoring_agent_networks }}"
-    userns: auto:size=1024
+    userns: auto:size=474
 
 - name: Setup the Alloy's container for {{ monitoring_agent_product_name }}
   containers.podman.podman_container:

@@ -113,7 +113,7 @@
       - ingress-auth
       - auth-postgres
       - auth-redis
-    userns: auto:size=1024
+    userns: auto:size=1001
 
 - name: Create the auth-worker pod
   containers.podman.podman_pod:
@@ -123,7 +123,7 @@
     network: "{{
         ['auth-postgres', 'auth-redis'] + auth_worker_additional_networks
       }}"
-    userns: auto:size=1024
+    userns: auto:size=1001
 
 - name: Setup the Authentik server container
   containers.podman.podman_container:
