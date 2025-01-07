@@ -33,7 +33,6 @@
     name: monitoring-mimir-{{ item.lower().replace("_", "-") }}
     data: "{{ monitoring_mimir_secrets[item] }}"
     state: present
-    skip_existing: true
   loop: "{{ monitoring_mimir_secrets.keys() }}"
 
 - name: Create the Mimir network

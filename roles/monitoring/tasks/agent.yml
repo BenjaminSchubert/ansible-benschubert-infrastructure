@@ -72,7 +72,6 @@
     name: "{{ monitoring_agent_pod }}-mimir-credentials"
     data: "{{ _service_account_token.key }}"
     state: present
-    skip_existing: true
 
 - name: >-
     Create the secrets for the postgresql connection strings
@@ -90,7 +89,6 @@
         )
       }}"
     state: present
-    skip_existing: true
   loop: "{{ range(0, monitoring_agent_postgres_instances | length) }}"
   loop_control:
     label: "{{ monitoring_agent_postgres_instances[item].instance }}"
@@ -100,7 +98,6 @@
     name: "{{ monitoring_agent_pod }}-redis-{{ monitoring_agent_redis_instances[item].name }}"
     data: "{{ monitoring_agent_redis_instances[item].password }}"
     state: present
-    skip_existing: true
   loop: "{{ range(0, monitoring_agent_redis_instances | length) }}"
   loop_control:
     label: "{{  monitoring_agent_redis_instances[item].name }}"

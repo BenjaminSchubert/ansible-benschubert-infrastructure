@@ -9,7 +9,7 @@ verifier:
 
 platforms:
   - name: ${CONTAINER_NAME:-benschubert-infrastructure-test-container}
-    image: docker.io/debian:bookworm-slim
+    image: docker.io/debian:trixie-slim
     hostname: ${CONTAINER_NAME:-benschubert-infrastructure-test-container}
     command: /usr/sbin/init
     dockerfile: Dockerfile.j2

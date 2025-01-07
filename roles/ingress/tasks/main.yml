@@ -48,7 +48,6 @@
     name: ingress-traefik-{{ item.key.lower().replace('_', '-') }}
     data: "{{ item.value }}"
     state: present
-    skip_existing: true
   no_log: true
   loop: "{{ ingress_traefik_secrets | dict2items }}"
 
