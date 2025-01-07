@@ -61,7 +61,7 @@
     publish:
       - "{{ ingress_http_port }}:{{ ingress_http_port }}"
       - "{{ ingress_https_port }}:{{ ingress_https_port }}"
-    userns: auto:size=1024
+    userns: auto:size=6
 
 - name: Setup the traefik container
   containers.podman.podman_container:

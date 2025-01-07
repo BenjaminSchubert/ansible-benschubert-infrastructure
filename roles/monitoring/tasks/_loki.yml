@@ -5,8 +5,6 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    owner: 19218
-    group: 19218
     mode: "0o700"
   loop:
     - "{{ monitoring_loki_config_path }}/rules"
@@ -19,8 +17,6 @@
     src: loki.yml.j2
     dest: "{{ monitoring_loki_config_path }}/local-config.yaml"
     mode: "0o444"
-    owner: 19218
-    group: 19218
   register: _configuration
 
 - name: Create the Loki network

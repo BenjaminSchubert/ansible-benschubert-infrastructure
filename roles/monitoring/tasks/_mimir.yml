@@ -6,8 +6,6 @@
     path: "{{ item }}"
     state: directory
     mode: "0o700"
-    owner: 8193
-    group: 8193
   loop:
     - "{{ monitoring_mimir_config_path }}/alertmanager"
     - "{{ monitoring_mimir_data_path }}/tmp"
@@ -19,8 +17,6 @@
     src: "{{ item.src }}"
     dest: "{{ monitoring_mimir_config_path }}/{{ item.dst }}"
     mode: "0o400"
-    owner: 8193
-    group: 8193
   register: _configuration
   loop:
     - src: mimir.yml.j2
@@ -47,7 +43,7 @@
     state: created
     infra_name: monitoring-mimir-infra
     network: "{{ ['ingress-monitoring'] + monitoring_mimir_additional_networks }}"
-    userns: auto:size=1024
+    userns: auto:size=6
 
 - name: Setup the Mimir container
   containers.podman.podman_container:
