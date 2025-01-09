@@ -57,6 +57,7 @@
     # healthcheck: wget -O- http://localhost:9009
     pull: newer
     read_only: true
+    cap_drop: [all]
     secrets: |
       {{
         monitoring_mimir_secrets

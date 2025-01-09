@@ -125,6 +125,7 @@
     image: "{{ monitoring_grafana_image }}"
     healthcheck: curl --fail http://localhost:3000
     read_only: true
+    cap_drop: [all]
     env:
       # Login
       GF_AUTH_GENERIC_OAUTH_ENABLED: "true"

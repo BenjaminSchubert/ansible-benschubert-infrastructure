@@ -51,6 +51,7 @@
     healthcheck: redis-cli --user ping --pass '' ping | grep PONG
     pull: newer
     read_only: true
+    cap_drop: [all]
 
 - name: Ensure the Redis container is healthy for {{ redis_pod }}
   ansible.builtin.command: podman healthcheck run {{ redis_pod }}-redis

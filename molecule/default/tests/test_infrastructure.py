@@ -121,3 +121,27 @@ def test_all_containers_have_a_read_only_rootfs(
         # FIXME: can we make the infra containers readonly?
         if not container.endswith("-infra") and not json.loads(readonly)
     ] == [], "Some containers are not setup as readonly"
+
+
+def test_all_containers_have_minimal_capabilities(
+    host: Host, containers: list[str]
+) -> None:
+    caps_format = "{{ '{{' }} json .BoundingCaps {{ '}}' }}"
+    result = host.run(
+        f"podman inspect --format '{caps_format}' {' '.join(containers)}"
+    )
+    assert result.succeeded
+    all_caps = (
+        json.loads(caps) for caps in result.stdout.strip().splitlines()
+    )
+
+    assert {
+        container: caps
+        for container, caps in zip(containers, all_caps, strict=True)
+        if not container.endswith("-infra") and caps
+    } == {
+        "ingress-traefik": ["CAP_NET_BIND_SERVICE"],
+    } | {
+        f"{group}-monitor-agent": ["CAP_DAC_OVERRIDE"]
+        for group in ["auth", "ingress", "monitoring"]
+    }, "Some containers have too many capabiliti4es"
