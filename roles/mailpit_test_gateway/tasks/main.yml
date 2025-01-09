@@ -26,6 +26,7 @@
     healthcheck: /mailpit readyz
     pull: newer
     read_only: true
+    cap_drop: [all]
     secrets:
       - mailpit-smtp-auth
 

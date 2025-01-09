@@ -39,6 +39,7 @@
     healthcheck: pg_isready -d $${POSTGRES_DB -U $${POSTGRES_USER}
     pull: newer
     read_only: true
+    cap_drop: [all]
 
 - name: Ensure the PostgreSQL container is healthy for {{ postgres_database }}
   ansible.builtin.command: podman healthcheck run {{ postgres_pod }}-postgres

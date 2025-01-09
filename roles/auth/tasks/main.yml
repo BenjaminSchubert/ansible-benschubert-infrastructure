@@ -200,6 +200,7 @@
         )
       }}
     read_only: true
+    cap_drop: [all]
     force_restart: "{{ _background.changed or _icon.changed }}"
 
 - name: Ensure the Authentik container is healthy
@@ -268,6 +269,7 @@
         )
       }}
     read_only: true
+    cap_drop: [all]
 
 - name: Ensure the Authentik worker container is healthy
   ansible.builtin.command: podman healthcheck run auth-worker-authentik

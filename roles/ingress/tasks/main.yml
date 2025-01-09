@@ -97,6 +97,10 @@
         | map('regex_replace', '_', '-')
         | map('regex_replace', '^(.*)$', 'ingress-traefik-\1')
       }}
+    cap_drop: [all]
+    cap_add:
+      # Required to bind on lower ports
+      - NET_BIND_SERVICE
 
 - name: Ensure the Traefik container is healthy
   ansible.builtin.command: podman healthcheck run ingress-traefik

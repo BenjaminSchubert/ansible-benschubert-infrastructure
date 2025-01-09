@@ -137,6 +137,9 @@
     healthcheck: /bin/true
     pull: newer
     read_only: true
+    cap_drop: [all]
+    cap_add:
+      - CAP_DAC_OVERRIDE
     secrets: >-
       {{
         [
