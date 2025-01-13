@@ -53,6 +53,31 @@ def test_no_tasks_failed(
     assert failed_tasks == {}
 
 
+def test_all_blueprints_applied(
+    hostvars: dict[str, Any],
+    session: requests.Session,
+) -> None:
+    resp = session.get(
+        f"https://{hostvars['auth_authentik_hostname']}/api/v3/managed/blueprints/",
+        headers={
+            "Authorization": f"Bearer {hostvars['auth_authentik_superadmin_bootstrap_token']}"
+        },
+        allow_redirects=False,
+        timeout=10,
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    print(yaml.dump(resp.json()))
+
+    failed_tasks = {
+        blueprint["name"]: blueprint["status"]
+        for blueprint in resp.json()["results"]
+        if blueprint["status"] != "successful"
+    }
+
+    assert failed_tasks == {}
+
+
 @pytest.mark.parametrize("privileged", [True, False])
 def test_privileged_user_can_access_all_apps(
     hostvars: dict[str, Any], session: requests.Session, privileged: bool
