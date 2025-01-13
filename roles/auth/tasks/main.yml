@@ -287,6 +287,34 @@
     hostname: "{{ auth_authentik_hostname }}"
     expected_status_code: 302
 
+- name: Get the blueprints statuses
+  ansible.builtin.uri:
+    url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/
+    headers:
+      Authorization: Bearer {{ auth_authentik_token }}
+    return_content: true
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+  register: _blueprints
+  retries: 5
+  delay: 2
+
+- name: Ensure all blueprints have converged
+  ansible.builtin.uri:
+      # yamllint disable-line rule:line-length
+    url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/{{ item.pk }}/apply/
+    method: post
+    headers:
+      Authorization: Bearer {{ auth_authentik_token }}
+    return_content: true
+    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+    validate_certs: "{{ ingress_validate_certs }}"
+  failed_when: _blueprint_run.status != 200 or _blueprint_run.json.status != 'successful'
+  register: _blueprint_run
+  loop: "{{ _blueprints.json.results | rejectattr('status', 'equalto', 'successful') }}"
+  loop_control:
+    label: "{{ item.name }}"
+
 - name: Configure the Alloy image if not provided explicitly
   ansible.builtin.set_fact:
     auth_monitor_agent_alloy_image: "{{ monitoring_agent_alloy_image }}"
