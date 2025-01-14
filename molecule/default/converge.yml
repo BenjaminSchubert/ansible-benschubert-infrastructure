@@ -43,7 +43,9 @@
           ansible.builtin.set_fact:
             _containers_failing: "{{ _containers_failing | default([]) + [item] }}"
           loop: "{{ _containers.containers | sort(attribute='Name') }}"
-          when: item['State']['Health']['Status'] not in ['healthy', '']
+          when: >-
+            item["State"]["Status"] == "exited"
+            or item['State'].get('Health', {}).get('Status', '') not in ['healthy', '']
           loop_control:
             label: "{{ item['Name'] }}"
 
@@ -61,8 +63,8 @@
             msg: |
               Containers item:
               {% for item in _containers.containers | sort(attribute='Name') %}
-                {% set state = item["State"] %}
-                {{ item["Name"] }}: {{ state["Status"] }} {{ state["Health"]["Status"] or "-" }}
+                {% set s = item["State"] %}
+                {{ item["Name"] }}: {{ s["Status"] }} {{ s.get("Health", {}).get("Status", "-") }}
               {% endfor %}
 
               {% if _containers_failing | default(false) %}
