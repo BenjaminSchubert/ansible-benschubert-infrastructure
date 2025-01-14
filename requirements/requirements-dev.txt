@@ -4,3 +4,6 @@ ansible-lint
 molecule
 molecule-plugins[podman]
 tabulate
+# Unpin once molecule is compatible and allows specifying a working directory
+# to isolate ansible collections
+ansible-compat<25
