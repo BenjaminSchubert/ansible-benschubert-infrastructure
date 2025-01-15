@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+from multiprocessing.pool import ThreadPool
 from typing import cast
 
 import pytest
@@ -24,6 +25,7 @@ def pods(host: Host) -> list[str]:
     return cast(list[str], result.stdout.split())
 
 
+@pytest.mark.xdist_group(name="containers")
 def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
     mount_format = "{{ '{{' }} json .Mounts {{ '}}' }}"
     result = host.run(
@@ -51,21 +53,28 @@ def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
     ), "Some containers have volumes that are not attached"
 
 
+@pytest.mark.xdist_group(name="containers")
 def test_all_containers_succeed_healthchecks(
     host: Host,
     containers: list[str],
 ) -> None:
     errors = {}
+    containers = [c for c in containers if not c.endswith("-infra")]
 
-    for container in containers:
-        if container.endswith("-infra"):
-            continue  # infra containers don't have healthchecks
-
-        res = host.run(f"podman healthcheck run {container}")
-        if container == "monitoring-mimir-mimir":
-            assert res.exit_status != 0, "Mimir did not have healthchecks set?"
-        elif res.exit_status != 0:
-            errors[container] = res.stderr
+    with ThreadPool(len(containers)) as pool:
+        for container, res in zip(
+            containers,
+            pool.map(
+                lambda c: host.run(f"podman healthcheck run {c}"), containers
+            ),
+            strict=True,
+        ):
+            if container == "monitoring-mimir-mimir":
+                assert res.exit_status != 0, (
+                    "Mimir did not have healthchecks set?"
+                )
+            elif res.exit_status != 0:
+                errors[container] = res.stderr
 
     assert not errors, "Some containers failed their healtchecks"
 
@@ -102,6 +111,7 @@ def test_all_networks_are_internal(host: Host) -> None:
     ]
 
 
+@pytest.mark.xdist_group(name="containers")
 def test_all_containers_have_a_read_only_rootfs(
     host: Host, containers: list[str]
 ) -> None:

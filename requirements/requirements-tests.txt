@@ -1,5 +1,6 @@
 Pygments
 pytest
+pytest-xdist
 pytest-testinfra
 pyyaml
 requests
