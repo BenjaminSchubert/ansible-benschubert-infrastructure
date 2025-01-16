@@ -4,24 +4,6 @@
   gather_facts: false
 
   tasks:
-    - name: Create base etc/hosts configuration
-      become: true
-      ansible.builtin.copy:
-        content: |
-          127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
-          ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-        dest: /etc/isolated_hosts
-        mode: "0o644"
-
-    - name: Configure podman
-      become: true
-      ansible.builtin.copy:
-        content: |
-          [containers]
-          base_hosts_file = "/etc/isolated_hosts"
-        dest: /etc/containers/containers.conf
-        mode: "0o644"
-
     - name: Gather info about all present pods
       containers.podman.podman_pod_info:
       register: _all_pods
