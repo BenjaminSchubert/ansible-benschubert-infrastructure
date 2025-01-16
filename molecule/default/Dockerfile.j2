@@ -16,14 +16,22 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install required packages
 RUN apt-get update && \
-    apt-get install --assume-yes \
+    apt-get install --assume-yes --no-install-recommends \
+        aardvark-dns \
         bash \
         ca-certificates \
+        catatonit \
+        dbus-user-session \
         fuse-overlayfs \
+        init \
         iproute2 \
+        nftables \
+        passt \
         podman \
         python3 \
         sudo \
+        systemd \
+        uidmap \
         # And some utilities to help debug
         curl \
         jq \
