@@ -135,15 +135,6 @@ jobs:
       ANSIBLE_FORCE_COLOR: 1
     runs-on: ubuntu-latest
     steps:
-      - name: Freeing disk space
-        run: >-
-          echo "--> Original:"
-          && df -h
-          && sudo rm -rf /opt/hostedtoolcache/{CodeQL,go,PyPy,node,Ruby}
-          && sudo rm -rf /usr/lib/{jvm,google-cloud-sdk,llvm-*,mono,heroku}
-          && sudo rm -rf /usr/share/{swift,dotnet,miniconda}
-          && echo "--> Final state:"
-          && df -h
       - name: Increase subuids/subgids for runner
         run: echo "${USER}:100000:655360" | sudo tee /etc/subuid /etc/subgid
       - name: Reset podman
