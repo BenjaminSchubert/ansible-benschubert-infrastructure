@@ -189,7 +189,7 @@ def test_no_alerts_are_firing(
 ) -> None:
     resp = session.get(
         f"https://{hostvars['monitoring_mimir_hostname']}/prometheus/api/v1/query",
-        params={"query": "cortex_alertmanager_alerts"},
+        params={"query": "ALERTS"},
         allow_redirects=False,
         auth=authentik_credentials,
         timeout=10,
@@ -197,14 +197,9 @@ def test_no_alerts_are_firing(
     print(resp.text)
     assert resp.status_code == HTTPStatus.OK
     result = resp.json()
-    assert result["status"] == "success"
-    entries = {
-        (r["metric"]["state"], r["value"][1]) for r in result["data"]["result"]
-    }
-    assert entries <= {
-        ("active", "0"),
-        ("suppressed", "0"),
-        ("unprocessed", "0"),
+    assert result == {
+        "status": "success",
+        "data": {"result": [], "resultType": "vector"},
     }
 
 

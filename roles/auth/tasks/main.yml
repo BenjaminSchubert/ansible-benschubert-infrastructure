@@ -309,6 +309,7 @@
     headers:
       Authorization: Bearer {{ auth_authentik_token }}
     return_content: true
+    timeout: 60
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
   failed_when: _blueprint_run.status != 200 or _blueprint_run.json.status != 'successful'
