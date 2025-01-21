@@ -17,7 +17,7 @@ http:
 
     traefik-icon:
       rule: Host(`{{ hostname }}`) && PathPrefix(`/mailpit.svg`)
-      service: mailpit@internal
+      service: mailpit@file
       priority: 15
       tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
 

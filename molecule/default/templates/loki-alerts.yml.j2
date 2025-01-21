@@ -23,6 +23,18 @@ groups:
           title: Low LogRate Alert for, are logs being pushed?
           description: Alloy is not pushing as many logs as expected
 
+      - alert: TraefikUnknownInternalService
+        # .ansible_tmp is excluded to avoid matching the temporary files ansible creates
+        expr: >-
+          rate({container=~"ingress-traefik"} != `.ansible_tmp` | detected_level = `error` [1h]) > 0
+        keep_firing_for: 24h
+        labels:
+          severity: critical
+          category: logs
+        annotations:
+          title: An internal service for traefik is unavailable
+          description: Traefik is misconfigured
+
       - alert: ErrorInContainerLogs
         expr: sum by(container) (rate({container=~".+"} |= `` | detected_level = `error` [1m])) > 0.1
         for: 1m
