@@ -1,7 +1,7 @@
 -r requirements.txt
 -r requirements-tests.txt
 ansible-lint
-molecule
+molecule<25
 molecule-plugins[podman]
 tabulate
 # Unpin once molecule is compatible and allows specifying a working directory
