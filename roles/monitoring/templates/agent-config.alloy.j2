@@ -42,7 +42,7 @@ prometheus.scrape "benschubert_infrastructure_{{ monitoring_agent_pod | replace(
     [
       {"__address__" = "localhost:12345", "instance" = "agent"},
       {% for instance in monitoring_agent_prometheus_endpoints %}
-      {"__address__" = "{{ instance.address }}", "instance" = "{{ instance.name }}"},
+      {"__address__" = "{{ instance.address }}", "instance" = "{{ instance.name }}" {% if instance.metrics_path | default(False) %}, "__metrics_path__" = "{{ instance.metrics_path}}"{% endif%}},
       {% endfor %}
     ],
     {% if monitoring_agent_postgres_instances %}
