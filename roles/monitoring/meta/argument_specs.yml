@@ -356,6 +356,11 @@ argument_specs:
               - A Jinja template defining Prometheus rules to generate alerts
               - The variable C(job_name) and C(name) are available to uniquely
                 identify the job.
+          metrics_path:
+            type: str
+            default: /metrics
+            description:
+              - The path under which to scrape the metrics
       monitoring_agent_redis_instances:
         type: list
         default: []
