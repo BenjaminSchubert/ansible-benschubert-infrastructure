@@ -26,6 +26,20 @@
       changed_when: true
       when: _all_secrets.stdout_lines
 
+    - name: Gather info about all present networks
+      containers.podman.podman_network_info:
+      register: _all_networks
+
+    - name: Remove all current networks
+      ansible.builtin.command:
+        cmd: >-
+          podman
+          network
+          rm
+          {{ _all_networks.networks | map(attribute='name') | reject('podman') | join(' ') }}
+      changed_when: true
+      when: _all_networks.networks | map(attribute='name') != ["podman"]
+
     - name: Remove leftover files
       become: true
       ansible.builtin.shell:
