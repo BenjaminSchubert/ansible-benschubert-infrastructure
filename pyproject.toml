@@ -48,6 +48,7 @@ disable = [
     "too-many-branches",
     "too-many-positional-arguments",
     "unused-argument",
+    "unused-import",
     "wrong-import-position",
     # Duplicate code can't be disabled on a per problem basis
     "duplicate-code",

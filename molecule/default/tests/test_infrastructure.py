@@ -14,7 +14,7 @@ def containers(host: Host) -> list[str]:
     )
     assert result.succeeded
 
-    return cast(list[str], result.stdout.split())
+    return cast("list[str]", result.stdout.split())
 
 
 @pytest.fixture(scope="module")
@@ -22,7 +22,7 @@ def pods(host: Host) -> list[str]:
     result = host.run("podman pod ps --format '{{ '{{' }}.Name{{ '}}' }}'")
     assert result.succeeded
 
-    return cast(list[str], result.stdout.split())
+    return cast("list[str]", result.stdout.split())
 
 
 @pytest.mark.xdist_group(name="containers")
