@@ -43,7 +43,7 @@ class LocalhostVerifyAdapter(requests.adapters.HTTPAdapter):
         proxies: Mapping[str, str] | None = None,
         cert: tuple[str, str] | str | None = None,
     ) -> urllib3.connectionpool.ConnectionPool:
-        url = cast(ParseResult, urlparse(request.url))
+        url = cast("ParseResult", urlparse(request.url))
         assert url.hostname is not None
 
         if self._port == 443:  # noqa: PLR2004

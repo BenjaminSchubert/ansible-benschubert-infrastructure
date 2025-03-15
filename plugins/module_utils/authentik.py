@@ -86,7 +86,7 @@ class Authentik:
         if info["status"] == HTTPStatus.NO_CONTENT:
             return None
         if info["status"] in [HTTPStatus.OK, HTTPStatus.CREATED]:
-            return cast(dict[str, Any], json.loads(response.read()))
+            return cast("dict[str, Any]", json.loads(response.read()))
         if info["status"] == HTTPStatus.NOT_FOUND:
             return None
 
@@ -115,7 +115,7 @@ class Authentik:
         if len(results) == 0:
             return None
         if len(results) == 1:
-            return cast(dict[str, Any], results[0])
+            return cast("dict[str, Any]", results[0])
 
         self._module.fail_json(  # noqa: RET503
             msg="Expected only one result back from api",

@@ -137,7 +137,7 @@ def main() -> NoReturn:  # type: ignore[misc]
     def find(authentik: Authentik) -> dict[str, Any] | None:
         if binding["policy"] is not None:
             return cast(
-                dict[str, Any] | None,
+                "dict[str, Any] | None",
                 authentik.get_one(
                     {"target": binding["target"], "policy": binding["policy"]}
                 ),
@@ -149,7 +149,7 @@ def main() -> NoReturn:  # type: ignore[misc]
         for result in resp["results"]:
             for key in ["group", "user"]:
                 if binding[key] is not None and binding[key] == result[key]:
-                    return cast(dict[str, Any] | None, result)
+                    return cast("dict[str, Any] | None", result)
 
         return None
 

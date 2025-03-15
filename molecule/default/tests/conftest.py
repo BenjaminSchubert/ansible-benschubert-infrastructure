@@ -30,12 +30,12 @@ def hostvars(host: Host, cache: _TCache) -> dict[str, Any]:
 
 @pytest.fixture(scope="module")
 def http_port(hostvars: dict[str, Any]) -> int:
-    return cast(int, hostvars["ingress_http_port"])
+    return cast("int", hostvars["ingress_http_port"])
 
 
 @pytest.fixture(scope="module")
 def https_port(hostvars: dict[str, Any]) -> int:
-    return cast(int, hostvars["ingress_https_port"])
+    return cast("int", hostvars["ingress_https_port"])
 
 
 @pytest.fixture(scope="module")

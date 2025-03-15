@@ -80,7 +80,7 @@ def _print_recaps(logs: list[str]) -> None:
         elif recap == "PLAY":
             entries = PLAY_RESULT_RE.findall(log)
         elif match := PROFILE_RESULT_RE.match(log):
-            entries.append(cast(tuple[str, str], match.groups()))
+            entries.append(cast("tuple[str, str]", match.groups()))
 
     _display_recap()
 
