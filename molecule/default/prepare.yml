@@ -36,7 +36,12 @@
           podman
           network
           rm
-          {{ _all_networks.networks | map(attribute='name') | reject('podman') | join(' ') }}
+          {{
+            _all_networks.networks
+            | map(attribute='name')
+            | reject('equalto', 'podman')
+            | join(' ')
+          }}
       changed_when: true
       when: _all_networks.networks | map(attribute='name') != ["podman"]
 

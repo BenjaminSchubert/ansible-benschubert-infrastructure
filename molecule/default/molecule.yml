@@ -40,7 +40,6 @@ provisioner:
   env:
     ANSIBLE_CALLBACKS_ENABLED: ansible.posix.profile_roles, ansible.posix.profile_tasks
     ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
-    ANSIBLE_COLLECTIONS_PATH: ${MOLECULE_PROJECT_DIRECTORY}/.cache/collections
     ANSIBLE_DIFF_ALWAYS: "True"
     ANSIBLE_PIPELINING: "True"
     PROFILE_TASKS_SUMMARY_ONLY: "True"
