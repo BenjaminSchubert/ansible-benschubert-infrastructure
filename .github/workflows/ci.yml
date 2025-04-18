@@ -153,8 +153,6 @@ jobs:
         run: >-
           sudo sysctl net.ipv4.ip_unprivileged_port_start=80
           && cp molecule/default/privileged-env.yml .env.yml
-      - name: Ensure the default ansible collections directory is not written to by molecule
-        run: mkdir -p ~/.ansible/collections && chmod 0400 ~/.ansible/collections
       - name: molecule create
         run: molecule create
       - name: molecule converge
