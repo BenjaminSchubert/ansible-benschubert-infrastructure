@@ -11,6 +11,34 @@
   tags:
     - skip_ansible_lint
 
+- name: Create the required secrets
+  containers.podman.podman_secret:
+    name: "{{ item.name }}"
+    data: "{{ item.data }}"
+    state: present
+  no_log: true
+  when: item.data
+  loop:
+    - name: auth-authentik-secret-key
+      data: "{{ auth_authentik_secret_key }}"
+    - name: auth-postgres-password
+      data: "{{ auth_postgres_password }}"
+    - name: auth-redis-password
+      data: "{{ auth_redis_password }}"
+    - name: auth-authentik-email-password
+      data: "{{ auth_authentik_email_config.password | default(None) }}"
+
+# This is a big image, we can gain some time by pulling it while we prepare the
+# dependencies
+- name: Start pulling the image for Authentik
+  containers.podman.podman_image:
+    name: "{{ auth_authentik_image }}"
+    pull: true
+  async: 600
+  poll: 0
+  changed_when: false
+  register: _authentik_image_pull
+
 - name: Create the required network
   containers.podman.podman_network:
     name: "{{ item }}"
@@ -52,23 +80,6 @@
     mode: "0o644"
   when: auth_authentik_icon | default(false)
   register: _icon
-
-- name: Create the required secrets
-  containers.podman.podman_secret:
-    name: "{{ item.name }}"
-    data: "{{ item.data }}"
-    state: present
-  no_log: true
-  when: item.data
-  loop:
-    - name: auth-authentik-secret-key
-      data: "{{ auth_authentik_secret_key }}"
-    - name: auth-postgres-password
-      data: "{{ auth_postgres_password }}"
-    - name: auth-redis-password
-      data: "{{ auth_redis_password }}"
-    - name: auth-authentik-email-password
-      data: "{{ auth_authentik_email_config.password | default(None) }}"
 
 - name: Configure the postgres image if not provided explicitly
   ansible.builtin.set_fact:
@@ -125,6 +136,14 @@
       }}"
     userns: auto:size=1001
 
+- name: Wait for the Authentik image to be pulled
+  ansible.builtin.async_status:
+    jid: "{{ _authentik_image_pull.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 30
+  delay: 1
+
 - name: Setup the Authentik server container
   containers.podman.podman_container:
     name: auth-authentik
@@ -162,7 +181,7 @@
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
       AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
     healthcheck: /lifecycle/ak healthcheck
-    pull: newer
+    pull: never  # We just pulled the image above
     volumes: >-
       {{
         [
@@ -250,7 +269,7 @@
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
       AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
     healthcheck: /lifecycle/ak healthcheck
-    pull: newer
+    pull: never  # We just pulled the image above
     volumes:
       # yamllint disable-line rule:line-length
       - "{{ auth_authentik_configuration_path }}/blueprints:/blueprints/benschubert-infrastructure:ro,Z"
@@ -270,14 +289,6 @@
       }}
     read_only: true
     cap_drop: [all]
-
-- name: Ensure the Authentik worker container is healthy
-  ansible.builtin.command: podman healthcheck run auth-worker-authentik
-  register: _healthcheck
-  until: _healthcheck is not failed
-  delay: 5
-  retries: 25
-  changed_when: false
 
 - name: Setup an ingress for Authentik
   ansible.builtin.import_role:
