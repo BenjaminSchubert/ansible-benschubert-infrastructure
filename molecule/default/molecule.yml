@@ -47,6 +47,10 @@ provisioner:
   inventory:
     host_vars:
       ${CONTAINER_NAME:-benschubert-infrastructure-test-container}:
+        # Test optimisations
+        registries_conf: ${REGISTRIES_CONF:-null}
+
+        # Base definitions
         ansible_user: podman
         data: /home/podman/infrastructure
 
