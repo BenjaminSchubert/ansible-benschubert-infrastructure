@@ -50,3 +50,11 @@
       ansible.builtin.shell:
         cmd: rm -rf /home/podman/infrastructure/*
         removes: /home/podman/infrastructure/*
+
+    - name: Setup registries
+      become: true
+      ansible.builtin.copy:
+        src: "{{ registries_conf }}"
+        dest: /etc/containers/registries.conf.d/050-registries.conf
+        mode: "0o755"
+      when: registries_conf
