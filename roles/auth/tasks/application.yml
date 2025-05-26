@@ -27,7 +27,7 @@
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
-    slug: default-provider-authorization-explicit-consent
+    slug: default-provider-invalidation-flow
   register: _invalidation_flow
   until: _invalidation_flow.data is not none
   retries: 5
