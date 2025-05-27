@@ -6,6 +6,7 @@ plugins/modules/authentik_group.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_group_info.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_policy_binding.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_propertymappings_scope_info.py validate-modules:missing-gplv3-license
+plugins/modules/authentik_propertymappings_scope.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_provider_oauth2.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_provider_oauth2.py validate-modules:no-log-needed
 plugins/modules/authentik_provider_info.py validate-modules:missing-gplv3-license
