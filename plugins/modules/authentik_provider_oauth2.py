@@ -46,6 +46,11 @@ options:
         type: list
         elements: str
         required: true
+      signing_key:
+        description:
+          - The primary key of the signing key to use for signing those entries
+        type: str
+        required: true
 
 extends_documentation_fragment:
   - benschubert.infrastructure.authentik
@@ -70,6 +75,7 @@ EXAMPLES = """
         - <email_mapping>.pk
         - <openid_mapping>.pk
         - <profile_mapping>.pk
+      signing_key: <certificate>.pk
 """
 
 RETURN = """
@@ -124,6 +130,7 @@ def main() -> NoReturn:  # type: ignore[misc]
                 "required": True,
                 "elements": "str",
             },
+            "signing_key": {"type": "str", "required": True},
         },
     }
 

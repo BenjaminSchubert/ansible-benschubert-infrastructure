@@ -36,6 +36,15 @@
 - name: Generate the OAuth2 provider for {{ application_name }}
   when: provider_oauth2 | default(false)
   block:
+    - name: Get the signing key for applications for {{ application_name }}
+      benschubert.infrastructure.authentik_certificate_info:
+        authentik_token: "{{ auth_authentik_token }}"
+        authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        name: authentik Self-signed Certificate
+      register: _signing_key
+
     - name: Get the ids of the requested scopes for {{ application_name }}
       benschubert.infrastructure.authentik_propertymappings_scope_info:
         authentik_token: "{{ auth_authentik_token }}"
@@ -57,6 +66,7 @@
           authorization_flow: "{{ _authorization_flow.data.pk }}"
           invalidation_flow: "{{ _invalidation_flow.data.pk }}"
           property_mappings: "{{ _scopes.results | map(attribute='data.pk') }}"
+          signing_key: "{{ _signing_key.data.pk }}"
           redirect_uris: "{{ provider_oauth2.redirect_uris }}"
       register: _provider_oauth2_result
 
