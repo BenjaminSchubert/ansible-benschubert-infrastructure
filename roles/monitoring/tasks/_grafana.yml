@@ -55,6 +55,7 @@
         - profile
         - email
         - openid
+      sub_mode: user_username
 
 - name: Retrieve the created provider
   benschubert.infrastructure.authentik_provider_info:

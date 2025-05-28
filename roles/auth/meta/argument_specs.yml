@@ -288,6 +288,18 @@ argument_specs:
               - The scopes allowed for the OAuth2 application
             type: list
             required: true
+          sub_mode:
+            description:
+              - The mode for the `sub` oauth2 entry
+            type: str
+            choices:
+              - hashed_user_id
+              - user_id
+              - user_uuid
+              - user_username
+              - user_email
+              - user_upn
+            required: true
       provider_proxy:
         type: dict
         description:

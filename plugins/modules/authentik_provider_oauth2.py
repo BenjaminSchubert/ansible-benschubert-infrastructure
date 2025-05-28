@@ -51,6 +51,18 @@ options:
           - The primary key of the signing key to use for signing those entries
         type: str
         required: true
+      sub_mode:
+        description:
+          - The mode for the OAuth sub information
+        type: str
+        default: hashed_user_id
+        choices:
+          - hashed_user_id
+          - user_id
+          - user_uuid
+          - user_username
+          - user_email
+          - user_upn
 
 extends_documentation_fragment:
   - benschubert.infrastructure.authentik
@@ -120,17 +132,29 @@ def main() -> NoReturn:  # type: ignore[misc]
             "name": {"type": "str", "required": True},
             "authorization_flow": {"type": "str", "required": True},
             "invalidation_flow": {"type": "str", "required": True},
-            "redirect_uris": {
-                "type": "list",
-                "elements": "dict",
-                "required": True,
-            },
             "property_mappings": {
                 "type": "list",
                 "required": True,
                 "elements": "str",
             },
+            "redirect_uris": {
+                "type": "list",
+                "elements": "dict",
+                "required": True,
+            },
             "signing_key": {"type": "str", "required": True},
+            "sub_mode": {
+                "type": "str",
+                "choices": [
+                    "hashed_user_id",
+                    "user_id",
+                    "user_uuid",
+                    "user_username",
+                    "user_email",
+                    "user_upn",
+                ],
+                "default": "hashed_user_id",
+            },
         },
     }
 

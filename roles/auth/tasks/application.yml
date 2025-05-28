@@ -68,6 +68,7 @@
           property_mappings: "{{ _scopes.results | map(attribute='data.pk') }}"
           signing_key: "{{ _signing_key.data.pk }}"
           redirect_uris: "{{ provider_oauth2.redirect_uris }}"
+          sub_mode: "{{ provider_oauth2.sub_mode }}"
       register: _provider_oauth2_result
 
 - name: Generate the proxy provider for {{ application_name }}
