@@ -48,8 +48,9 @@
     name: ingress-traefik-{{ item.key.lower().replace('_', '-') }}
     data: "{{ item.value }}"
     state: present
-  no_log: true
   loop: "{{ ingress_traefik_secrets | dict2items }}"
+  loop_control:
+    label: "{{ item.name }}"
 
 - name: Create the ingress pod
   containers.podman.podman_pod:

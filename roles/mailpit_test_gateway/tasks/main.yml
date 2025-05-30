@@ -4,7 +4,6 @@
     name: mailpit-smtp-auth
     # yamllint disable-line rule:line-length
     data: "{{ mailpit_test_gateway_smtp_username }}:{{ mailpit_test_gateway_smtp_password | password_hash('sha512', salt='x2m30987das3qw') }}"
-  no_log: true
 
 - name: Create the Mailpit pod
   containers.podman.podman_pod:
