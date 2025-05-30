@@ -50,7 +50,7 @@
     state: present
   loop: "{{ ingress_traefik_secrets | dict2items }}"
   loop_control:
-    label: "{{ item.name }}"
+    label: "{{ item.key }}"
 
 - name: Create the ingress pod
   containers.podman.podman_pod:
