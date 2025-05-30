@@ -58,7 +58,6 @@
     name: "{{ item.name }}"
     data: "{{ item.data }}"
     state: present
-  no_log: true
   when: item.data
   loop:
     - name: auth-authentik-secret-key
@@ -69,6 +68,8 @@
       data: "{{ auth_redis_password }}"
     - name: auth-authentik-email-password
       data: "{{ auth_authentik_email_config.password | default(None) }}"
+  loop_control:
+    label: "{{ item.name }}"
 
 - name: Configure the postgres image if not provided explicitly
   ansible.builtin.set_fact:

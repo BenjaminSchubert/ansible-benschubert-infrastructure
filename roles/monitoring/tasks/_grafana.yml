@@ -81,7 +81,6 @@
     name: "{{ item.name }}"
     data: "{{ item.data }}"
     state: present
-  no_log: true
   when: item.data
   loop:
     - name: monitoring-grafana-postgres-password
@@ -90,6 +89,8 @@
       data: "{{ _provider_result.data.client_secret }}"
     - name: monitoring-grafana-secret-key
       data: "{{ monitoring_grafana_secret_key }}"
+  loop_control:
+    label: "{{ item.name }}"
 
 - name: Configure the postgres image if not provided explicitly
   ansible.builtin.set_fact:
