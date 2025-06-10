@@ -40,6 +40,9 @@
     pull: newer
     read_only: true
     cap_drop: [all]
+    shm_size: 256m
+    tmpfs:
+      /var/run: rw
 
 - name: Ensure the PostgreSQL container is healthy for {{ postgres_database }}
   ansible.builtin.command: podman healthcheck run {{ postgres_pod }}-postgres
