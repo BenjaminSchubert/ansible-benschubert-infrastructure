@@ -103,9 +103,11 @@ def test_all_networks_are_internal(host: Host) -> None:
     networks_without_internal = [
         network["name"] for network in networks if not network["internal"]
     ]
-    assert networks_without_internal == [
+    assert sorted(networks_without_internal) == [
         # traefik needs outside world access to generate ssl certificates
         "ingress",
+        # Grafana also requires internet access for plugins
+        "monitoring-grafana-external",
         # The default podman network
         "podman",
     ]
