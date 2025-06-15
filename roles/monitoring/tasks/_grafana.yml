@@ -34,6 +34,10 @@
     name: ingress-monitoring
     internal: true
 
+- name: Create the Grafana external network
+  containers.podman.podman_network:
+    name: monitoring-grafana-external
+
 - name: Create an application for Grafana on Authentik
   ansible.builtin.import_role:
     name: benschubert.infrastructure.auth
@@ -116,6 +120,7 @@
     infra_name: monitoring-grafana-infra
     network:
       - ingress-monitoring
+      - monitoring-grafana-external
       - monitoring-grafana-postgres
     userns: auto:size=473
 
