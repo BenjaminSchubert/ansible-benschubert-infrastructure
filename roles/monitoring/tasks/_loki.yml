@@ -53,7 +53,7 @@
   ansible.builtin.command: podman healthcheck run monitoring-loki-loki
   register: _healthcheck
   until: _healthcheck is not failed
-  retries: 5
+  retries: 10
   changed_when: false
 
 - name: Create an application for Loki on Authentik

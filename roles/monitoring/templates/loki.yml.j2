@@ -17,6 +17,9 @@ common:
     kvstore:
       store: inmemory
 
+pattern_ingester:
+  enabled: true
+
 ruler:
   alertmanager_url: http://monitoring-mimir:9009/alertmanager
   storage:
