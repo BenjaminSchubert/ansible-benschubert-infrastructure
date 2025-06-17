@@ -44,7 +44,7 @@ class Authentik:
         self._timeout = module.params["timeout"]
         self._api_slug = api_slug
 
-    def request(  # type: ignore[return]
+    def request(  # type: ignore[return]  # noqa: RET503
         self,
         endpoint: str = "",
         data: dict[str, Any] | None = None,
@@ -90,13 +90,13 @@ class Authentik:
         if info["status"] == HTTPStatus.NOT_FOUND:
             return None
 
-        self._module.fail_json(  # noqa: RET503
+        self._module.fail_json(
             msg=f"Error contacting Authentik at {info['url']},"
             f" received a {info['status']}:"
             f" {info.get('body', info.get('msg'))}",
         )
 
-    def get_one(  # type: ignore[return]
+    def get_one(  # type: ignore[return]  # noqa: RET503
         self,
         queryparams: dict[str, str],
     ) -> dict[str, Any] | None:
@@ -117,7 +117,7 @@ class Authentik:
         if len(results) == 1:
             return cast("dict[str, Any]", results[0])
 
-        self._module.fail_json(  # noqa: RET503
+        self._module.fail_json(
             msg="Expected only one result back from api",
             result=results,
         )
