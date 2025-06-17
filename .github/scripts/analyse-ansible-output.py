@@ -1,4 +1,4 @@
-# ruff: noqa: D100, D101, D103, INP001, T201
+# ruff: noqa: D100, D103, INP001, T201
 import re
 import textwrap
 from argparse import ArgumentParser
