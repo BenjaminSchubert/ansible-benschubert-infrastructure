@@ -30,6 +30,196 @@ prometheus.remote_write "monitor" {
     }
 }
 
+loki.process "add_log_level" {
+  // Authentik
+  stage.match {
+    selector = "{container=~\".*-authentik\"}"
+
+    stage.json {
+      expressions = {log_level = "level", ts = "timestamp"}
+    }
+
+    stage.labels {
+      values = { "level" = "log_level"}
+    }
+
+    stage.timestamp {
+      format = "2006-01-02T03:04:05.000000"
+      fallback_formats = ["RFC3339", "Unix"]
+      source = "ts"
+      action_on_failure = "skip"
+    }
+
+    // Remove the timestamp from the logs, it is part of the metadata
+    stage.replace {
+      expression = `("timestamp"\s*:\s*"[^"]+",?)`
+      replace = ""
+    }
+
+    // Remove the level from the logs, it is part of the labels
+    stage.replace {
+      expression = `("level"\s*:\s*"[^"]+",?)`
+      replace = ""
+    }
+  }
+
+  // Grafana
+  stage.match {
+    selector = "{container=~\".*-grafana\"}"
+
+    stage.logfmt {
+      mapping = {log_level = "level", ts = "t"}
+    }
+
+    stage.labels {
+      values = { "level" = "log_level"}
+    }
+
+    stage.timestamp {
+      format = "RFC3339Nano"
+      source = "ts"
+      action_on_failure = "skip"
+    }
+
+    // Remove the timestamp from the logs, it is part of the metadata
+    stage.replace {
+      expression = `(t=[^ ]+ )`
+      replace = ""
+    }
+
+    // Remove the level from the logs, it is part of the labels
+    stage.replace {
+      expression = `(level=[^ ]+ )`
+      replace = ""
+    }
+  }
+
+  // Loki / Mimir
+  stage.match {
+    selector = "{container=~\".*-(loki|mimir)\"}"
+
+    stage.logfmt {
+      mapping = {log_level = "level", ts = ""}
+    }
+
+    stage.labels {
+      values = { "level" = "log_level"}
+    }
+
+    stage.timestamp {
+      format = "RFC3339Nano"
+      source = "ts"
+      action_on_failure = "skip"
+    }
+
+    // Remove the timestamp from the logs, it is part of the metadata
+    stage.replace {
+      expression = `(ts=[^ ]+ )`
+      replace = ""
+    }
+
+    // Remove the level from the logs, it is part of the labels
+    stage.replace {
+      expression = `(level=[^ ]+ )`
+      replace = ""
+    }
+  }
+
+  // Postgres
+  stage.match {
+    selector = "{container=~\".*-postgres\"}"
+
+    stage.regex {
+      expression = `(?P<ts>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [[:alpha:]]{3}) \[\d+\] (?P<psql_level>(?i)\b(log|info|debug|error|warn|trace|fatal)\b):`
+    }
+
+    stage.template {
+        source   = "psql_level"
+        template = `{{ '{{' }} if eq .psql_level "LOG" {{ '}}' }}info{{ '{{' }} else {{ '}}' }}{{ '{{' }} default "" .psql_level | ToLower {{ '}}' }}{{ '{{' }}end{{ '}}' }}`
+    }
+
+    stage.labels {
+      values = { "level" = "psql_level" }
+    }
+
+    stage.timestamp {
+      format = "2006-01-02 03:04:05.000 MST"
+      source = "ts"
+      action_on_failure = "skip"
+    }
+
+    // Remove the timestamp
+    stage.replace {
+      expression = `(?P<ts>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [[:alpha:]]{3} )\[\d+\] `
+      replace = ""
+    }
+
+    // Remove the level
+    stage.replace {
+      expression = `\[\d+\](?P<psql_level>(?i) \b(log|info|debug|error|warn|trace|fatal)\b:\s*) `
+      replace = ""
+    }
+
+  }
+
+  // Redis
+  stage.match {
+    selector = "{container=~\".*-redis\"}"
+
+    stage.regex {
+      expression = `(?P<ts>\d{2} [[:alpha:]]{3} \d{4} \d{2}:\d{2}:\d{2}.\d{3}) (?P<redis_level>[\.\-\*#]) `
+    }
+
+    stage.template {
+        source   = "redis_level"
+        template = `{{ '{{' }} if eq .redis_level "." {{ '}}' }}debug{{ '{{' }} else if eq .redis_level "-" {{ '}}' }}verbose{{ '{{' }} else if eq .redis_level "*" {{ '}}' }}info{{ '{{' }} else if eq .redis_level "#" {{ '}}' }}warning{{ '{{' }}end{{ '}}' }}`
+    }
+
+    stage.labels {
+      values = { "level" = "redis_level" }
+    }
+
+    stage.timestamp {
+      format = "02 Jan 2006 03:04:05.000"
+      source = "ts"
+      action_on_failure = "skip"
+    }
+
+    // Remove the level and timestamp from the logs, it is part of the labels
+    stage.replace {
+      expression = `\s+(\d{2} [[:alpha:]]{3} \d{4} \d{2}:\d{2}:\d{2}.\d{3}) (?P<redis_level>[\.\-\*#])\s+`
+      replace = ""
+    }
+  }
+
+  // Traefik
+  stage.match {
+    selector = "{container=~\".*-traefik\"}"
+
+    stage.replace {
+      expression = `(\[\d{2}/[[:alpha:]]{3}/\d{4}:\d{2}:\d{2}:\d{2} \+\d{4}\] )`
+      replace = ""
+    }
+
+    stage.regex {
+      expression = `"(?P<method>DELETE|GET|HEAD|PATCH|POST|PUT) [^\"]+" \d{3} \d+ "-" "-" \d+ "(?<endpoint>[\w@]+)"`
+      labels_from_groups = true
+    }
+
+    stage.template {
+        source   = "access_level"
+        template = `{{ '{{' }} if eq .method "" {{ '}}' }}{{ '{{' }} else {{ '}}' }}access{{ '{{' }}end{{ '}}' }}`
+    }
+
+    stage.labels {
+      values = { "level" = "access_level" }
+    }
+
+  }
+
+  forward_to = [loki.write.endpoint.receiver]
+}
+
 loki.relabel "journal" {
   forward_to = []
 
@@ -44,7 +234,7 @@ loki.relabel "journal" {
 }
 
 loki.source.journal "read"  {
-  forward_to    = [loki.write.endpoint.receiver]
+  forward_to    = [loki.process.add_log_level.receiver]
   relabel_rules = loki.relabel.journal.rules
   labels        = {component = "loki.source.journal"}
 }
