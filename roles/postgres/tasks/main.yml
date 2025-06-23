@@ -36,7 +36,7 @@
       POSTGRES_DB: "{{ postgres_database }}"
     secrets:
       - "{{ postgres_password_secret }},target=/run/secrets/postgres-password"
-    healthcheck: pg_isready -U ${POSTGRES_USER}
+    healthcheck: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
     pull: newer
     read_only: true
     cap_drop: [all]
