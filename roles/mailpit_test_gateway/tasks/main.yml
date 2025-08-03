@@ -8,26 +8,54 @@
 - name: Create the Mailpit pod
   containers.podman.podman_pod:
     name: mailpit
-    state: created
+    state: quadlet
     infra_name: mailpit-infra
-    network: "{{ mailpit_test_gateway_networks }}"
+    network: "{{ mailpit_test_gateway_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
     userns: auto:size=6
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        [Install]
+        WantedBy=infrastructure.target
+  register: _pod
 
 - name: Setup a Mailpit container
   containers.podman.podman_container:
     name: mailpit-mailpit
-    pod: mailpit
+    pod: mailpit.pod
     image: docker.io/axllent/mailpit:latest
-    state: started
+    state: quadlet
     env:
       MP_SMTP_AUTH_FILE: /run/secrets/mailpit-smtp-auth
       MP_SMTP_AUTH_ALLOW_INSECURE: "true"
     healthcheck: /mailpit readyz
+    healthcheck_interval: 1m
+    health_startup_interval: 10s
+    health_startup_timeout: 5min
+    sdnotify: healthy
     pull: newer
     read_only: true
     cap_drop: [all]
     secrets:
       - mailpit-smtp-auth
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        Before=infrastructure.target
+
+        [Service]
+        TimeoutSec=5min
+  register: _container
+
+- name: Ensure the Mailpit container is started
+  ansible.builtin.systemd_service:
+    name: mailpit-pod
+    scope: user
+    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    enabled: true
+    daemon_reload: true
 
 - name: Ensure the Mailpit container is healthy
   ansible.builtin.command: podman healthcheck run mailpit-mailpit

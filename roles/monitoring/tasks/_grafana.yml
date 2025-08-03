@@ -33,10 +33,12 @@
   containers.podman.podman_network:
     name: ingress-monitoring
     internal: true
+    state: quadlet
 
 - name: Create the Grafana external network
   containers.podman.podman_network:
     name: monitoring-grafana-external
+    state: quadlet
 
 - name: Create an application for Grafana on Authentik
   ansible.builtin.import_role:
@@ -116,21 +118,40 @@
 - name: Create the Grafana pod
   containers.podman.podman_pod:
     name: monitoring-grafana
-    state: created
+    state: quadlet
     infra_name: monitoring-grafana-infra
     network:
-      - ingress-monitoring
-      - monitoring-grafana-external
-      - monitoring-grafana-postgres
+      - ingress-monitoring.network
+      - monitoring-grafana-external.network
+      - monitoring-grafana-postgres.network
     userns: auto:size=473
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        Before=infrastructure.target
+        After=auth-authentik.service
+        After=ingress-traefik.service
+        After=monitoring-grafana-postgres-postgres.service
+        Requires=auth-authentik.service
+        Requires=ingress-traefik.service
+        Requires=monitoring-grafana-postgres-postgres.service
+
+        [Install]
+        WantedBy=infrastructure.target
+  register: _pod
 
 - name: Setup the Grafana container
   containers.podman.podman_container:
     name: monitoring-grafana-grafana
-    pod: monitoring-grafana
-    state: started
+    pod: monitoring-grafana.pod
+    state: quadlet
     image: "{{ monitoring_grafana_image }}"
     healthcheck: curl --fail http://localhost:3000
+    healthcheck_interval: 1m
+    health_startup_interval: 10s
+    health_startup_timeout: 5min
+    sdnotify: healthy
     read_only: true
     cap_drop: [all]
     env:
@@ -178,12 +199,29 @@
       - "{{ monitoring_grafana_data_path }}:/var/lib/grafana:rw,U,Z"
       - "{{ monitoring_grafana_config_path }}/provisioning:/etc/grafana/provisioning:ro,U,Z"
       - "{{ monitoring_grafana_config_path }}/dashboards:/etc/grafana/dashboards:ro,U,Z"
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        Before=infrastructure.target
+
+        [Service]
+        TimeoutSec=5min
+  register: _container
+
+- name: Ensure the Grafana container is started
+  ansible.builtin.systemd_service:
+    name: monitoring-grafana-pod
+    scope: user
+    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    enabled: true
+    daemon_reload: true
 
 - name: Ensure the grafana container is healthy
   ansible.builtin.command: podman healthcheck run monitoring-grafana-grafana
   register: _healthcheck
   until: _healthcheck is not failed
-  retries: 3
+  retries: 10
   changed_when: false
 
 - name: Setup an ingress for Grafana

@@ -1,4 +1,5 @@
 import json
+import time
 from collections import defaultdict
 from multiprocessing.pool import ThreadPool
 from typing import cast
@@ -14,7 +15,7 @@ def containers(host: Host) -> list[str]:
     )
     assert result.succeeded
 
-    return cast("list[str]", result.stdout.split())
+    return cast("list[str]", sorted(result.stdout.split()))
 
 
 @pytest.fixture(scope="module")
@@ -22,7 +23,60 @@ def pods(host: Host) -> list[str]:
     result = host.run("podman pod ps --format '{{ '{{' }}.Name{{ '}}' }}'")
     assert result.succeeded
 
-    return cast("list[str]", result.stdout.split())
+    return cast("list[str]", sorted(result.stdout.split()))
+
+
+@pytest.mark.xdist_group(name="containers")
+def test_infrastructure_service_starts_and_stops_all_services(
+    host: Host, containers: list[str], pods: list[str]
+) -> None:
+    # 1. Stop the service
+    result = host.run(
+        "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user stop infrastructure.target"
+    )
+    assert result.succeeded
+
+    # 2. No more pods and containers running
+    for _ in range(30):
+        try:
+            result = host.run(
+                "podman pod ps --format '{{ '{{' }}.Name{{ '}}' }}'"
+            )
+            assert result.succeeded
+            assert result.stdout.split() == [], (
+                "Some pods are still up and running"
+            )
+            break
+        except AssertionError as exc:
+            e = exc
+            time.sleep(1)
+    else:
+        raise e  # pylint: disable=used-before-assignment
+
+    result = host.run(
+        "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
+    )
+    assert result.succeeded
+    assert result.stdout.split() == []
+
+    # 3. Restarting the service
+    result = host.run(
+        "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user start infrastructure.target"
+    )
+    assert result.succeeded
+
+    # 4. We get the same amount of pods and containers as at the start
+    result = host.run("podman pod ps --format '{{ '{{' }}.Name{{ '}}' }}'")
+    assert result.succeeded
+    assert sorted(result.stdout.split()) == pods, (
+        "Some pods are still up and running"
+    )
+
+    result = host.run(
+        "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
+    )
+    assert result.succeeded
+    assert sorted(result.stdout.split()) == containers
 
 
 @pytest.mark.xdist_group(name="containers")
@@ -135,6 +189,7 @@ def test_all_containers_have_a_read_only_rootfs(
     ] == [], "Some containers are not setup as readonly"
 
 
+@pytest.mark.xdist_group(name="containers")
 def test_all_containers_have_minimal_capabilities(
     host: Host, containers: list[str]
 ) -> None:

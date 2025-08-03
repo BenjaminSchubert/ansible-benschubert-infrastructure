@@ -15,6 +15,7 @@
   containers.podman.podman_network:
     name: "{{ item }}"
     internal: true
+    state: quadlet
   loop: "{{ auth_worker_additional_networks }}"
 
 - name: Ensure the paths for authentik exist
@@ -108,29 +109,57 @@
 - name: Create the auth pod
   containers.podman.podman_pod:
     name: auth
-    state: created
+    state: quadlet
     infra_name: auth-infra
     network:
-      - ingress-auth
-      - auth-postgres
-      - auth-redis
+      - ingress-auth.network
+      - auth-postgres.network
+      - auth-redis.network
     userns: auto:size=1001
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        After=auth-postgres-postgres.service
+        After=auth-redis-redis.service
+        Before=auth-worker-pod.service
+        Requires=auth-postgres-postgres.service
+        Requires=auth-redis-redis.service
+        Requires=ingress-traefik.service
+        Wants=auth-worker-pod.service
+
+        [Install]
+        WantedBy=infrastructure.target
+  register: _pod
 
 - name: Create the auth-worker pod
   containers.podman.podman_pod:
     name: auth-worker
-    state: created
+    state: quadlet
     infra_name: auth-worker-infra
     network: "{{
-        ['auth-postgres', 'auth-redis'] + auth_worker_additional_networks
+        ['auth-postgres.network', 'auth-redis.network']
+        + (auth_worker_additional_networks | map('regex_replace', '^(.*)$', '\\1.network'))
       }}"
     userns: auto:size=1001
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        After=auth-postgres-postgres.service
+        After=auth-redis-redis.service
+        Requires=auth-postgres-postgres.service
+        Requires=auth-redis-redis.service
+
+        [Install]
+        WantedBy=infrastructure.target
+  register: _pod_worker
 
 - name: Setup the Authentik server container
   containers.podman.podman_container:
     name: auth-authentik
-    pod: auth
-    state: started
+    pod: auth.pod
+    state: quadlet
     image: "{{ auth_authentik_image }}"
     command: server
     env:
@@ -163,6 +192,10 @@
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
       AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
     healthcheck: /lifecycle/ak healthcheck
+    healthcheck_interval: 1m
+    health_startup_interval: 10s
+    health_startup_timeout: 5min
+    sdnotify: healthy
     pull: newer
     volumes: >-
       {{
@@ -203,20 +236,37 @@
     read_only: true
     cap_drop: [all]
     force_restart: "{{ _background.changed or _icon.changed }}"
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        Before=infrastructure.target
+
+        [Service]
+        TimeoutSec=10min
+  register: _container
+
+- name: Ensure the Authentik container is started
+  ansible.builtin.systemd_service:
+    name: auth-pod
+    scope: user
+    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    enabled: true
+    daemon_reload: true
 
 - name: Ensure the Authentik container is healthy
   ansible.builtin.command: podman healthcheck run auth-authentik
   register: _healthcheck
   until: _healthcheck is not failed
   delay: 5
-  retries: 20
+  retries: 30
   changed_when: false
 
 - name: Setup the Authentik worker container
   containers.podman.podman_container:
     name: auth-worker-authentik
-    pod: auth-worker
-    state: started
+    pod: auth-worker.pod
+    state: quadlet
     image: "{{ auth_authentik_image }}"
     command: worker
     env:
@@ -251,6 +301,10 @@
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
       AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
     healthcheck: /lifecycle/ak healthcheck
+    healthcheck_interval: 1m
+    health_startup_interval: 10s
+    health_startup_timeout: 5min
+    sdnotify: healthy
     pull: newer
     volumes:
       # yamllint disable-line rule:line-length
@@ -271,6 +325,23 @@
       }}
     read_only: true
     cap_drop: [all]
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        Before=infrastructure.target
+
+        [Service]
+        TimeoutSec=30min
+  register: _container
+
+- name: Ensure the Authentik worker container is started
+  ansible.builtin.systemd_service:
+    name: auth-worker-pod
+    scope: user
+    state: "{{ (_pod_worker.changed or _container.changed) | ternary('restarted', 'started') }}"
+    enabled: true
+    daemon_reload: true
 
 - name: Ensure the Authentik worker container is healthy
   ansible.builtin.command: podman healthcheck run auth-worker-authentik

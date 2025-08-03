@@ -114,16 +114,27 @@
 - name: Create the Agent's pod for {{ monitoring_agent_product_name }}
   containers.podman.podman_pod:
     name: "{{ monitoring_agent_pod }}"
-    state: created
+    state: quadlet
     infra_name: "{{ monitoring_agent_pod }}-infra"
-    network: "{{ monitoring_agent_networks }}"
+    network: "{{ monitoring_agent_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
     userns: auto:size=474
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+
+        [Service]
+        TimeoutSec=5min
+
+        [Install]
+        WantedBy=infrastructure.target
+  register: _pod
 
 - name: Setup the Alloy's container for {{ monitoring_agent_product_name }}
   containers.podman.podman_container:
     name: "{{ monitoring_agent_pod }}-agent"
-    pod: "{{ monitoring_agent_pod }}"
-    state: started
+    pod: "{{ monitoring_agent_pod }}.pod"
+    state: quadlet
     image: "{{ monitoring_agent_alloy_image }}"
     command:
       - run
@@ -167,12 +178,21 @@
     volumes:
       - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,U,Z"
       - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:U,Z"
+  register: _container
+
+- name: Ensure the agent container is started for {{ monitoring_agent_product_name }}
+  ansible.builtin.systemd_service:
+    name: "{{ monitoring_agent_pod }}-pod"
+    scope: user
+    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    enabled: true
+    daemon_reload: true
 
 - name: Ensure the agent container is healthy for {{ monitoring_agent_product_name }}
   ansible.builtin.command: podman healthcheck run {{ monitoring_agent_pod }}-agent
   register: _healthcheck
   until: _healthcheck is not failed
-  retries: 3
+  retries: 10
   changed_when: false
 
 - name: Ensure the directory to store alerts exists for {{ monitoring_agent_product_name }}

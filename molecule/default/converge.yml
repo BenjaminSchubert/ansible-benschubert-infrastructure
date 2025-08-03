@@ -261,7 +261,7 @@
 
         - name: Ensure alloy is running
           become: true
-          ansible.builtin.systemd:
+          ansible.builtin.systemd_service:
             service: alloy
             state: "{{ 'restarted' if _alloy_config.changed else 'started' }}"
             enabled: true

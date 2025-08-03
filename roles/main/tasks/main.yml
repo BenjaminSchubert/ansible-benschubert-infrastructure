@@ -33,3 +33,23 @@
   ansible.builtin.import_role:
     name: benschubert.infrastructure.ingress
     tasks_from: finalize
+
+- name: Ensure user systemd directory exists
+  ansible.builtin.file:
+    path: ~/.config/systemd/user
+    mode: "0o755"
+    state: directory
+
+- name: Install an intrastructure service target
+  ansible.builtin.template:
+    src: infrastructure.target.j2
+    dest: ~/.config/systemd/user/infrastructure.target
+    mode: "0o644"
+
+- name: Enable the infrastructure service
+  ansible.builtin.systemd_service:
+    name: infrastructure.target
+    state: started
+    enabled: true
+    daemon_reload: true
+    scope: user
