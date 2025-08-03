@@ -1,0 +1,11 @@
+{{ template_warning }}
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+After=network-online.target
+Description=All services forming the infrastructure stack
+
+PropagatesStopTo=auth-postgres-pod.service
+PropagatesStopTo=auth-redis-pod.service
+PropagatesStopTo=monitoring-grafana-postgres-pod.service

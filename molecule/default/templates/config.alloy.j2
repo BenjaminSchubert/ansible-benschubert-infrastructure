@@ -202,7 +202,7 @@ loki.process "add_log_level" {
     }
 
     stage.regex {
-      expression = `"(?P<method>DELETE|GET|HEAD|PATCH|POST|PUT) [^\"]+" \d{3} \d+ "-" "-" \d+ "(?<endpoint>[\w@]+)"`
+      expression = `"(?P<method>DELETE|GET|HEAD|PATCH|POST|PUT) [^\"]+" (?P<status>\d{3}) \d+ "-" "-" \d+ "(?<endpoint>[\w@]+)"`
       labels_from_groups = true
     }
 

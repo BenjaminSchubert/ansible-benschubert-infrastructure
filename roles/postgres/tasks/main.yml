@@ -11,23 +11,25 @@
   containers.podman.podman_network:
     name: "{{ postgres_network }}"
     internal: true
+    state: quadlet
 
 - name: Create the PostgreSQL pod for {{ postgres_database }}
   containers.podman.podman_pod:
     name: "{{ postgres_pod }}"
-    state: created
+    state: quadlet
     infra_name: "{{ postgres_pod }}-infra"
     network:
-      - "{{ postgres_network }}"
+      - "{{ postgres_network }}.network"
     userns: auto:size=1000
+  register: _pod
 
 - name: Setup a PostgreSQL container for {{ postgres_database }}
   containers.podman.podman_container:
     name: "{{ postgres_pod }}-postgres"
-    pod: "{{ postgres_pod }}"
+    pod: "{{ postgres_pod }}.pod"
     image: "{{ postgres_image }}"
     user: postgres
-    state: started
+    state: quadlet
     volumes:
       - "{{ postgres_data_path }}:/var/lib/postgresql/data:rw,U,Z"
     env:
@@ -37,18 +39,31 @@
     secrets:
       - "{{ postgres_password_secret }},target=/run/secrets/postgres-password"
     healthcheck: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+    healthcheck_interval: 1m
+    health_startup_interval: 10s
+    health_startup_timeout: 5min
+    sdnotify: healthy
     pull: newer
     read_only: true
     cap_drop: [all]
     shm_size: 256m
     tmpfs:
       /var/run: rw
+  register: _container
+
+- name: Ensure the PostgreSQL container is running for {{ postgres_database }}
+  ansible.builtin.systemd_service:
+    name: "{{ postgres_pod }}-pod"
+    scope: user
+    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    enabled: true
+    daemon_reload: true
 
 - name: Ensure the PostgreSQL container is healthy for {{ postgres_database }}
   ansible.builtin.command: podman healthcheck run {{ postgres_pod }}-postgres
   register: _healthcheck
   until: _healthcheck is not failed
-  retries: 3
+  retries: 10
   changed_when: false
 
 - name: Install Postgres dashboard for {{ postgres_database }}
