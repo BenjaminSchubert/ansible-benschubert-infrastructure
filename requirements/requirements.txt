@@ -1,3 +1,4 @@
-ansible-core>=2.14.0
+# 2.19 is not yet compatible with molecule plugins
+ansible-core>=2.14.0,<2.19
 distlib
 passlib
