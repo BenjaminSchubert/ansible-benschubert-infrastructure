@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from docutils import nodes
 from docutils.transforms import Transform
@@ -23,7 +23,7 @@ class RewriteIndex(Transform):
         node = self.document.next_node(nodes.section)
         assert "benschubert-infrastructure" in node["ids"]
         versions = node.next_node(nodes.paragraph)
-        assert versions.children[0] == "Collection version 0.0.1"
+        assert str(versions.children[0]) == "Collection version 0.0.1"
         node.remove(versions)
 
     def _prettify_description(self) -> None:
@@ -37,12 +37,16 @@ class RewriteIndex(Transform):
 
         # Validate the format
         assert description_section is not None
-        assert description_section.children[0].children[0] == "Description"
-        old_description = description_section.children[1]
+        assert (
+            str(description_section.children[0].children[0]) == "Description"
+        )
+        old_description = cast(
+            "nodes.Element", description_section.children[1]
+        )
         new_description = []
 
         paragraph = nodes.paragraph()
-        for child in old_description:
+        for child in cast("list[nodes.Node]", old_description):
             if isinstance(child, nodes.Text) and "\x00<br /\x00>" in child:
                 lines = child.split("\x00<br /\x00>")
                 for entry in lines[:-1]:
@@ -93,9 +97,9 @@ class RewriteIndex(Transform):
         plugins_index = None
         roles_index = None
         for section in self.document.findall(nodes.section):
-            if section["ids"] == ["plugin-index"]:
+            if "plugin-index" in section["ids"]:
                 plugins_index = section
-            elif section["ids"] == ["role-index"]:
+            elif "role-index" in section["ids"]:
                 roles_index = section
 
         assert plugins_index is not None
@@ -112,10 +116,10 @@ class RewriteIndex(Transform):
                 return target[:-5]
             return target
 
-        for section in self.document.findall(addnodes.toctree):
-            section["entries"] = [
+        for toctree in self.document.findall(addnodes.toctree):
+            toctree["entries"] = [
                 (rename(target) if title is None else title, target)
-                for title, target in section["entries"]
+                for title, target in toctree["entries"]
             ]
 
         for section in self.document.findall(nodes.section):
@@ -126,10 +130,10 @@ class RewriteIndex(Transform):
             else:
                 continue
 
-            toctree = list(section.findall(addnodes.toctree))
-            assert len(toctree) == 1
-            toctree[0]["rawcaption"] = caption
-            toctree[0]["caption"] = caption
+            toctrees = list(section.findall(addnodes.toctree))
+            assert len(toctrees) == 1
+            toctrees[0]["rawcaption"] = caption
+            toctrees[0]["caption"] = caption
 
     def _rename_references(self) -> None:
         for section in self.document.findall(nodes.section):
@@ -144,7 +148,7 @@ class RewriteIndex(Transform):
                 entry.replace(
                     entry.children[0],
                     nodes.Text(
-                        f"benschubert.infrastructure.{entry.children[0].removesuffix(extra)}",
+                        f"benschubert.infrastructure.{cast('str', entry.children[0]).removesuffix(extra)}",
                     ),
                 )
 
