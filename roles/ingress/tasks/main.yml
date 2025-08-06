@@ -138,7 +138,7 @@
 
 - name: Ensure the Traefik container is running
   ansible.builtin.systemd_service:
-    name: ingress-pod
+    name: ingress-traefik
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -146,7 +146,4 @@
 
 - name: Ensure the Traefik container is healthy
   ansible.builtin.command: podman healthcheck run ingress-traefik
-  register: _healthcheck
-  until: _healthcheck is not failed
-  retries: 3
   changed_when: false

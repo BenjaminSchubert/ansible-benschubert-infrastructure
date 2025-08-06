@@ -62,7 +62,7 @@
 
 - name: Ensure the Redis container is running for {{ redis_pod }}
   ansible.builtin.systemd_service:
-    name: "{{ redis_pod }}-pod"
+    name: "{{ redis_pod }}-redis"
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -70,9 +70,6 @@
 
 - name: Ensure the Redis container is healthy for {{ redis_pod }}
   ansible.builtin.command: podman healthcheck run {{ redis_pod }}-redis
-  register: _healthcheck
-  until: _healthcheck is not failed
-  retries: 3
   changed_when: false
 
 - name: Install Redis dashboards for {{ redis_pod }}

@@ -182,7 +182,7 @@
 
 - name: Ensure the agent container is started for {{ monitoring_agent_product_name }}
   ansible.builtin.systemd_service:
-    name: "{{ monitoring_agent_pod }}-pod"
+    name: "{{ monitoring_agent_pod }}-agent"
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -190,9 +190,6 @@
 
 - name: Ensure the agent container is healthy for {{ monitoring_agent_product_name }}
   ansible.builtin.command: podman healthcheck run {{ monitoring_agent_pod }}-agent
-  register: _healthcheck
-  until: _healthcheck is not failed
-  retries: 10
   changed_when: false
 
 - name: Ensure the directory to store alerts exists for {{ monitoring_agent_product_name }}

@@ -78,7 +78,7 @@
 
 - name: Ensure the Loki container is started
   ansible.builtin.systemd_service:
-    name: monitoring-loki-pod
+    name: monitoring-loki-loki
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -86,9 +86,6 @@
 
 - name: Ensure the Loki container is healthy
   ansible.builtin.command: podman healthcheck run monitoring-loki-loki
-  register: _healthcheck
-  until: _healthcheck is not failed
-  retries: 10
   changed_when: false
 
 - name: Create an application for Loki on Authentik

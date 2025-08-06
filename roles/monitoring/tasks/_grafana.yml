@@ -211,7 +211,7 @@
 
 - name: Ensure the Grafana container is started
   ansible.builtin.systemd_service:
-    name: monitoring-grafana-pod
+    name: monitoring-grafana-grafana
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -219,9 +219,6 @@
 
 - name: Ensure the grafana container is healthy
   ansible.builtin.command: podman healthcheck run monitoring-grafana-grafana
-  register: _healthcheck
-  until: _healthcheck is not failed
-  retries: 10
   changed_when: false
 
 - name: Setup an ingress for Grafana
