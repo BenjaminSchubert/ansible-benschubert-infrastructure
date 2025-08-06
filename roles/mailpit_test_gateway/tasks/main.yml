@@ -51,7 +51,7 @@
 
 - name: Ensure the Mailpit container is started
   ansible.builtin.systemd_service:
-    name: mailpit-pod
+    name: mailpit-mailpit
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -59,9 +59,6 @@
 
 - name: Ensure the Mailpit container is healthy
   ansible.builtin.command: podman healthcheck run mailpit-mailpit
-  register: _healthcheck
-  until: _healthcheck is not failed
-  retries: 3
   changed_when: false
 
 - name: Create an application for Mailpit on Authentik

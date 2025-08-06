@@ -194,7 +194,7 @@
     healthcheck: /lifecycle/ak healthcheck
     healthcheck_interval: 1m
     health_startup_interval: 10s
-    health_startup_timeout: 5min
+    health_startup_timeout: 20min
     sdnotify: healthy
     pull: newer
     volumes: >-
@@ -243,12 +243,12 @@
         Before=infrastructure.target
 
         [Service]
-        TimeoutSec=10min
+        TimeoutSec=20min
   register: _container
 
 - name: Ensure the Authentik container is started
   ansible.builtin.systemd_service:
-    name: auth-pod
+    name: auth-authentik
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -256,10 +256,6 @@
 
 - name: Ensure the Authentik container is healthy
   ansible.builtin.command: podman healthcheck run auth-authentik
-  register: _healthcheck
-  until: _healthcheck is not failed
-  delay: 5
-  retries: 30
   changed_when: false
 
 - name: Setup the Authentik worker container
@@ -303,7 +299,7 @@
     healthcheck: /lifecycle/ak healthcheck
     healthcheck_interval: 1m
     health_startup_interval: 10s
-    health_startup_timeout: 5min
+    health_startup_timeout: 10min
     sdnotify: healthy
     pull: newer
     volumes:
@@ -337,7 +333,7 @@
 
 - name: Ensure the Authentik worker container is started
   ansible.builtin.systemd_service:
-    name: auth-worker-pod
+    name: auth-worker-authentik
     scope: user
     state: "{{ (_pod_worker.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -345,10 +341,6 @@
 
 - name: Ensure the Authentik worker container is healthy
   ansible.builtin.command: podman healthcheck run auth-worker-authentik
-  register: _healthcheck
-  until: _healthcheck is not failed
-  delay: 5
-  retries: 25
   changed_when: false
 
 - name: Setup an ingress for Authentik
