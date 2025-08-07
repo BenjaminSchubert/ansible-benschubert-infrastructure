@@ -126,6 +126,7 @@
     cap_add:
       # Required to bind on lower ports
       - NET_BIND_SERVICE
+    quadlet_filename: ingress
     quadlet_options:
       - |
         [Unit]
@@ -138,7 +139,7 @@
 
 - name: Ensure the Traefik container is running
   ansible.builtin.systemd_service:
-    name: ingress-traefik
+    name: ingress
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true

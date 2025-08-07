@@ -39,6 +39,7 @@
     cap_drop: [all]
     secrets:
       - mailpit-smtp-auth
+    quadlet_filename: mailpit
     quadlet_options:
       - |
         [Unit]
@@ -51,7 +52,7 @@
 
 - name: Ensure the Mailpit container is started
   ansible.builtin.systemd_service:
-    name: mailpit-mailpit
+    name: mailpit
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true

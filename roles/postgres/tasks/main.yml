@@ -49,6 +49,7 @@
     shm_size: 256m
     tmpfs:
       /var/run: rw
+    quadlet_filename: "{{ postgres_pod }}"
     quadlet_options:
       - |
         [Service]
@@ -57,7 +58,7 @@
 
 - name: Ensure the PostgreSQL container is running for {{ postgres_database }}
   ansible.builtin.systemd_service:
-    name: "{{ postgres_pod }}-postgres"
+    name: "{{ postgres_pod }}"
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true

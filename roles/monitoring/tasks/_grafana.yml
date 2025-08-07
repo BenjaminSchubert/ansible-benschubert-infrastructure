@@ -130,12 +130,12 @@
         [Unit]
         PartOf=infrastructure.target
         Before=infrastructure.target
-        After=auth-authentik.service
-        After=ingress-traefik.service
-        After=monitoring-grafana-postgres-postgres.service
-        Requires=auth-authentik.service
-        Requires=ingress-traefik.service
-        Requires=monitoring-grafana-postgres-postgres.service
+        After=auth.service
+        After=ingress.service
+        After=monitoring-grafana-postgres.service
+        Requires=auth.service
+        Requires=ingress.service
+        Requires=monitoring-grafana-postgres.service
 
         [Install]
         WantedBy=infrastructure.target
@@ -199,6 +199,7 @@
       - "{{ monitoring_grafana_data_path }}:/var/lib/grafana:rw,U,Z"
       - "{{ monitoring_grafana_config_path }}/provisioning:/etc/grafana/provisioning:ro,U,Z"
       - "{{ monitoring_grafana_config_path }}/dashboards:/etc/grafana/dashboards:ro,U,Z"
+    quadlet_filename: monitoring-grafana
     quadlet_options:
       - |
         [Unit]
@@ -211,7 +212,7 @@
 
 - name: Ensure the Grafana container is started
   ansible.builtin.systemd_service:
-    name: monitoring-grafana-grafana
+    name: monitoring-grafana
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
