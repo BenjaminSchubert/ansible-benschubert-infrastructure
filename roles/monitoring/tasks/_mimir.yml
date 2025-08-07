@@ -54,10 +54,10 @@
         [Unit]
         PartOf=infrastructure.target
         Before=infrastructure.target
-        After=auth-authentik.service
-        After=ingress-traefik.service
-        Requires=auth-authentik.service
-        Requires=ingress-traefik.service
+        After=auth.service
+        After=ingress.service
+        Requires=auth.service
+        Requires=ingress.service
 
         [Service]
         TimeoutSec=5min
@@ -90,6 +90,7 @@
       - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
       - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
       - "{{ monitoring_mimir_data_path }}:/data:U,Z"
+    quadlet_filename: monitoring-mimir
     quadlet_options:
       - |
         [Unit]
@@ -102,7 +103,7 @@
 
 - name: Ensure the Mimir container is started
   ansible.builtin.systemd_service:
-    name: monitoring-mimir-pod
+    name: monitoring-mimir
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true

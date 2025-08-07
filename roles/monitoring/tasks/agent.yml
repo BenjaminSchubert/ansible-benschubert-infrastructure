@@ -178,11 +178,12 @@
     volumes:
       - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,U,Z"
       - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:U,Z"
+    quadlet_filename: "{{ monitoring_agent_pod }}"
   register: _container
 
 - name: Ensure the agent container is started for {{ monitoring_agent_product_name }}
   ansible.builtin.systemd_service:
-    name: "{{ monitoring_agent_pod }}-agent"
+    name: "{{ monitoring_agent_pod }}"
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true

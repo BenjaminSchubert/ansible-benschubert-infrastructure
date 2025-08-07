@@ -58,11 +58,12 @@
     pull: newer
     read_only: true
     cap_drop: [all]
+    quadlet_filename: "{{ redis_pod }}"
   register: _container
 
 - name: Ensure the Redis container is running for {{ redis_pod }}
   ansible.builtin.systemd_service:
-    name: "{{ redis_pod }}-redis"
+    name: "{{ redis_pod }}"
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true

@@ -120,13 +120,13 @@
       - |
         [Unit]
         PartOf=infrastructure.target
-        After=auth-postgres-postgres.service
-        After=auth-redis-redis.service
-        Before=auth-worker-pod.service
-        Requires=auth-postgres-postgres.service
-        Requires=auth-redis-redis.service
-        Requires=ingress-traefik.service
-        Wants=auth-worker-pod.service
+        After=auth-postgres.service
+        After=auth-redis.service
+        Before=auth-worker.service
+        Requires=auth-postgres.service
+        Requires=auth-redis.service
+        Requires=ingress.service
+        Wants=auth-worker.service
 
         [Install]
         WantedBy=infrastructure.target
@@ -146,10 +146,10 @@
       - |
         [Unit]
         PartOf=infrastructure.target
-        After=auth-postgres-postgres.service
-        After=auth-redis-redis.service
-        Requires=auth-postgres-postgres.service
-        Requires=auth-redis-redis.service
+        After=auth-postgres.service
+        After=auth-redis.service
+        Requires=auth-postgres.service
+        Requires=auth-redis.service
 
         [Install]
         WantedBy=infrastructure.target
@@ -236,6 +236,7 @@
     read_only: true
     cap_drop: [all]
     force_restart: "{{ _background.changed or _icon.changed }}"
+    quadlet_filename: auth
     quadlet_options:
       - |
         [Unit]
@@ -248,7 +249,7 @@
 
 - name: Ensure the Authentik container is started
   ansible.builtin.systemd_service:
-    name: auth-authentik
+    name: auth
     scope: user
     state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
@@ -321,6 +322,7 @@
       }}
     read_only: true
     cap_drop: [all]
+    quadlet_filename: auth-worker
     quadlet_options:
       - |
         [Unit]
@@ -328,12 +330,12 @@
         Before=infrastructure.target
 
         [Service]
-        TimeoutSec=30min
+        TimeoutSec=10min
   register: _container
 
 - name: Ensure the Authentik worker container is started
   ansible.builtin.systemd_service:
-    name: auth-worker-authentik
+    name: auth-worker
     scope: user
     state: "{{ (_pod_worker.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
