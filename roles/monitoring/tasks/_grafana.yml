@@ -123,7 +123,7 @@
     healthcheck: curl --fail http://localhost:3000
     healthcheck_interval: 1m
     health_startup_interval: 10s
-    health_startup_timeout: 5min
+    health_startup_timeout: 7min
     sdnotify: healthy
     read_only: true
     cap_drop: [all]
@@ -193,7 +193,7 @@
         WantedBy=infrastructure.target
 
         [Service]
-        TimeoutSec=5min
+        TimeoutSec=7min
   register: _container
 
 - name: Ensure the Grafana container is started

@@ -1,9 +1,8 @@
 {{ template_warning }}
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 
 [Unit]
-After=network-online.target
 Description=All services forming the infrastructure stack
 
 PropagatesStopTo=auth-postgres.service
