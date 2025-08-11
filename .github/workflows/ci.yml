@@ -32,20 +32,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          path: ansible_collections/benschubert/infrastructure/
       - name: Install python
         uses: actions/setup-python@v5
         with:
           cache: pip
           python-version: ${{ env.PYTHON }}
       - name: Install dependencies
-        run: pip install distlib
+        run: pip install -r requirements/requirements.txt
+      - name: Install the collection
+        run: ansible-galaxy collection install .
       - name: Run ansible-lint
         uses: ansible/ansible-lint@main
         with:
           args: --strict
-          requirements_file: requirements.yml
           setup_python: false
           working_directory: ${{ github.workspace }}/ansible_collections/benschubert/infrastructure/
   mypy:
