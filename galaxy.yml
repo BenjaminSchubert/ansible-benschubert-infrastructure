@@ -55,7 +55,7 @@ description: |
 # yamllint enable rule:line-length
 
 dependencies:
-  community.grafana: ">=1.5.0"
+  community.grafana: ">=2.2.0"
   containers.podman: ">=1.10.0"
   community.general: ">=9.1.0"
 

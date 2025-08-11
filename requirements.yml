@@ -1,8 +1,3 @@
 ---
 collections:
-  # This is necessary until there is an upstream release that includes
-  # https://github.com/ansible-collections/community.grafana/commit/6a1bc7525c30df21065e948d2955f3372779946d
-  - name: https://github.com/ansible-collections/community.grafana.git
-    type: git
-    version: main
-  - name: containers.podman
+  - name: ansible.posix
