@@ -30,7 +30,7 @@ argument_specs:
         description: >-
           The name of the podman network to which the PostgreSQL instance will
           be exposed
-      postgres_pod:
+      postgres_container:
         type: str
         required: true
         description: >-

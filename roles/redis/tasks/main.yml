@@ -1,5 +1,5 @@
 ---
-- name: Ensure the Redis paths exists for {{ redis_pod }}
+- name: Ensure the Redis paths exists for {{ redis_container }}
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -9,7 +9,7 @@
     - "{{ redis_data_path }}"
 
 # FIXME: should this be stored as a secret?
-- name: Create the redis.conf configuration for {{ redis_pod }}
+- name: Create the redis.conf configuration for {{ redis_container }}
   become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.copy:
@@ -22,26 +22,15 @@
   register: _configuration
   no_log: true
 
-- name: Create the Redis network for {{ redis_pod }}
+- name: Create the Redis network for {{ redis_container }}
   containers.podman.podman_network:
     name: "{{ redis_network }}"
     internal: true
     state: quadlet
 
-- name: Create the Redis pod for {{ redis_pod }}
-  containers.podman.podman_pod:
-    name: "{{ redis_pod }}"
-    state: quadlet
-    infra_name: "{{ redis_pod }}-infra"
-    network:
-      - "{{ redis_network }}.network"
-    userns: auto:size=1000
-  register: _pod
-
-- name: Setup a Redis container for {{ redis_pod }}
+- name: Setup a Redis container for {{ redis_container }}
   containers.podman.podman_container:
-    name: "{{ redis_pod }}-redis"
-    pod: "{{ redis_pod }}.pod"
+    name: "{{ redis_container }}"
     image: "{{ redis_image }}"
     command: [redis-server, /etc/redis.conf]
     user: redis
@@ -58,22 +47,24 @@
     pull: newer
     read_only: true
     cap_drop: [all]
-    quadlet_filename: "{{ redis_pod }}"
+    userns: auto:size=1000
+    network:
+      - "{{ redis_network }}.network"
   register: _container
 
-- name: Ensure the Redis container is running for {{ redis_pod }}
+- name: Ensure the Redis container is running for {{ redis_container }}
   ansible.builtin.systemd_service:
-    name: "{{ redis_pod }}"
+    name: "{{ redis_container }}"
     scope: user
-    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
-- name: Ensure the Redis container is healthy for {{ redis_pod }}
-  ansible.builtin.command: podman healthcheck run {{ redis_pod }}-redis
+- name: Ensure the Redis container is healthy for {{ redis_container }}
+  ansible.builtin.command: podman healthcheck run {{ redis_container }}
   changed_when: false
 
-- name: Install Redis dashboards for {{ redis_pod }}
+- name: Install Redis dashboards for {{ redis_container }}
   ansible.builtin.import_role:
     name: benschubert.infrastructure.monitoring
     tasks_from: dashboard

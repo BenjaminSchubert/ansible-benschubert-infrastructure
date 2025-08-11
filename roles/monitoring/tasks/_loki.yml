@@ -25,32 +25,9 @@
     internal: true
     state: quadlet
 
-- name: Create the Loki pod
-  containers.podman.podman_pod:
-    name: monitoring-loki
-    state: quadlet
-    infra_name: monitoring-loki-infra
-    network:
-      - ingress-monitoring.network
-    userns: auto:size=10002
-    quadlet_options:
-      - |
-        [Unit]
-        PartOf=infrastructure.target
-        Before=infrastructure.target
-        After=auth.service
-        After=ingress.service
-        Requires=auth.service
-        Requires=ingress.service
-
-        [Install]
-        WantedBy=infrastructure.target
-  register: _pod
-
 - name: Setup the Loki container
   containers.podman.podman_container:
-    name: monitoring-loki-loki
-    pod: monitoring-loki.pod
+    name: monitoring-loki
     state: quadlet
     image: "{{ monitoring_loki_image }}"
     healthcheck: wget -O- http://localhost:3100/ready
@@ -66,12 +43,21 @@
       - "{{ monitoring_loki_config_path }}:/etc/loki/:ro,U,Z"
       - "{{ monitoring_loki_config_path }}/rules:/etc/loki/rules:U,Z"
       - "{{ monitoring_loki_data_path }}:/data/loki:U,Z"
-    quadlet_filename: monitoring-loki
+    network:
+      - ingress-monitoring.network
+    userns: auto:size=10002
     quadlet_options:
       - |
         [Unit]
         PartOf=infrastructure.target
         Before=infrastructure.target
+        After=auth.service
+        After=ingress.service
+        Requires=auth.service
+        Requires=ingress.service
+
+        [Install]
+        WantedBy=infrastructure.target
 
         [Service]
         TimeoutSec=5min
@@ -81,12 +67,12 @@
   ansible.builtin.systemd_service:
     name: monitoring-loki
     scope: user
-    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Loki container is healthy
-  ansible.builtin.command: podman healthcheck run monitoring-loki-loki
+  ansible.builtin.command: podman healthcheck run monitoring-loki
   changed_when: false
 
 - name: Create an application for Loki on Authentik

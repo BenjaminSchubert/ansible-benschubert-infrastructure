@@ -44,7 +44,7 @@ argument_specs:
         type: str
         required: true
         description: The password to authenticate against the Redis instance
-      redis_pod:
+      redis_container:
         type: str
         required: true
         description: >-

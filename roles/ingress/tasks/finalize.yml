@@ -40,7 +40,7 @@
     monitoring_agent_alloy_image: "{{ ingress_monitor_agent_alloy_image }}"
     monitoring_agent_networks:
       - ingress
-    monitoring_agent_pod: ingress-monitor
+    monitoring_agent_container: ingress-monitoring
     monitoring_agent_prometheus_endpoints:
       - name: traefik
         address: ingress:8082

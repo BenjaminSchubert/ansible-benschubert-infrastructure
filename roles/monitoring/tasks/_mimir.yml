@@ -38,11 +38,29 @@
     state: quadlet
   loop: "{{ ['ingress-monitoring'] + monitoring_mimir_additional_networks }}"
 
-- name: Create the Mimir pod
-  containers.podman.podman_pod:
+- name: Setup the Mimir container
+  containers.podman.podman_container:
     name: monitoring-mimir
     state: quadlet
-    infra_name: monitoring-mimir-infra
+    force_restart: "{{ _configuration.changed }}"
+    image: "{{ monitoring_mimir_image }}"
+    command: --config.file=/etc/mimir/mimir.yml
+    # FIXME: the image from 2.13 now doesn't have curl or wget
+    # healthcheck: wget -O- http://localhost:9009
+    pull: newer
+    read_only: true
+    cap_drop: [all]
+    secrets: |
+      {{
+        monitoring_mimir_secrets
+        | map('lower')
+        | map('regex_replace', '_', '-')
+        | map('regex_replace', '^(.*)$', 'monitoring-mimir-\1')
+      }}
+    volumes:
+      - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
+      - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
+      - "{{ monitoring_mimir_data_path }}:/data:U,Z"
     network: |
       {{
         ['ingress-monitoring.network'] +
@@ -64,54 +82,19 @@
 
         [Install]
         WantedBy=infrastructure.target
-  register: _pod
-
-- name: Setup the Mimir container
-  containers.podman.podman_container:
-    name: monitoring-mimir-mimir
-    pod: monitoring-mimir.pod
-    state: quadlet
-    force_restart: "{{ _configuration.changed }}"
-    image: "{{ monitoring_mimir_image }}"
-    command: --config.file=/etc/mimir/mimir.yml
-    # FIXME: the image from 2.13 now doesn't have curl or wget
-    # healthcheck: wget -O- http://localhost:9009
-    pull: newer
-    read_only: true
-    cap_drop: [all]
-    secrets: |
-      {{
-        monitoring_mimir_secrets
-        | map('lower')
-        | map('regex_replace', '_', '-')
-        | map('regex_replace', '^(.*)$', 'monitoring-mimir-\1')
-      }}
-    volumes:
-      - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
-      - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
-      - "{{ monitoring_mimir_data_path }}:/data:U,Z"
-    quadlet_filename: monitoring-mimir
-    quadlet_options:
-      - |
-        [Unit]
-        PartOf=infrastructure.target
-        Before=infrastructure.target
-
-        [Service]
-        TimeoutSec=5min
   register: _container
 
 - name: Ensure the Mimir container is started
   ansible.builtin.systemd_service:
     name: monitoring-mimir
     scope: user
-    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the mimir container is up
   containers.podman.podman_container_info:
-    name: monitoring-mimir-mimir
+    name: monitoring-mimir
   register: _containers
   until: (_containers.containers[0].State.Status | default('absent')) == "running"
   retries: 10
@@ -167,7 +150,7 @@
 
 - name: Retrieve the Mimir container information
   containers.podman.podman_container_info:
-    name: monitoring-mimir-mimir
+    name: monitoring-mimir
   register: _mimir_container_info
 
 - name: Get the list of compiled dashboards for Mimir from GitHub
@@ -263,7 +246,7 @@
         | to_json(indent=4)
         | regex_replace('cluster=~\\"\$cluster\\",? ?', '')
         | regex_replace(',? ?name=~\\"\$component\.\*\\"', '')
-        | regex_replace('namespace=~\\"\$namespace\\"', 'container=\\"monitoring-mimir-mimir\\"')
+        | regex_replace('namespace=~\\"\$namespace\\"', 'container=\\"monitoring-mimir\\"')
       }}
     destination: monitoring/{{ item.name }}
   loop: >-
