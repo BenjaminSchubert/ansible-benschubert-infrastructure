@@ -286,11 +286,11 @@ argument_specs:
         required: true
         description:
           - The networks that the agent should be joining
-      monitoring_agent_pod:
+      monitoring_agent_container:
         type: str
         required: true
         description:
-          - The name of the pod to deploy the agent in.
+          - The name of the container to deploy the agent in.
           - It will be also used to create a user in Authentik to allow access
             protected services
       monitoring_mimir_hostname:

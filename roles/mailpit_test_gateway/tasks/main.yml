@@ -5,25 +5,9 @@
     # yamllint disable-line rule:line-length
     data: "{{ mailpit_test_gateway_smtp_username }}:{{ mailpit_test_gateway_smtp_password | password_hash('sha512', salt='x2m30987das3qw') }}"
 
-- name: Create the Mailpit pod
-  containers.podman.podman_pod:
-    name: mailpit
-    state: quadlet
-    infra_name: mailpit-infra
-    network: "{{ mailpit_test_gateway_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
-    userns: auto:size=6
-    quadlet_options:
-      - |
-        [Unit]
-        PartOf=infrastructure.target
-        [Install]
-        WantedBy=infrastructure.target
-  register: _pod
-
 - name: Setup a Mailpit container
   containers.podman.podman_container:
-    name: mailpit-mailpit
-    pod: mailpit.pod
+    name: mailpit
     image: docker.io/axllent/mailpit:latest
     state: quadlet
     env:
@@ -39,12 +23,16 @@
     cap_drop: [all]
     secrets:
       - mailpit-smtp-auth
-    quadlet_filename: mailpit
+    network: "{{ mailpit_test_gateway_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
+    userns: auto:size=6
     quadlet_options:
       - |
         [Unit]
         PartOf=infrastructure.target
         Before=infrastructure.target
+
+        [Install]
+        WantedBy=infrastructure.target
 
         [Service]
         TimeoutSec=5min
@@ -54,12 +42,12 @@
   ansible.builtin.systemd_service:
     name: mailpit
     scope: user
-    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Mailpit container is healthy
-  ansible.builtin.command: podman healthcheck run mailpit-mailpit
+  ansible.builtin.command: podman healthcheck run mailpit
   changed_when: false
 
 - name: Create an application for Mailpit on Authentik

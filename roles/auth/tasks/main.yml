@@ -61,13 +61,13 @@
     state: present
   when: item.data
   loop:
-    - name: auth-authentik-secret-key
+    - name: auth-secret-key
       data: "{{ auth_authentik_secret_key }}"
     - name: auth-postgres-password
       data: "{{ auth_postgres_password }}"
     - name: auth-redis-password
       data: "{{ auth_redis_password }}"
-    - name: auth-authentik-email-password
+    - name: auth-email-password
       data: "{{ auth_authentik_email_config.password | default(None) }}"
   loop_control:
     label: "{{ item.name }}"
@@ -81,7 +81,7 @@
   ansible.builtin.import_role:
     name: benschubert.infrastructure.postgres
   vars:
-    postgres_pod: auth-postgres
+    postgres_container: auth-postgres
     postgres_password_secret: auth-postgres-password
     postgres_data_path: "{{ auth_postgres_data_path }}"
     postgres_image: "{{ auth_postgres_image }}"
@@ -98,7 +98,7 @@
   ansible.builtin.import_role:
     name: benschubert.infrastructure.redis
   vars:
-    redis_pod: auth-redis
+    redis_container: auth-redis
     redis_config_path: "{{ auth_redis_config_path }}"
     redis_data_path: "{{ auth_redis_data_path }}"
     redis_image: "{{ auth_redis_image }}"
@@ -106,65 +106,15 @@
     redis_password: "{{ auth_redis_password }}"
     redis_metrics_password: "{{ auth_redis_metrics_password }}"
 
-- name: Create the auth pod
-  containers.podman.podman_pod:
-    name: auth
-    state: quadlet
-    infra_name: auth-infra
-    network:
-      - ingress-auth.network
-      - auth-postgres.network
-      - auth-redis.network
-    userns: auto:size=1001
-    quadlet_options:
-      - |
-        [Unit]
-        PartOf=infrastructure.target
-        After=auth-postgres.service
-        After=auth-redis.service
-        Before=auth-worker.service
-        Requires=auth-postgres.service
-        Requires=auth-redis.service
-        Requires=ingress.service
-        Wants=auth-worker.service
-
-        [Install]
-        WantedBy=infrastructure.target
-  register: _pod
-
-- name: Create the auth-worker pod
-  containers.podman.podman_pod:
-    name: auth-worker
-    state: quadlet
-    infra_name: auth-worker-infra
-    network: "{{
-        ['auth-postgres.network', 'auth-redis.network']
-        + (auth_worker_additional_networks | map('regex_replace', '^(.*)$', '\\1.network'))
-      }}"
-    userns: auto:size=1001
-    quadlet_options:
-      - |
-        [Unit]
-        PartOf=infrastructure.target
-        After=auth-postgres.service
-        After=auth-redis.service
-        Requires=auth-postgres.service
-        Requires=auth-redis.service
-
-        [Install]
-        WantedBy=infrastructure.target
-  register: _pod_worker
-
 - name: Setup the Authentik server container
   containers.podman.podman_container:
-    name: auth-authentik
-    pod: auth.pod
+    name: auth
     state: quadlet
     image: "{{ auth_authentik_image }}"
     command: server
     env:
       AUTHENTIK_LOG_LEVEL: info
-      AUTHENTIK_SECRET_KEY: file:///run/secrets/auth-authentik-secret-key
+      AUTHENTIK_SECRET_KEY: file:///run/secrets/auth-secret-key
       AUTHENTIK_POSTGRESQL__HOST: auth-postgres
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
@@ -186,7 +136,7 @@
         {{
           auth_authentik_email_config.password
           | default(False)
-          | ternary('file:///run/secrets/auth-authentik-email-password', omit)
+          | ternary('file:///run/secrets/auth-email-password', omit)
         }}
       AUTHENTIK_EMAIL__USE_TLS: "{{ auth_authentik_email_config.tls | default(omit) }}"
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
@@ -224,11 +174,11 @@
     secrets: >-
       {{
         [
-          'auth-authentik-secret-key',
+          'auth-secret-key',
           'auth-postgres-password',
           'auth-redis-password',
         ] + (
-          ['auth-authentik-email-password']
+          ['auth-email-password']
           if (auth_authentik_email_config.password | default(False))
           else []
         )
@@ -236,12 +186,25 @@
     read_only: true
     cap_drop: [all]
     force_restart: "{{ _background.changed or _icon.changed }}"
-    quadlet_filename: auth
+    network:
+      - ingress-auth.network
+      - auth-postgres.network
+      - auth-redis.network
+    userns: auto:size=1001
     quadlet_options:
       - |
         [Unit]
         PartOf=infrastructure.target
-        Before=infrastructure.target
+        After=auth-postgres.service
+        After=auth-redis.service
+        Before=auth-worker.service
+        Requires=auth-postgres.service
+        Requires=auth-redis.service
+        Requires=ingress.service
+        Wants=auth-worker.service
+
+        [Install]
+        WantedBy=infrastructure.target
 
         [Service]
         TimeoutSec=20min
@@ -251,23 +214,22 @@
   ansible.builtin.systemd_service:
     name: auth
     scope: user
-    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Authentik container is healthy
-  ansible.builtin.command: podman healthcheck run auth-authentik
+  ansible.builtin.command: podman healthcheck run auth
   changed_when: false
 
 - name: Setup the Authentik worker container
   containers.podman.podman_container:
-    name: auth-worker-authentik
-    pod: auth-worker.pod
+    name: auth-worker
     state: quadlet
     image: "{{ auth_authentik_image }}"
     command: worker
     env:
-      AUTHENTIK_SECRET_KEY: file:///run/secrets/auth-authentik-secret-key
+      AUTHENTIK_SECRET_KEY: file:///run/secrets/auth-secret-key
       AUTHENTIK_POSTGRESQL__HOST: auth-postgres
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
@@ -292,7 +254,7 @@
         {{
           auth_authentik_email_config.password
           | default(False)
-          | ternary('file:///run/secrets/auth-authentik-email-password', omit)
+          | ternary('file:///run/secrets/auth-email-password', omit)
         }}
       AUTHENTIK_EMAIL__USE_TLS: "{{ auth_authentik_email_config.tls | default(omit) }}"
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
@@ -311,23 +273,33 @@
     secrets: >-
       {{
         [
-          'auth-authentik-secret-key',
+          'auth-secret-key',
           'auth-postgres-password',
           'auth-redis-password',
         ] + (
-          ['auth-authentik-email-password']
+          ['auth-email-password']
           if (auth_authentik_email_config.password | default(False))
           else []
         )
       }}
     read_only: true
     cap_drop: [all]
-    quadlet_filename: auth-worker
+    network: "{{
+        ['auth-postgres.network', 'auth-redis.network']
+        + (auth_worker_additional_networks | map('regex_replace', '^(.*)$', '\\1.network'))
+      }}"
+    userns: auto:size=1001
     quadlet_options:
       - |
         [Unit]
         PartOf=infrastructure.target
-        Before=infrastructure.target
+        After=auth-postgres.service
+        After=auth-redis.service
+        Requires=auth-postgres.service
+        Requires=auth-redis.service
+
+        [Install]
+        WantedBy=infrastructure.target
 
         [Service]
         TimeoutSec=10min
@@ -337,12 +309,12 @@
   ansible.builtin.systemd_service:
     name: auth-worker
     scope: user
-    state: "{{ (_pod_worker.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Authentik worker container is healthy
-  ansible.builtin.command: podman healthcheck run auth-worker-authentik
+  ansible.builtin.command: podman healthcheck run auth-worker
   changed_when: false
 
 - name: Setup an ingress for Authentik
@@ -402,7 +374,7 @@
       - ingress-auth
       - auth-postgres
       - auth-redis
-    monitoring_agent_pod: auth-monitor
+    monitoring_agent_container: auth-monitoring
     monitoring_agent_prometheus_endpoints:
       - name: authentik
         address: auth:9300

@@ -4,15 +4,15 @@
   gather_facts: false
 
   tasks:
-    - name: Gather info about all present pods
-      containers.podman.podman_pod_info:
-      register: _all_pods
+    - name: Gather info about all present containers
+      containers.podman.podman_container_info:
+      register: _all_containers
 
-    - name: Remove all current pods and containers
+    - name: Remove all current containers
       ansible.builtin.command:
-        cmd: podman pod rm {{ _all_pods.pods | map(attribute='Name') | join(' ') }}
+        cmd: podman pod rm {{ _all_containers.containers | map(attribute='Name') | join(' ') }}
       changed_when: true
-      when: _all_pods.pods
+      when: _all_containers.containers
 
     - name: Gather info about all present secrets
       ansible.builtin.command:

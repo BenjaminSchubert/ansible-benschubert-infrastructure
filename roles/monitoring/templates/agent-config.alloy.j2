@@ -36,7 +36,7 @@ prometheus.exporter.redis "benschubert_infrastructure" {
 {% endfor %}
 {% endif %}
 
-prometheus.scrape "benschubert_infrastructure_{{ monitoring_agent_pod | replace('-', '_') }}" {
+prometheus.scrape "benschubert_infrastructure_{{ monitoring_agent_container | replace('-', '_') }}" {
   scrape_interval = "30s"
   targets = concat(
     [
@@ -61,7 +61,7 @@ prometheus.remote_write "monitor" {
     endpoint {
         url = "https://{{ monitoring_mimir_hostname }}{{ port }}/api/v1/push"
         basic_auth {
-          username = "{{ monitoring_agent_pod }}"
+          username = "{{ monitoring_agent_container }}"
           password = local.file.mimir_authentication_key.content
         }
         {% if (not ingress_validate_certs) or ingress_custom_ca_cert is not none %}

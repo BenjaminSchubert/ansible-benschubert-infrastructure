@@ -59,24 +59,24 @@ def test_services_are_up(
     assert entries == {
         (
             "agent",
-            "prometheus.scrape.benschubert_infrastructure_auth_monitor",
+            "prometheus.scrape.benschubert_infrastructure_auth_monitoring",
             "1",
         ),
         (
             "agent",
-            "prometheus.scrape.benschubert_infrastructure_ingress_monitor",
+            "prometheus.scrape.benschubert_infrastructure_ingress_monitoring",
             "1",
         ),
         (
             "agent",
-            "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitoring",
             "1",
         ),
         ("agent", "prometheus.scrape.host", "1"),
         ("auth-redis", "integrations/redis", "1"),
         (
             "authentik",
-            "prometheus.scrape.benschubert_infrastructure_auth_monitor",
+            "prometheus.scrape.benschubert_infrastructure_auth_monitoring",
             "1",
         ),
         (
@@ -88,17 +88,17 @@ def test_services_are_up(
         ),
         (
             "grafana",
-            "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitoring",
             "1",
         ),
         (
             "loki",
-            "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitoring",
             "1",
         ),
         (
             "mimir",
-            "prometheus.scrape.benschubert_infrastructure_monitoring_monitor",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitoring",
             "1",
         ),
         (
@@ -113,7 +113,7 @@ def test_services_are_up(
         ),
         (
             "traefik",
-            "prometheus.scrape.benschubert_infrastructure_ingress_monitor",
+            "prometheus.scrape.benschubert_infrastructure_ingress_monitoring",
             "1",
         ),
     }

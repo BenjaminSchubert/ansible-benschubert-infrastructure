@@ -17,8 +17,8 @@
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
     user:
-      name: "{{ monitoring_agent_pod }}"
-      username: "{{ monitoring_agent_pod }}"
+      name: "{{ monitoring_agent_container }}"
+      username: "{{ monitoring_agent_container }}"
       path: service-accounts
       type: service_account
   register: _service_account
@@ -52,7 +52,7 @@
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
     token:
-      identifier: "{{ monitoring_agent_pod }}-agent-auth-token"
+      identifier: "{{ monitoring_agent_container }}-agent-auth-token"
       intent: app_password
       user: "{{ _service_account.data.pk }}"
       description: Token to authenticate the agent against mimir
@@ -64,12 +64,12 @@
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
-    token: "{{ monitoring_agent_pod }}-agent-auth-token"
+    token: "{{ monitoring_agent_container }}-agent-auth-token"
   register: _service_account_token
 
 - name: Create the mimir authentication secret for {{ monitoring_agent_product_name }}
   containers.podman.podman_secret:
-    name: "{{ monitoring_agent_pod }}-mimir-credentials"
+    name: "{{ monitoring_agent_container }}-mimir-credentials"
     data: "{{ _service_account_token.key }}"
     state: present
 
@@ -79,7 +79,7 @@
   containers.podman.podman_secret:
     name: "{{
         '{}-postgres-{}'.format(
-          monitoring_agent_pod,
+          monitoring_agent_container,
           monitoring_agent_postgres_instances[item].instance,
         )
       }}"
@@ -95,7 +95,7 @@
 
 - name: Create the secrets for the redis passwords for {{ monitoring_agent_product_name }}
   containers.podman.podman_secret:
-    name: "{{ monitoring_agent_pod }}-redis-{{ monitoring_agent_redis_instances[item].name }}"
+    name: "{{ monitoring_agent_container }}-redis-{{ monitoring_agent_redis_instances[item].name }}"
     data: "{{ monitoring_agent_redis_instances[item].password }}"
     state: present
   loop: "{{ range(0, monitoring_agent_redis_instances | length) }}"
@@ -111,29 +111,9 @@
     mode: "0o400"
   register: _configuration
 
-- name: Create the Agent's pod for {{ monitoring_agent_product_name }}
-  containers.podman.podman_pod:
-    name: "{{ monitoring_agent_pod }}"
-    state: quadlet
-    infra_name: "{{ monitoring_agent_pod }}-infra"
-    network: "{{ monitoring_agent_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
-    userns: auto:size=474
-    quadlet_options:
-      - |
-        [Unit]
-        PartOf=infrastructure.target
-
-        [Service]
-        TimeoutSec=5min
-
-        [Install]
-        WantedBy=infrastructure.target
-  register: _pod
-
 - name: Setup the Alloy's container for {{ monitoring_agent_product_name }}
   containers.podman.podman_container:
-    name: "{{ monitoring_agent_pod }}-agent"
-    pod: "{{ monitoring_agent_pod }}.pod"
+    name: "{{ monitoring_agent_container }}"
     state: quadlet
     image: "{{ monitoring_agent_alloy_image }}"
     command:
@@ -155,7 +135,7 @@
       {{
         [
           "{}-mimir-credentials,target=/run/secrets/mimir-authentication-key".format(
-            monitoring_agent_pod
+            monitoring_agent_container
           ),
         ] + (
           monitoring_agent_postgres_instances
@@ -163,7 +143,7 @@
           | map(
             "regex_replace",
             "(.+)",
-            "{}-postgres-\1,target=/run/secrets/postgres-\1".format(monitoring_agent_pod)
+            "{}-postgres-\1,target=/run/secrets/postgres-\1".format(monitoring_agent_container)
           ) | list
         ) + (
           monitoring_agent_redis_instances
@@ -171,26 +151,38 @@
           | map(
             "regex_replace",
             "(.+)",
-            "{}-redis-\1,target=/run/secrets/redis-\1".format(monitoring_agent_pod)
+            "{}-redis-\1,target=/run/secrets/redis-\1".format(monitoring_agent_container)
           ) | list
         )
       }}
     volumes:
       - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,U,Z"
       - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:U,Z"
-    quadlet_filename: "{{ monitoring_agent_pod }}"
+    network: "{{ monitoring_agent_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
+    userns: auto:size=474
+    quadlet_options:
+      - |
+        [Unit]
+        PartOf=infrastructure.target
+        Before=infrastructure.target
+
+        [Service]
+        TimeoutSec=5min
+
+        [Install]
+        WantedBy=infrastructure.target
   register: _container
 
 - name: Ensure the agent container is started for {{ monitoring_agent_product_name }}
   ansible.builtin.systemd_service:
-    name: "{{ monitoring_agent_pod }}"
+    name: "{{ monitoring_agent_container }}"
     scope: user
-    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the agent container is healthy for {{ monitoring_agent_product_name }}
-  ansible.builtin.command: podman healthcheck run {{ monitoring_agent_pod }}-agent
+  ansible.builtin.command: podman healthcheck run {{ monitoring_agent_container }}
   changed_when: false
 
 - name: Ensure the directory to store alerts exists for {{ monitoring_agent_product_name }}
