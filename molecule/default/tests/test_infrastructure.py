@@ -18,7 +18,6 @@ def containers(host: Host) -> list[str]:
     return cast("list[str]", sorted(result.stdout.split()))
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_infrastructure_service_starts_and_stops_all_services(
     host: Host, containers: list[str]
 ) -> None:
@@ -59,7 +58,6 @@ def test_infrastructure_service_starts_and_stops_all_services(
     assert sorted(result.stdout.split()) == containers
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
     mount_format = "{{ '{{' }} json .Mounts {{ '}}' }}"
     result = host.run(
@@ -87,7 +85,6 @@ def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
     ), "Some containers have volumes that are not attached"
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_all_containers_succeed_healthchecks(
     host: Host,
     containers: list[str],
@@ -151,7 +148,6 @@ def test_all_networks_are_internal(host: Host) -> None:
     ]
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_all_containers_have_a_read_only_rootfs(
     host: Host, containers: list[str]
 ) -> None:
@@ -172,7 +168,6 @@ def test_all_containers_have_a_read_only_rootfs(
     ] == [], "Some containers are not setup as readonly"
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_all_containers_have_minimal_capabilities(
     host: Host, containers: list[str]
 ) -> None:
