@@ -109,7 +109,7 @@ pylint.max-branches = 13
 # Tests
 ##
 [tool.pytest.ini_options]
-addopts = "--color=yes --verbose --verbose --dist=loadgroup --numprocesses 4"
+addopts = "--color=yes --verbose --verbose"
 
 filterwarnings = [
     "error",
