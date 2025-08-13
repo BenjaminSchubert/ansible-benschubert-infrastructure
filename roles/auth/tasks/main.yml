@@ -5,8 +5,8 @@
       The bootstrap superadmin secrets are still injected. You might want to
       change the secrets and remove them from the variables for security
   when: >-
-    auth_authentik_superadmin_bootstrap_password
-    or auth_authentik_superadmin_bootstrap_token
+    auth_authentik_superadmin_bootstrap_password is not none
+    or auth_authentik_superadmin_bootstrap_token is not none
   ignore_errors: true
   tags:
     - skip_ansible_lint
@@ -43,7 +43,7 @@
     src: "{{ auth_authentik_background }}"
     dest: "{{ auth_authentik_configuration_path }}/{{ auth_authentik_background }}"
     mode: "0o644"
-  when: auth_authentik_background | default(false)
+  when: (auth_authentik_background | default(None)) is not none
   register: _background
 
 - name: Copy the icon for authentik
@@ -51,7 +51,7 @@
     src: "{{ auth_authentik_icon }}"
     dest: "{{ auth_authentik_configuration_path }}/{{ auth_authentik_icon }}"
     mode: "0o644"
-  when: auth_authentik_icon | default(false)
+  when: (auth_authentik_icon | default(None)) is not none
   register: _icon
 
 - name: Create the required secrets
@@ -59,7 +59,7 @@
     name: "{{ item.name }}"
     data: "{{ item.data }}"
     state: present
-  when: item.data
+  when: (item.data | default(None)) is not none
   loop:
     - name: auth-secret-key
       data: "{{ auth_authentik_secret_key }}"
