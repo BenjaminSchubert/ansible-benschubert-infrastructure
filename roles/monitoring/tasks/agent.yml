@@ -24,7 +24,7 @@
   register: _service_account
 
 - name: Add the service account to the requested group for {{ monitoring_agent_product_name }}
-  when: monitoring_agent_user_group
+  when: monitoring_agent_user_group is not none
   block:
     - name: Ensure the requested group exists for {{ monitoring_agent_product_name }}
       benschubert.infrastructure.authentik_group:
@@ -89,7 +89,7 @@
         )
       }}"
     state: present
-  loop: "{{ range(0, monitoring_agent_postgres_instances | length) }}"
+  loop: "{{ range(0, monitoring_agent_postgres_instances | length) | list }}"
   loop_control:
     label: "{{ monitoring_agent_postgres_instances[item].instance }}"
 
@@ -98,7 +98,7 @@
     name: "{{ monitoring_agent_container }}-redis-{{ monitoring_agent_redis_instances[item].name }}"
     data: "{{ monitoring_agent_redis_instances[item].password }}"
     state: present
-  loop: "{{ range(0, monitoring_agent_redis_instances | length) }}"
+  loop: "{{ range(0, monitoring_agent_redis_instances | length) | list }}"
   loop_control:
     label: "{{  monitoring_agent_redis_instances[item].name }}"
 

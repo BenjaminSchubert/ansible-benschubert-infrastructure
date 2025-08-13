@@ -87,7 +87,7 @@
     name: "{{ item.name }}"
     data: "{{ item.data }}"
     state: present
-  when: item.data
+  when: (item.data | default(none)) is not none
   loop:
     - name: monitoring-grafana-postgres-password
       data: "{{ monitoring_grafana_postgres_password }}"

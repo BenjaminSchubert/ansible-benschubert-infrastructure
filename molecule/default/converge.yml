@@ -5,7 +5,7 @@
 
   tasks:
     - name: Download and setup custom certificate
-      when: ingress_custom_ca_cert_url | default(False)
+      when: (ingress_custom_ca_cert_url | default(None)) is not none
       block:
         - name: Set the path to the custom ca
           ansible.builtin.set_fact:
@@ -96,7 +96,6 @@
       register: user
 
     - name: Add akadmin to the admin group
-      when: test_akadmin_user_group
       block:
         - name: Get the Grafana group info
           benschubert.infrastructure.authentik_group_info:
@@ -202,7 +201,7 @@
           register: _service_account
 
         - name: Add the service account to the requested group
-          when: default_monitor_agent_user_group
+          when: default_monitor_agent_user_group is not none
           block:
             - name: Ensure the requested group exists
               benschubert.infrastructure.authentik_group:

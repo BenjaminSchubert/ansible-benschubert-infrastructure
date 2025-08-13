@@ -12,7 +12,7 @@
       ansible.builtin.command:
         cmd: podman pod rm {{ _all_containers.containers | map(attribute='Name') | join(' ') }}
       changed_when: true
-      when: _all_containers.containers
+      when: _all_containers.containers | length > 0
 
     - name: Gather info about all present secrets
       ansible.builtin.command:
@@ -24,7 +24,7 @@
       ansible.builtin.command:
         cmd: podman secret rm {{ _all_secrets.stdout_lines | join(' ') }}
       changed_when: true
-      when: _all_secrets.stdout_lines
+      when: _all_secrets.stdout_lines | length > 0
 
     - name: Gather info about all present networks
       containers.podman.podman_network_info:
@@ -57,4 +57,4 @@
         src: "{{ registries_conf }}"
         dest: /etc/containers/registries.conf.d/050-registries.conf
         mode: "0o755"
-      when: registries_conf
+      when: registries_conf is not none
