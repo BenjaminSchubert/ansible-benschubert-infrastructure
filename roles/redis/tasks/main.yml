@@ -1,12 +1,9 @@
 ---
 - name: Ensure the Redis paths exists for {{ redis_container }}
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ redis_data_path }}"
     state: directory
     mode: "0o700"
-  loop:
-    - "{{ redis_config_path }}"
-    - "{{ redis_data_path }}"
 
 - name: Generate the secret for the Redis configuration
   containers.podman.podman_secret:
