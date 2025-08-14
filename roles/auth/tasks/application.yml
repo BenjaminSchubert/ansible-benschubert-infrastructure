@@ -4,8 +4,14 @@
 - name: Ensure the provider is provided for {{ application_name }}
   ansible.builtin.assert:
     that:
-      - (provider_oauth2 | default(None)) or (provider_proxy | default(None))
-      - not ((provider_oauth2 | default(None)) and (provider_proxy | default(None)))
+      - |
+        ((provider_oauth2 | default(None)) is not none)
+        or ((provider_proxy | default(None)) is not none)
+      - |
+        not (
+          ((provider_oauth2 | default(None)) is not none)
+          and ((provider_proxy | default(None)) is not none)
+        )
     fail_msg: Either provider_oauth2 or provider_proxy needs to be passed but not both
 
 - name: Get consent flow for applications for {{ application_name }}
@@ -34,7 +40,7 @@
   delay: 5
 
 - name: Generate the OAuth2 provider for {{ application_name }}
-  when: provider_oauth2 | default(false)
+  when: (provider_oauth2 | default(none)) is not none
   block:
     - name: Get the signing key for applications for {{ application_name }}
       benschubert.infrastructure.authentik_certificate_info:
@@ -72,7 +78,7 @@
       register: _provider_oauth2_result
 
 - name: Generate the proxy provider for {{ application_name }}
-  when: provider_proxy | default(false)
+  when: (provider_proxy | default(None)) is not none
   benschubert.infrastructure.authentik_provider_proxy:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -132,7 +138,7 @@
         authentik_host: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
 
 - name: Register the application against the internal provider for {{ application_name }}
-  when: provider_proxy | default(false)
+  when: (provider_proxy | default(none)) is not none
   benschubert.infrastructure.authentik_outpost_provider:
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
@@ -142,7 +148,7 @@
     provider_pk: "{{ _provider_result.data.pk }}"
 
 - name: Restrict access to the application to the selected groups for {{ application_name }}
-  when: allowlisted_groups
+  when: (allowlisted_groups or []) | length > 0
   block:
     - name: Ensure the requested group exists for {{ application_name }}
       benschubert.infrastructure.authentik_group:

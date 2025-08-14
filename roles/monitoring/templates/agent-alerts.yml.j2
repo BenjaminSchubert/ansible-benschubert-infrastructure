@@ -1,5 +1,5 @@
 {{ template_warning }}
-{% set job_name = "prometheus.scrape.benschubert_infrastructure_" + (monitoring_agent_pod | replace('-', '_')) %}
+{% set job_name = "prometheus.scrape.benschubert_infrastructure_" + (monitoring_agent_container | replace('-', '_')) %}
 {% set log_instance = "(instance {{ $labels.instance }})" %}
 {% set log_values_and_labels = "VALUE = {{ $value }}\\n  LABELS = {{ $labels }}" %}
 groups:

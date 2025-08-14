@@ -2,8 +2,6 @@
 *.pyc
 
 # Testing
-.ansible/
-.cache/
 .dwas/
 _artifacts/
 .env.yml

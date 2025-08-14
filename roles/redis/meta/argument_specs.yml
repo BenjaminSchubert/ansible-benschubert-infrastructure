@@ -14,12 +14,6 @@ argument_specs:
         description:
           - The path to where the Grafana configuration is kept
           - This is used to install a basic Redis dashboard for viewing metrics
-      redis_config_path:
-        type: str
-        required: true
-        description: >-
-          The path on disk in which to store the configuration for the Redis
-          instance
       redis_data_path:
         type: str
         required: true
@@ -44,7 +38,7 @@ argument_specs:
         type: str
         required: true
         description: The password to authenticate against the Redis instance
-      redis_pod:
+      redis_container:
         type: str
         required: true
         description: >-

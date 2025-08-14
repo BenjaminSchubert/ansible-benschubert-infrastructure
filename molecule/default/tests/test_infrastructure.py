@@ -18,17 +18,8 @@ def containers(host: Host) -> list[str]:
     return cast("list[str]", sorted(result.stdout.split()))
 
 
-@pytest.fixture(scope="module")
-def pods(host: Host) -> list[str]:
-    result = host.run("podman pod ps --format '{{ '{{' }}.Name{{ '}}' }}'")
-    assert result.succeeded
-
-    return cast("list[str]", sorted(result.stdout.split()))
-
-
-@pytest.mark.xdist_group(name="containers")
 def test_infrastructure_service_starts_and_stops_all_services(
-    host: Host, containers: list[str], pods: list[str]
+    host: Host, containers: list[str]
 ) -> None:
     # 1. Stop the service
     result = host.run(
@@ -36,15 +27,15 @@ def test_infrastructure_service_starts_and_stops_all_services(
     )
     assert result.succeeded
 
-    # 2. No more pods and containers running
+    # 2. No more containers running
     for _ in range(30):
         try:
             result = host.run(
-                "podman pod ps --format '{{ '{{' }}.Name{{ '}}' }}'"
+                "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
             )
             assert result.succeeded
             assert result.stdout.split() == [], (
-                "Some pods are still up and running"
+                "Some containers are still running"
             )
             break
         except AssertionError as exc:
@@ -53,25 +44,13 @@ def test_infrastructure_service_starts_and_stops_all_services(
     else:
         raise e  # pylint: disable=used-before-assignment
 
-    result = host.run(
-        "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
-    )
-    assert result.succeeded
-    assert result.stdout.split() == []
-
     # 3. Restarting the service
     result = host.run(
         "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user start infrastructure.target"
     )
     assert result.succeeded
 
-    # 4. We get the same amount of pods and containers as at the start
-    result = host.run("podman pod ps --format '{{ '{{' }}.Name{{ '}}' }}'")
-    assert result.succeeded
-    assert sorted(result.stdout.split()) == pods, (
-        "Some pods are still up and running"
-    )
-
+    # 4. We get the same amount of containers as at the start
     result = host.run(
         "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
     )
@@ -79,7 +58,6 @@ def test_infrastructure_service_starts_and_stops_all_services(
     assert sorted(result.stdout.split()) == containers
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
     mount_format = "{{ '{{' }} json .Mounts {{ '}}' }}"
     result = host.run(
@@ -107,7 +85,6 @@ def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
     ), "Some containers have volumes that are not attached"
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_all_containers_succeed_healthchecks(
     host: Host,
     containers: list[str],
@@ -123,7 +100,7 @@ def test_all_containers_succeed_healthchecks(
             ),
             strict=True,
         ):
-            if container == "monitoring-mimir-mimir":
+            if container == "monitoring-mimir":
                 assert res.exit_status != 0, (
                     "Mimir did not have healthchecks set?"
                 )
@@ -133,14 +110,18 @@ def test_all_containers_succeed_healthchecks(
     assert not errors, "Some containers failed their healtchecks"
 
 
-def test_all_pods_run_in_a_user_namespace(host: Host, pods: list[str]) -> None:
-    result = host.run(f"podman pod inspect {' '.join(pods)}")
+def test_all_containers_run_in_a_user_namespace(
+    host: Host, containers: list[str]
+) -> None:
+    result = host.run(f"podman inspect {' '.join(containers)}")
     assert result.succeeded
 
     assert [
-        pod
-        for pod, info in zip(pods, json.loads(result.stdout), strict=True)
-        if "user" not in info["SharedNamespaces"]
+        container
+        for container, info in zip(
+            containers, json.loads(result.stdout), strict=True
+        )
+        if info["HostConfig"]["UsernsMode"] != "private"
     ] == [], "Some pods are not running in a user namespace"
 
 
@@ -167,7 +148,6 @@ def test_all_networks_are_internal(host: Host) -> None:
     ]
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_all_containers_have_a_read_only_rootfs(
     host: Host, containers: list[str]
 ) -> None:
@@ -184,12 +164,10 @@ def test_all_containers_have_a_read_only_rootfs(
             result.stdout.strip().splitlines(),
             strict=True,
         )
-        # FIXME: can we make the infra containers readonly?
-        if not container.endswith("-infra") and not json.loads(readonly)
+        if not json.loads(readonly)
     ] == [], "Some containers are not setup as readonly"
 
 
-@pytest.mark.xdist_group(name="containers")
 def test_all_containers_have_minimal_capabilities(
     host: Host, containers: list[str]
 ) -> None:
@@ -207,8 +185,8 @@ def test_all_containers_have_minimal_capabilities(
         for container, caps in zip(containers, all_caps, strict=True)
         if not container.endswith("-infra") and caps
     } == {
-        "ingress-traefik": ["CAP_NET_BIND_SERVICE"],
+        "ingress": ["CAP_NET_BIND_SERVICE"],
     } | {
-        f"{group}-monitor-agent": ["CAP_DAC_OVERRIDE"]
+        f"{group}-monitoring": ["CAP_DAC_OVERRIDE"]
         for group in ["auth", "ingress", "monitoring"]
     }, "Some containers have too many capabiliti4es"

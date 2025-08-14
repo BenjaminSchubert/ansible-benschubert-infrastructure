@@ -28,7 +28,7 @@
     monitoring_agent_networks:
       - ingress-monitoring
       - monitoring-grafana-postgres
-    monitoring_agent_pod: monitoring-monitor
+    monitoring_agent_container: monitoring-monitoring
     monitoring_agent_prometheus_endpoints:
       - name: mimir
         address: monitoring-mimir:9009

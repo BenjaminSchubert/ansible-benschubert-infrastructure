@@ -13,20 +13,9 @@
     internal: true
     state: quadlet
 
-- name: Create the PostgreSQL pod for {{ postgres_database }}
-  containers.podman.podman_pod:
-    name: "{{ postgres_pod }}"
-    state: quadlet
-    infra_name: "{{ postgres_pod }}-infra"
-    network:
-      - "{{ postgres_network }}.network"
-    userns: auto:size=1000
-  register: _pod
-
 - name: Setup a PostgreSQL container for {{ postgres_database }}
   containers.podman.podman_container:
-    name: "{{ postgres_pod }}-postgres"
-    pod: "{{ postgres_pod }}.pod"
+    name: "{{ postgres_container }}"
     image: "{{ postgres_image }}"
     user: postgres
     state: quadlet
@@ -49,7 +38,10 @@
     shm_size: 256m
     tmpfs:
       /var/run: rw
-    quadlet_filename: "{{ postgres_pod }}"
+    network:
+      - "{{ postgres_network }}.network"
+    userns: auto:size=1000
+    quadlet_filename: "{{ postgres_container }}"
     quadlet_options:
       - |
         [Service]
@@ -58,14 +50,14 @@
 
 - name: Ensure the PostgreSQL container is running for {{ postgres_database }}
   ansible.builtin.systemd_service:
-    name: "{{ postgres_pod }}"
+    name: "{{ postgres_container }}"
     scope: user
-    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the PostgreSQL container is healthy for {{ postgres_database }}
-  ansible.builtin.command: podman healthcheck run {{ postgres_pod }}-postgres
+  ansible.builtin.command: podman healthcheck run {{ postgres_container }}
   changed_when: false
 
 - name: Install Postgres dashboard for {{ postgres_database }}

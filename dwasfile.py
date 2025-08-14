@@ -25,22 +25,17 @@ PYTHON_FILES = [
 ]
 
 
-def _install_collection(step: StepRunner) -> dict[str, str]:
-    env = {"ANSIBLE_COLLECTIONS_PATH": str(step.cache_path)}
+def _install_collection(step: StepRunner) -> tuple[dict[str, str], str]:
+    ansible_home = step.cache_path / "ansible"
+    collection_path = str(
+        ansible_home
+        / "collections/ansible_collections/benschubert/infrastructure"
+    )
+
+    env = {"ANSIBLE_HOME": str(ansible_home)}
     # FIXME: once we can set an environment variable from a step, we should
     #        have the build step take care of the installation and inject
     #        the collections path
-
-    # FIXME: remove this once a new version of the grafana collection is released
-    step.run(
-        [
-            "ansible-galaxy",
-            "collection",
-            "install",
-            "--requirements-file=requirements.yml",
-        ],
-        env=env,
-    )
 
     step.run(
         [
@@ -56,19 +51,12 @@ def _install_collection(step: StepRunner) -> dict[str, str]:
     # ansible-test sanity ignores the installed part otherwise, since it's
     # in our gitignore
     step.run(
-        [
-            "git",
-            "init",
-            str(
-                step.cache_path
-                / "ansible_collections/benschubert/infrastructure"
-            ),
-        ],
+        ["git", "init", collection_path],
         external_command=True,
         silent_on_success=True,
     )
 
-    return env
+    return env, collection_path
 
 
 ##
@@ -152,7 +140,7 @@ register_managed_step(
 
 @managed_step(["-rrequirements/requirements.txt"], requires=["build"])
 def sanity(step: StepRunner) -> None:
-    env = _install_collection(step)
+    env, collection_path = _install_collection(step)
 
     command = [
         "ansible-test",
@@ -169,7 +157,7 @@ def sanity(step: StepRunner) -> None:
 
     step.run(
         command,
-        cwd=step.cache_path / "ansible_collections/benschubert/infrastructure",
+        cwd=collection_path,
         env={"HOME": str(step.cache_path / "home"), **env},
     )
 
@@ -180,7 +168,7 @@ def sanity(step: StepRunner) -> None:
     name="ansible-lint",
 )
 def ansible_lint(step: StepRunner) -> None:
-    env = _install_collection(step)
+    env, collection_path = _install_collection(step)
 
     command = ["ansible-lint", "--strict"]
     if step.config.colors:
@@ -188,7 +176,7 @@ def ansible_lint(step: StepRunner) -> None:
 
     step.run(
         command,
-        cwd=step.cache_path / "ansible_collections/benschubert/infrastructure",
+        cwd=collection_path,
         env={"HOME": str(step.cache_path / "home"), **env},
     )
 
@@ -217,7 +205,10 @@ register_step_group(
 def molecule(step: StepRunner, user_args: list[str] | None) -> None:
     if user_args is None:
         user_args = ["test"]
-    step.run(["molecule", *user_args])
+    step.run(
+        ["molecule", *user_args],
+        env={"ANSIBLE_HOME": str(step.cache_path / "ansible")},
+    )
 
 
 ##
@@ -229,7 +220,7 @@ def molecule(step: StepRunner, user_args: list[str] | None) -> None:
     run_by_default=False,
 )
 def autodoc(step: StepRunner) -> None:
-    env = _install_collection(step)
+    env, collection_path = _install_collection(step)
     home_path = step.cache_path / "home"
     home_path.mkdir(exist_ok=True)
     env["HOME"] = str(home_path)
@@ -257,10 +248,7 @@ def autodoc(step: StepRunner) -> None:
             "lint-collection-docs",
             "--plugin-docs",
             "--validate-collection-refs=all",
-            str(
-                step.cache_path
-                / "ansible_collections/benschubert/infrastructure"
-            ),
+            collection_path,
         ],
         env=env,
     )

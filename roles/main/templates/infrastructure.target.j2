@@ -6,6 +6,6 @@ WantedBy=multi-user.target
 After=network-online.target
 Description=All services forming the infrastructure stack
 
-PropagatesStopTo=auth-postgres-pod.service
-PropagatesStopTo=auth-redis-pod.service
-PropagatesStopTo=monitoring-grafana-postgres-pod.service
+PropagatesStopTo=auth-postgres.service
+PropagatesStopTo=auth-redis.service
+PropagatesStopTo=monitoring-grafana-postgres.service

@@ -47,18 +47,20 @@
 
 - name: Create the required secrets
   containers.podman.podman_secret:
-    name: ingress-traefik-{{ item.key.lower().replace('_', '-') }}
+    name: ingress-{{ item.key.lower().replace('_', '-') }}
     data: "{{ item.value }}"
     state: present
   loop: "{{ ingress_traefik_secrets | dict2items }}"
   loop_control:
     label: "{{ item.key }}"
 
-- name: Create the ingress pod
-  containers.podman.podman_pod:
+- name: Setup the Traefik container
+  containers.podman.podman_container:
     name: ingress
+    image: "{{ ingress_traefik_image }}"
     state: quadlet
-    infra_name: ingress-infra
+    force_restart: "{{ _configuration.changed }}"
+    pull: newer
     network: |
       {{
         (ingress_networks | map('regex_replace', '^(.*)$', '\1.network'))
@@ -69,29 +71,6 @@
       - "{{ ingress_http_port }}:{{ ingress_http_port }}"
       - "{{ ingress_https_port }}:{{ ingress_https_port }}"
     userns: auto:size=6
-    quadlet_options:
-      # FIXME: there seems to be a bug in the quadlet generator in the podman
-      #        plugin
-      - |
-        [Pod]
-        {% for alias in ingress_network_aliases %}
-        NetworkAlias={{ alias }}
-        {% endfor %}
-        [Unit]
-        PartOf=infrastructure.target
-
-        [Install]
-        WantedBy=infrastructure.target
-  register: _pod
-
-- name: Setup the Traefik container
-  containers.podman.podman_container:
-    name: ingress-traefik
-    pod: ingress.pod
-    image: "{{ ingress_traefik_image }}"
-    state: quadlet
-    force_restart: "{{ _configuration.changed }}"
-    pull: newer
     volumes:
       - "{{ ingress_traefik_configuration_files_path }}/config:/etc/traefik:ro,U,Z"
       - "{{ ingress_traefik_configuration_files_path }}/acme.json:/etc/traefik/acme.json:rw,U,Z"
@@ -109,7 +88,7 @@
           ingress_traefik_secrets
           | map('lower')
           | map('replace', '_', '-')
-          | map('regex_replace', '^(.*)$', '/run/secrets/ingress-traefik-\\1')
+          | map('regex_replace', '^(.*)$', '/run/secrets/ingress-\\1')
         )
         | list
         | items2dict(key_name=0, value_name=1)
@@ -120,13 +99,12 @@
         ingress_traefik_secrets
         | map('lower')
         | map('regex_replace', '_', '-')
-        | map('regex_replace', '^(.*)$', 'ingress-traefik-\1')
+        | map('regex_replace', '^(.*)$', 'ingress-\1')
       }}
     cap_drop: [all]
     cap_add:
       # Required to bind on lower ports
       - NET_BIND_SERVICE
-    quadlet_filename: ingress
     quadlet_options:
       - |
         [Unit]
@@ -141,10 +119,10 @@
   ansible.builtin.systemd_service:
     name: ingress
     scope: user
-    state: "{{ (_pod.changed or _container.changed) | ternary('restarted', 'started') }}"
+    state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Traefik container is healthy
-  ansible.builtin.command: podman healthcheck run ingress-traefik
+  ansible.builtin.command: podman healthcheck run ingress
   changed_when: false

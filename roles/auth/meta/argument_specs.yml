@@ -138,12 +138,6 @@ argument_specs:
         required: true
         description:
           - The password used to connect to PostgreSQL database
-      auth_redis_config_path:
-        type: str
-        required: true
-        description:
-          - The path on disk where the Redis instance should store its
-            configurations
       auth_redis_data_path:
         type: str
         required: true
