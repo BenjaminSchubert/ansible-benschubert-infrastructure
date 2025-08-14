@@ -125,8 +125,7 @@ provisioner:
         auth_postgres_data_path: "{{ data }}/auth/postgres"
         auth_redis_password: veryredispassword
         auth_redis_metrics_password: verymetricspassword
-        auth_redis_config_path: "{{ data }}/auth/redis/config/"
-        auth_redis_data_path: "{{ data }}/auth/redis/data/"
+        auth_redis_data_path: "{{ data }}/auth/redis/"
         auth_authentik_configuration_path: "{{ data }}/auth/authentik"
         auth_authentik_email_config:
           host: mailpit

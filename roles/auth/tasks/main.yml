@@ -99,7 +99,6 @@
     name: benschubert.infrastructure.redis
   vars:
     redis_container: auth-redis
-    redis_config_path: "{{ auth_redis_config_path }}"
     redis_data_path: "{{ auth_redis_data_path }}"
     redis_image: "{{ auth_redis_image }}"
     redis_network: auth-redis
