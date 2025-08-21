@@ -377,6 +377,8 @@
     monitoring_agent_prometheus_endpoints:
       - name: authentik
         address: auth:9300
+      - name: authentik-worker
+        address: auth-worker:9300
         alerting_rules_template: authentik-alerts.yml.j2
     monitoring_agent_postgres_instances:
       - instance: auth-postgres
