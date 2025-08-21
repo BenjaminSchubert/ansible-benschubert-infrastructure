@@ -28,7 +28,7 @@ def test_no_tasks_failed(
     session: requests.Session,
 ) -> None:
     resp = session.get(
-        f"https://{hostvars['auth_authentik_hostname']}/api/v3/events/system_tasks/",
+        f"https://{hostvars['auth_authentik_hostname']}/api/v3/tasks/tasks/?ordering=mtime&page_size=100000",
         headers={
             "Authorization": f"Bearer {hostvars['auth_authentik_superadmin_bootstrap_token']}"
         },
@@ -37,20 +37,20 @@ def test_no_tasks_failed(
     )
 
     assert resp.status_code == HTTPStatus.OK
-    print(yaml.dump(resp.json()))
+    data = resp.json()
+    assert data["pagination"]["total_pages"] == 1
 
-    failed_tasks = {
-        task["full_name"]: {
+    results = {}
+    for task in data["results"]:
+        if task["aggregated_status"] == "successful":
+            continue
+        results[task["uid"]] = {
             "description": task["description"],
-            "status": task["status"],
+            "status": task["aggregated_status"],
         }
-        for task in resp.json()["results"]
-        if task["status"] != "successful"
-        # Authentik has no network access to the outside
-        and task["full_name"] != "update_latest_version"
-    }
 
-    assert failed_tasks == {}
+    unsuccessful = {k: v for k, v in results.items() if v["status"] != "info"}
+    assert unsuccessful == {}
 
 
 def test_all_blueprints_applied(

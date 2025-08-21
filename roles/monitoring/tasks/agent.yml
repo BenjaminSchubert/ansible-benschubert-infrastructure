@@ -121,7 +121,6 @@
       - --disable-reporting
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
-    force_restart: "{{ _configuration.changed }}"
     # FIXME: Once https://github.com/grafana/alloy/issues/477 is resolved
     #        we should be able to set it to curl/wget
     # healthcheck: wget -O- http://localhost:9009/-/healthy
@@ -177,7 +176,7 @@
   ansible.builtin.systemd_service:
     name: "{{ monitoring_agent_container }}"
     scope: user
-    state: "{{ _container.changed | ternary('restarted', 'started') }}"
+    state: "{{ (_container.changed or _configuration.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
