@@ -80,6 +80,11 @@ def test_services_are_up(
             "1",
         ),
         (
+            "authentik-worker",
+            "prometheus.scrape.benschubert_infrastructure_auth_monitoring",
+            "1",
+        ),
+        (
             os.getenv(
                 "CONTAINER_NAME", "benschubert-infrastructure-test-container"
             ),

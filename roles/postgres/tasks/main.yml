@@ -27,7 +27,7 @@
       POSTGRES_DB: "{{ postgres_database }}"
     secrets:
       - "{{ postgres_password_secret }},target=/run/secrets/postgres-password"
-    healthcheck: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+    healthcheck: pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
     healthcheck_interval: 1m
     health_startup_interval: 10s
     health_startup_timeout: 5min

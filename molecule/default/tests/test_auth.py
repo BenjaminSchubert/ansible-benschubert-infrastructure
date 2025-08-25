@@ -28,7 +28,7 @@ def test_no_tasks_failed(
     session: requests.Session,
 ) -> None:
     resp = session.get(
-        f"https://{hostvars['auth_authentik_hostname']}/api/v3/events/system_tasks/",
+        f"https://{hostvars['auth_authentik_hostname']}/api/v3/tasks/tasks/?aggregated_status=queued&aggregated_status=consumed&aggregated_status=rejected&aggregated_status=warning&aggregated_status=error",
         headers={
             "Authorization": f"Bearer {hostvars['auth_authentik_superadmin_bootstrap_token']}"
         },
@@ -40,14 +40,12 @@ def test_no_tasks_failed(
     print(yaml.dump(resp.json()))
 
     failed_tasks = {
-        task["full_name"]: {
+        task["uid"]: {
             "description": task["description"],
-            "status": task["status"],
+            "status": task["aggregated_status"],
         }
         for task in resp.json()["results"]
-        if task["status"] != "successful"
-        # Authentik has no network access to the outside
-        and task["full_name"] != "update_latest_version"
+        if task["aggregated_status"] != "successful"
     }
 
     assert failed_tasks == {}

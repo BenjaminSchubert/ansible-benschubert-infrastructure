@@ -44,6 +44,10 @@
       - "{{ redis_network }}.network"
     secrets:
       - "{{ redis_container }}-config,target=/etc/redis.conf"
+    quadlet_options:
+      - |
+        [Service]
+        TimeoutSec=5min
   register: _container
 
 - name: Ensure the Redis container is running for {{ redis_container }}
