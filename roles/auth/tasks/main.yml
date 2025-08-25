@@ -258,6 +258,9 @@
       AUTHENTIK_EMAIL__USE_TLS: "{{ auth_authentik_email_config.tls | default(omit) }}"
       AUTHENTIK_EMAIL__USE_SSL: "{{ auth_authentik_email_config.ssl | default(omit) }}"
       AUTHENTIK_EMAIL__FROM: "{{ auth_authentik_email_config.from | default(omit) }}"
+      # FIXME: can be removed once https://github.com/goauthentik/authentik/issues/16292
+      #        is published
+      PROMETHEUS_MULTIPROC_DIR: /dev/shm/authentik_prometheus_tmp
     healthcheck: /lifecycle/ak healthcheck
     healthcheck_interval: 1m
     health_startup_interval: 10s
@@ -377,9 +380,9 @@
     monitoring_agent_prometheus_endpoints:
       - name: authentik
         address: auth:9300
-        alerting_rules_template: authentik-alerts.yml.j2
       - name: authentik-worker
         address: auth-worker:9300
+        alerting_rules_template: authentik-alerts.yml.j2
     monitoring_agent_postgres_instances:
       - instance: auth-postgres
         username: authentik
