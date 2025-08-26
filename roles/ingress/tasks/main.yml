@@ -59,7 +59,6 @@
     name: ingress
     image: "{{ ingress_traefik_image }}"
     state: quadlet
-    force_restart: "{{ _configuration.changed }}"
     pull: newer
     network: |
       {{
@@ -119,7 +118,7 @@
   ansible.builtin.systemd_service:
     name: ingress
     scope: user
-    state: "{{ _container.changed | ternary('restarted', 'started') }}"
+    state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 

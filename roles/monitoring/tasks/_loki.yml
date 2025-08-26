@@ -35,7 +35,6 @@
     health_startup_interval: 10s
     health_startup_timeout: 5min
     sdnotify: healthy
-    force_restart: "{{ _configuration.changed }}"
     read_only: true
     cap_drop: [all]
     pull: newer
@@ -67,7 +66,7 @@
   ansible.builtin.systemd_service:
     name: monitoring-loki
     scope: user
-    state: "{{ _container.changed | ternary('restarted', 'started') }}"
+    state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 

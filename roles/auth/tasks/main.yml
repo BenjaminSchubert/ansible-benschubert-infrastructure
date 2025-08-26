@@ -184,7 +184,6 @@
       }}
     read_only: true
     cap_drop: [all]
-    force_restart: "{{ _background.changed or _icon.changed }}"
     network:
       - ingress-auth.network
       - auth-postgres.network
@@ -213,7 +212,11 @@
   ansible.builtin.systemd_service:
     name: auth
     scope: user
-    state: "{{ _container.changed | ternary('restarted', 'started') }}"
+    state: >-
+      {{
+        (_background.changed or _icon.changed or _container.changed)
+        | ternary('restarted', 'started')
+      }}
     enabled: true
     daemon_reload: true
 

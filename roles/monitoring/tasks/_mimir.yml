@@ -42,7 +42,6 @@
   containers.podman.podman_container:
     name: monitoring-mimir
     state: quadlet
-    force_restart: "{{ _configuration.changed }}"
     image: "{{ monitoring_mimir_image }}"
     command: --config.file=/etc/mimir/mimir.yml
     # FIXME: the image from 2.13 now doesn't have curl or wget
@@ -88,7 +87,7 @@
   ansible.builtin.systemd_service:
     name: monitoring-mimir
     scope: user
-    state: "{{ _container.changed | ternary('restarted', 'started') }}"
+    state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
