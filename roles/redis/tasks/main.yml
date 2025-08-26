@@ -28,7 +28,6 @@
     command: [redis-server, /etc/redis.conf]
     user: redis
     state: quadlet
-    force_restart: "{{ _configuration.changed }}"
     volumes:
       - "{{ redis_data_path }}/:/data:rw,U,Z"
     healthcheck: redis-cli --user ping --pass '' ping | grep PONG
@@ -54,7 +53,7 @@
   ansible.builtin.systemd_service:
     name: "{{ redis_container }}"
     scope: user
-    state: "{{ _container.changed | ternary('restarted', 'started') }}"
+    state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
