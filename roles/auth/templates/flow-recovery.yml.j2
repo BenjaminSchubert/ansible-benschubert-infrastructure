@@ -4,39 +4,20 @@ version: 1
 metadata:
   name: benschubert.infrastructure - Recovery with email verification
 entries:
+  - model: authentik_blueprints.metaapplyblueprint
+    attrs:
+      identifiers:
+        name: Default - Password change flow
+      required: true
   - identifiers:
       slug: benschubert-infrastructure-recovery-flow
     id: flow
     model: authentik_flows.flow
     attrs:
-      name: Default recovery flow
+      name: Password recovery flow
       title: Reset your password
       designation: recovery
       authentication: require_unauthenticated
-  - identifiers:
-      name: benschubert-infrastructures-recovery-field-password
-    id: prompt-field-password
-    model: authentik_stages_prompt.prompt
-    attrs:
-      field_key: password
-      label: Password
-      type: password
-      required: true
-      placeholder: Password
-      order: 0
-      placeholder_expression: false
-  - identifiers:
-      name: benschubert-infrastructures-recovery-field-password-repeat
-    id: prompt-field-password-repeat
-    model: authentik_stages_prompt.prompt
-    attrs:
-      field_key: password_repeat
-      label: Password (repeat)
-      type: password
-      required: true
-      placeholder: Password (repeat)
-      order: 1
-      placeholder_expression: false
   - identifiers:
       name: benschubert-infrastructure-recovery-skip-if-restored
     id: benschubert-infrastructure-recovery-skip-if-restored
@@ -80,15 +61,6 @@ entries:
     id: benschubert-infrastructure-recovery-user-login
     model: authentik_stages_user_login.userloginstage
   - identifiers:
-      name: Change your password
-    id: stages-prompt-password
-    model: authentik_stages_prompt.promptstage
-    attrs:
-      fields:
-        - !KeyOf prompt-field-password
-        - !KeyOf prompt-field-password-repeat
-      validation_policies: []
-  - identifiers:
       target: !KeyOf flow
       stage: !KeyOf benschubert-infrastructure-recovery-identification
       order: 10
@@ -113,7 +85,7 @@ entries:
   - identifiers:
       pk: 1219d06e-2c06-4c5b-a162-78e3959c6cf0
       target: !KeyOf flow
-      stage: !KeyOf stages-prompt-password
+      stage: !Find [authentik_stages_prompt.promptstage, [name, default-password-change-prompt]]
       order: 30
     model: authentik_flows.flowstagebinding
     attrs:
