@@ -1,0 +1,21 @@
+---
+- name: Build container image for postfix
+  when: (postfix_image | default("")) | length > 0
+  containers.podman.podman_image:
+    name: localhost/ansible-benschubert-infrastructure/postfix
+    build:
+      container_file: |
+        FROM {{ postfix_base_container_image }}
+
+        RUN apt-get update && \
+            apt-get install --assumeyes postfix && \
+            apt-get clean all
+
+        CMD "postfix"
+    state: build
+
+- name: Create the postfix configuration
+  ansible.builtin.template:
+    src: main.cf.j2
+    dest: "{{ postfix_configuration_path }}/main.cf"
+    mode: "0o644"

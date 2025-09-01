@@ -1,0 +1,2 @@
+---
+postfix_base_container_image: docker.io:debian/slim
