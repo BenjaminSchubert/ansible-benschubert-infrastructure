@@ -357,6 +357,8 @@
   loop: "{{ _blueprints.json.results | rejectattr('status', 'equalto', 'successful') }}"
   loop_control:
     label: "{{ item.name }}"
+  retries: 2
+  delay: 2
 
 - name: Configure the Alloy image if not provided explicitly
   ansible.builtin.set_fact:
