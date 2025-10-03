@@ -357,7 +357,7 @@
   loop: "{{ _blueprints.json.results | rejectattr('status', 'equalto', 'successful') }}"
   loop_control:
     label: "{{ item.name }}"
-  retries: 2
+  retries: 5
   delay: 2
 
 - name: Configure the Alloy image if not provided explicitly
