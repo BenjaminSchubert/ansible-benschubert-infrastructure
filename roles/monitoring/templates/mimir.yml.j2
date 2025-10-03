@@ -4,6 +4,9 @@ multitenancy_enabled: false
 usage_stats:
   enabled: false
 
+limits:
+  max_global_series_per_user: {{ monitoring_mimir_per_user_series_limit }}
+
 target: all,alertmanager
 
 activity_tracker:
