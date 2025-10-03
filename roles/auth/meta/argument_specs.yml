@@ -50,7 +50,7 @@ argument_specs:
               - The email provider host
           password:
             type: str
-            required: true
+            required: false
             description:
               - The password to authenticate with the email provider
           port:
@@ -60,7 +60,7 @@ argument_specs:
               - The port for the SMTP service to send emails to
           username:
             type: str
-            required: true
+            required: false
             description:
               - The username to authenticate with the email provider
           ssl:
