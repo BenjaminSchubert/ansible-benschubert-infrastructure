@@ -20,7 +20,7 @@
     user: postgres
     state: quadlet
     volumes:
-      - "{{ postgres_data_path }}:/var/lib/postgresql/data:rw,U,Z"
+      - "{{ postgres_data_path }}:/var/lib/postgresql/:rw,U,Z"
     env:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
       POSTGRES_USER: "{{ postgres_user }}"
