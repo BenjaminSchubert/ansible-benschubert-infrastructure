@@ -3,7 +3,9 @@ argument_specs:
   main:
     short_description: >-
       Configure a PostgreSQL instance using podman
-    description: []
+    description:
+      - Configure PostgreSQL instance in a podman container
+      - Requires a container with PostgreSQL 18+
     options:
       monitoring_grafana_config_path:
         type: str
