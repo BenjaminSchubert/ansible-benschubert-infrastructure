@@ -91,7 +91,7 @@ pylint.max-branches = 13
     "D",  # Don't require docs for tests
     "INP001",  # No explicit packages here
 ]
-"molecule/default/tests/*" = [
+"extensions/molecule/default/tests/*" = [
     "D",  # Don't require docs for tests
     "T201",  # Allow print for debugs
 ]
