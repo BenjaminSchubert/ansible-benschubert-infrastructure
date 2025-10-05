@@ -2,6 +2,11 @@
 driver:
   name: podman
 
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
+
 verifier:
   name: testinfra
   options:

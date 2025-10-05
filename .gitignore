@@ -10,4 +10,4 @@ _artifacts/
 docs/*.rst
 
 # Files used for testing locally if needed
-molecule/default/files/
+extensions/molecule/default/files/

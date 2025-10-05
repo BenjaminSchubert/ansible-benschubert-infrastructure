@@ -77,6 +77,7 @@ manifest:
     - recursive-include roles **.yml **.j2
     - recursive-include plugins */**.py
     - recursive-include requirements **
+    - recursive-include extensions **
     - include .ansible-lint
     - include .yamllint.yml
     - include dwasfile.py
