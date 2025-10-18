@@ -29,6 +29,7 @@
     follow_redirects: none
     status_code:
       - "{{ expected_status_code | int }}"
+      - 501
   register: _service
   until: _service.status == expected_status_code
   retries: 25
