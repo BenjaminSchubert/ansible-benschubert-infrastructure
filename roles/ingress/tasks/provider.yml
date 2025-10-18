@@ -28,8 +28,8 @@
     validate_certs: "{{ ingress_validate_certs }}"
     follow_redirects: none
     status_code:
-      - "{{ expected_status_code | int }}"
       - 501
+      - "{{ expected_status_code | int }}"
   register: _service
   until: _service.status == expected_status_code
   retries: 25
