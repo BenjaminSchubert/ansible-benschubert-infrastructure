@@ -59,7 +59,7 @@
     name: "{{ item.name }}"
     data: "{{ item.data }}"
     state: present
-  when: (item.data | default(None)) is not none
+  when: (item.data | length) > 0
   loop:
     - name: auth-secret-key
       data: "{{ auth_authentik_secret_key }}"
@@ -68,7 +68,7 @@
     - name: auth-redis-password
       data: "{{ auth_redis_password }}"
     - name: auth-email-password
-      data: "{{ auth_authentik_email_config.password | default(None) }}"
+      data: "{{ auth_authentik_email_config.password | default('') }}"
   loop_control:
     label: "{{ item.name }}"
 
