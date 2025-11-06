@@ -21,8 +21,10 @@ class RewriteIndex(Transform):
 
     def _remove_version(self) -> None:
         node = self.document.next_node(nodes.section)
+        assert node is not None
         assert "benschubert-infrastructure" in node["ids"]
         versions = node.next_node(nodes.paragraph)
+        assert versions is not None
         assert str(versions.children[0]) == "Collection version 0.0.1"
         node.remove(versions)
 
