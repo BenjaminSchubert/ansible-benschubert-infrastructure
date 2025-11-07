@@ -9,7 +9,7 @@ receivers:
       - smarthost: mailpit:1025
         to: testing@github.com.benschubert.infrastructure
         auth_username: mailpit
-        auth_password_file: /run/secrets/monitoring-mimir-auth-password
+        auth_password: ${VAR:AUTH_PASSWORD}
         from: testing@github.com.benschubert.infrastructure
         require_tls: false
         headers:
