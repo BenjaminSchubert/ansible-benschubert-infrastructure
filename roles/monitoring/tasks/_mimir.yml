@@ -38,24 +38,32 @@
     state: quadlet
   loop: "{{ ['ingress-monitoring'] + monitoring_mimir_additional_networks }}"
 
+- name: Build the secret list for Mimir
+  ansible.builtin.set_fact:
+    _mimir_secrets: >-
+      {{
+        (_mimir_secrets | default([]))
+        + [
+            'monitoring-mimir-'
+            + item | regex_replace('_', '-') | lower
+            + ',type=env,target='
+            + item | upper
+          ]
+      }}
+  loop: "{{ monitoring_mimir_secrets.keys() }}"
+
 - name: Setup the Mimir container
   containers.podman.podman_container:
     name: monitoring-mimir
     state: quadlet
     image: "{{ monitoring_mimir_image }}"
-    command: --config.file=/etc/mimir/mimir.yml
+    command: --config.file=/etc/mimir/mimir.yml -config.expand-env=true
     # FIXME: the image from 2.13 now doesn't have curl or wget
     # healthcheck: wget -O- http://localhost:9009
     pull: newer
     read_only: true
     cap_drop: [all]
-    secrets: |
-      {{
-        monitoring_mimir_secrets
-        | map('lower')
-        | map('regex_replace', '_', '-')
-        | map('regex_replace', '^(.*)$', 'monitoring-mimir-\1')
-      }}
+    secrets: "{{ _mimir_secrets }}"
     volumes:
       - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
       - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
