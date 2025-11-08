@@ -63,7 +63,7 @@
     pull: newer
     read_only: true
     cap_drop: [all]
-    secrets: "{{ _mimir_secrets }}"
+    secrets: "{{ _mimir_secrets | default(omit) }}"
     volumes:
       - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
       - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
