@@ -1,0 +1,48 @@
+---
+- name: Create container instances
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Build the container
+      containers.podman.podman_image:
+        name: "{{ hostvars[item]['container']['image'] }}"
+        path: "{{ hostvars[item]['container']['build_context'] }}"
+        state: build
+      loop: "{{ groups['molecule'] }}"
+
+    - name: Create containers from inventory
+      containers.podman.podman_container:
+        hostname: "{{ item }}"
+        name: "{{ hostvars[item].ansible_host }}"
+        etc_hosts: "{{ container.etc_hosts | default(omit) }}"
+        image: "{{ container.image | default(omit) }}"
+        privileged: "{{ container.privileged | default(omit) }}"
+        published_ports: "{{ container.published_ports | default(omit) }}"
+        security_opt: "{{ container.security_opt | default(omit) }}"
+        state: started
+        sysctl: "{{ container.sysctl | default(omit) }}"
+        tty: "{{ container.tty | default(omit) }}"
+        volumes: "{{ container.volumes | default(omit) }}"
+      register: result
+      vars:
+        container: "{{ hostvars[item]['container'] }}"
+      loop: "{{ groups['molecule'] }}"
+
+    - name: Wait for containers to be ready
+      ansible.builtin.wait_for_connection:
+        timeout: 30
+      delegate_to: "{{ item }}"
+      loop: "{{ groups['molecule'] }}"
+
+    - name: Dump instance config
+      ansible.builtin.copy:
+        content: |
+          # Molecule managed
+          ---
+          {% for host in groups['molecule'] %}
+          - instance: {{ host }}
+            ansible_host: {{ hostvars[host].ansible_host }}
+            ansible_user: {{ hostvars[host].ansible_user }}
+          {% endfor %}
+        dest: "{{ molecule_instance_config }}"
+        mode: "0600"

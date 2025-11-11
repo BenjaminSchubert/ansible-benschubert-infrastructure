@@ -21,14 +21,6 @@
           tags:
             - molecule-idempotence-notest
 
-    # FIXME: find out how to do replacements for molecule that support default
-    #        values of '{}'
-    - name: Patch ansible variables that should default to empty dict
-      ansible.builtin.set_fact:
-        ingress_traefik_certificates_resolvers: "{{ ingress_traefik_certificates_resolvers or {} }}"
-        ingress_traefik_environment_variables: "{{ ingress_traefik_environment_variables or {} }}"
-        ingress_traefik_secrets: "{{ ingress_traefik_secrets or {} }}"
-
     - name: Setup everything
       block:
         - name: Execute the main role
