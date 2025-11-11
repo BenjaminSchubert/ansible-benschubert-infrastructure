@@ -15,7 +15,7 @@ http:
       priority: 15
       service: authentik@file
 
-    traefik-icon:
+    mailpit-icon:
       rule: Host(`{{ hostname }}`) && PathPrefix(`/mailpit.svg`)
       service: mailpit@file
       priority: 15

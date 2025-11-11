@@ -1,21 +1,10 @@
-{% if item.registry is defined %}
-FROM {{ item.registry.url }}/{{ item.image }}
-{% else %}
-FROM {{ item.image }}
-{% endif %}
-
-{% if item.env is defined %}
-{% for var, value in item.env.items() %}
-{% if value %}
-ENV {{ var }} {{ value }}
-{% endif %}
-{% endfor %}
-{% endif %}
+FROM docker.io/debian:trixie-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install required packages
 RUN apt-get update && \
+    apt-get upgrade --assume-yes && \
     apt-get install --assume-yes --no-install-recommends \
         aardvark-dns \
         bash \
@@ -59,9 +48,11 @@ RUN useradd --create-home --groups sudo --shell /bin/bash podman && \
     touch /var/lib/systemd/linger/podman
 
 # Configure podman
-COPY image/isolated_hosts /etc/isolated_hosts
-COPY image/containers.conf /etc/containers/containers.conf
-COPY --chown=podman:podman image/storage.conf /home/podman/.config/containers/storage.conf
+COPY isolated_hosts /etc/isolated_hosts
+COPY containers.conf /etc/containers/containers.conf
+COPY --chown=podman:podman storage.conf /home/podman/.config/containers/storage.conf
 
 VOLUME /home/podman/.local/share/containers
 VOLUME /home/podman/infrastructure
+
+CMD ["/usr/sbin/init"]

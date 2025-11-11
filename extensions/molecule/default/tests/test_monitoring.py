@@ -1,4 +1,3 @@
-import os
 from http import HTTPStatus
 from typing import Any
 from urllib.parse import urlparse
@@ -85,13 +84,6 @@ def test_services_are_up(
             "1",
         ),
         (
-            os.getenv(
-                "CONTAINER_NAME", "benschubert-infrastructure-test-container"
-            ),
-            "integrations/unix",
-            "1",
-        ),
-        (
             "grafana",
             "prometheus.scrape.benschubert_infrastructure_monitoring_monitoring",
             "1",
@@ -104,6 +96,11 @@ def test_services_are_up(
         (
             "mimir",
             "prometheus.scrape.benschubert_infrastructure_monitoring_monitoring",
+            "1",
+        ),
+        (
+            "molecule-benschubert-infrastructure",
+            "integrations/unix",
             "1",
         ),
         (
