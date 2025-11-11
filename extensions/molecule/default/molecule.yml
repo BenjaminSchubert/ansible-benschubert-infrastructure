@@ -1,47 +1,9 @@
 ---
-driver:
-  name: podman
-
-dependency:
-  name: galaxy
-  options:
-    requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
-
-verifier:
-  name: testinfra
-  options:
-    verbose: true
-
-platforms:
-  - name: ${CONTAINER_NAME:-benschubert-infrastructure-test-container}
-    image: docker.io/debian:trixie-slim
-    hostname: ${CONTAINER_NAME:-benschubert-infrastructure-test-container}
-    command: /usr/sbin/init
-    dockerfile: Dockerfile.j2
-    etc_hosts:
-      ${AUTHENTIK_HOSTNAME:-auth.test}: 127.0.0.1
-      ${TRAEFIK_HOSTNAME:-traefik.test}: 127.0.0.1
-      ${GRAFANA_HOSTNAME:-grafana.test}: 127.0.0.1
-      ${LOKI_HOSTNAME:-loki.test}: 127.0.0.1
-      ${MIMIR_HOSTNAME:-mimir.test}: 127.0.0.1
-      ${MAILPIT_HOSTNAME:-mailpit.test}: 127.0.0.1
-    security_opts:
-      - label=disable
-    published_ports:
-      - 127.0.0.1:${HTTP_PORT:-8080}:${HTTP_PORT:-8080}
-      - 127.0.0.1:${HTTPS_PORT:-8443}:${HTTPS_PORT:-8443}
-    devices:
-      - /dev/fuse
-    privileged: true
-    tty: true
-    volumes:
-      - ${CONTAINER_NAME:-benschubert-infrastructure-test-container}-containers:/home/podman/.local/share/containers
-      - ${CONTAINER_NAME:-benschubert-infrastructure-test-container}-data:/home/podman/infrastructure
-    extra_opts:
-      - --sysctl=net.ipv4.ip_unprivileged_port_start=${HTTP_PORT:-1024}
-
-provisioner:
-  name: ansible
+ansible:
+  executor:
+    args:
+      ansible_playbook:
+        - --inventory=inventory/
   env:
     ANSIBLE_CALLBACKS_ENABLED: ansible.posix.profile_roles, ansible.posix.profile_tasks
     ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
@@ -49,120 +11,22 @@ provisioner:
     ANSIBLE_PIPELINING: "True"
     PROFILE_TASKS_SUMMARY_ONLY: "True"
     PROFILE_ROLES_SUMMARY_ONLY: "True"
-  inventory:
-    host_vars:
-      ${CONTAINER_NAME:-benschubert-infrastructure-test-container}:
-        # Test optimisations
-        registries_conf: ${REGISTRIES_CONF:-null}
 
-        # Base definitions
-        ansible_user: podman
-        data: /home/podman/infrastructure
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
 
-        template_warning: |
-          ##################################################
-          # WARNING
-          #
-          # This file is managed by ansible.
-          #
-          # Any change done on this file will be overriden
-          # on the next run of ansible.
-          ##################################################
+driver:
+  name: default
+  options:
+    login_cmd_template: podman exec --user {ansible_user} -ti {ansible_host} bash
 
-        # Hostnames
-        auth_authentik_hostname: ${AUTHENTIK_HOSTNAME:-auth.test}
-        ingress_traefik_dashboard_hostname: ${TRAEFIK_HOSTNAME:-traefik.test}
-        monitoring_grafana_hostname: ${GRAFANA_HOSTNAME:-grafana.test}
-        monitoring_loki_hostname: ${LOKI_HOSTNAME:-loki.test}
-        monitoring_mimir_hostname: ${MIMIR_HOSTNAME:-mimir.test}
-        mailpit_test_gateway_mailpit_hostname: ${MAILPIT_HOSTNAME:-mailpit.test}
+platforms:
+  - name: molecule-benschubert-infrastructure
 
-        # Networks
-        ingress_additional_networks:
-          - ingress-mailpit
-
-        auth_worker_additional_networks:
-          - auth-worker-mailpit
-
-        monitoring_mimir_additional_networks:
-          - monitoring-mimir-mailpit
-
-        mailpit_test_gateway_networks:
-          - ingress-mailpit
-          - auth-worker-mailpit
-          - monitoring-mimir-mailpit
-
-        # Group membership
-        default_monitor_agent_user_group: ${MONITOR_AGENT_USER_GROUP:-null}
-        test_akadmin_user_group: ${TEST_AKADMIN_USER_GROUP:-Grafana Admins}
-        monitoring_grafana_admin_group_name: ${GRAFANA_ADMIN_GROUP_NAME:-Grafana Admins}
-
-        ingress_traefik_allowlisted_groups: ${TRAEFIK_ALLOWLISTED_GROUPS:-null}
-        monitoring_grafana_allowlisted_groups: ${GRAFANA_ALLOWLISTED_GROUPS:-null}
-        monitoring_loki_allowlisted_groups: ${LOKI_ALLOWLISTED_GROUPS:-null}
-        monitoring_mimir_allowlisted_groups: ${MIMIR_ALLOWLISTED_GROUPS:-null}
-        mailpit_test_gateway_allowlisted_groups: ${MAILPIT_ALLOWLISTED_GROUPS:-null}
-
-        ##
-        # Ingress
-        ##
-        ingress_custom_ca_cert_url: ${TRAEFIK_CUSTOM_CA_CERT:-null}
-        ingress_http_port: ${HTTP_PORT:-8080}
-        ingress_https_port: ${HTTPS_PORT:-8443}
-        ingress_monitor_agent_config_path: "{{ data }}/ingress/agent/config"
-        ingress_monitor_agent_data_path: "{{ data }}/ingress/agent/data"
-        ingress_traefik_certificates_resolvers: ${TRAEFIK_CERTIFICATES_RESOLVER:-null}
-        ingress_traefik_configuration_files_path: "{{ data }}/ingress/traefik"
-        ingress_traefik_environment_variables: ${TRAEFIK_ENVIRONMENT_VARIABLES:-null}
-        ingress_traefik_secrets: ${TRAEFIK_SECRETS:-null}
-        ingress_validate_certs: ${TRAEFIK_VALIDATE_CERTS:-false}
-
-        ##
-        # Auth
-        ##
-        auth_authentik_secret_key: verysecretkey
-        auth_authentik_superadmin_bootstrap_email: ${AUTHENTIK_EMAIL:-null}
-        auth_authentik_superadmin_bootstrap_password: password
-        auth_authentik_superadmin_bootstrap_token: superadmintoken
-        auth_monitor_agent_config_path: "{{ data }}/auth/agent/config"
-        auth_monitor_agent_data_path: "{{ data }}/auth/agent/data"
-        auth_postgres_password: verysecretpassword
-        auth_postgres_data_path: "{{ data }}/auth/postgres"
-        auth_redis_password: veryredispassword
-        auth_redis_metrics_password: verymetricspassword
-        auth_redis_data_path: "{{ data }}/auth/redis/"
-        auth_authentik_configuration_path: "{{ data }}/auth/authentik"
-        auth_authentik_email_config:
-          host: mailpit
-          port: 1025
-          from: testing@github.com.benschubert.infrastructure
-          username: mailpit
-          password: mailpit-password
-        auth_authentik_background: ${AUTHENTIK_WALLPAPER:-null}
-        auth_authentik_icon: ${AUTHENTIK_ICON:-null}
-
-        ##
-        # Monitoring
-        ##
-        monitoring_grafana_secret_key: averysecretsecret
-        monitoring_grafana_admin_user: admin
-        monitoring_grafana_admin_bootstrap_password: supersecretpassword
-        monitoring_grafana_postgres_password: postgresgrafanapassword
-        monitoring_grafana_postgres_data_path: "{{ data }}/monitoring/grafana/postgres"
-        monitoring_grafana_config_path: "{{ data }}/monitoring/grafana/config"
-        monitoring_grafana_data_path: "{{ data }}/monitoring/grafana/data"
-        monitoring_loki_config_path: "{{ data }}/monitoring/loki/config"
-        monitoring_loki_data_path: "{{ data }}/monitoring/loki/data"
-        monitoring_mimir_alertmanager_config_template: alertmanager-fallback-config.yml.j2
-        monitoring_mimir_config_path: "{{ data }}/monitoring/mimir/config"
-        monitoring_mimir_data_path: "{{ data }}/monitoring/mimir/data"
-        monitoring_mimir_secrets:
-          auth_password: mailpit-password
-        monitoring_monitor_agent_config_path: "{{ data }}/monitoring/agent/config"
-        monitoring_monitor_agent_data_path: "{{ data }}/monitoring/agent/data"
-
-        ##
-        # Mailpit for testing
-        ##
-        mailpit_test_gateway_smtp_username: mailpit
-        mailpit_test_gateway_smtp_password: mailpit-password
+verifier:
+  name: testinfra
+  options:
+    verbose: true
+    ansible-inventory: inventory/

@@ -1,0 +1,11 @@
+---
+- name: Destroy container instances
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Remove container
+      containers.podman.podman_container:
+        name: "{{ hostvars[item].ansible_host }}"
+        state: absent
+        timeout: 10
+      loop: "{{ groups['molecule'] }}"
