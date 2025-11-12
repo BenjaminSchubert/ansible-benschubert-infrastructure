@@ -1,55 +1,98 @@
 ---
 - name: Prepare hosts
   hosts: all
-  gather_facts: false
 
   tasks:
-    - name: Gather info about all present containers
-      containers.podman.podman_container_info:
-      register: _all_containers
-
-    - name: Remove all current containers
-      ansible.builtin.command:
-        cmd: podman pod rm {{ _all_containers.containers | map(attribute='Name') | join(' ') }}
-      changed_when: true
-      when: _all_containers.containers | length > 0
-
-    - name: Gather info about all present secrets
-      ansible.builtin.command:
-        cmd: podman secret ls --quiet
-      changed_when: false
-      register: _all_secrets
-
-    - name: Remove all current secrets
-      ansible.builtin.command:
-        cmd: podman secret rm {{ _all_secrets.stdout_lines | join(' ') }}
-      changed_when: true
-      when: _all_secrets.stdout_lines | length > 0
-
-    - name: Gather info about all present networks
-      containers.podman.podman_network_info:
-      register: _all_networks
-
-    - name: Remove all current networks
-      ansible.builtin.command:
-        cmd: >-
-          podman
-          network
-          rm
-          {{
-            _all_networks.networks
-            | map(attribute='name')
-            | reject('equalto', 'podman')
-            | join(' ')
-          }}
-      changed_when: true
-      when: _all_networks.networks | map(attribute='name') != ["podman"]
-
-    - name: Remove leftover files
+    - name: Configure /etc/hosts
       become: true
-      ansible.builtin.shell:
-        cmd: rm -rf /home/podman/infrastructure/*
-        removes: /home/podman/infrastructure/*
+      ansible.builtin.copy:
+        content: |
+          {{ template_warning }}
+          127.0.0.1       localhost
+          ::1             localhost ip6-localhost ip6-loopback
+          ff02::1         ip6-allnodes
+          ff02::2         ip6-allrouters
+
+          127.0.1.1 molecule-benschubert-infrastructure {{ hostnames | join(' ') }}
+        dest: /etc/hosts
+
+    - name: Configure apt proxy
+      become: true
+      when: apt_proxy | default("") | length > 0
+      ansible.builtin.copy:
+        content: |
+          {{ template_warning }}
+          Acquire::http::Proxy "{{ apt_proxy }}";
+        dest: /etc/apt/apt.conf.d/80-proxy
+        mode: "0o644"
+
+    - name: Remove default repositories
+      become: true
+      ansible.builtin.file:
+        path: /etc/apt/sources.list
+        state: absent
+
+    - name: Configure debian sources
+      become: true
+      ansible.builtin.deb822_repository:
+        name: debian
+        types:
+          - deb
+          - deb-src
+        uris: http://deb.debian.org/debian
+        suites: "{{ ansible_distribution_release }} {{ ansible_distribution_release }}-updates"
+        components: main contrib
+        signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
+
+    - name: Configure debian security sources
+      become: true
+      ansible.builtin.deb822_repository:
+        name: debian-security
+        types:
+          - deb
+          - deb-src
+        uris: http://security.debian.org/debian-security
+        suites: "{{ ansible_distribution_release }}-security"
+        components: main contrib
+        signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
+
+    - name: Ensure all packages are up to date
+      become: true
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Install packages
+      become: true
+      ansible.builtin.apt:
+        name:
+          - aardvark-dns
+          - bash
+          - ca-certificates
+          - catatonit
+          - dbus-user-session
+          - fuse-overlayfs
+          - init
+          - iproute2
+          - iptables
+          - nftables
+          - passt
+          - podman
+          - python3
+          - sudo
+          - systemd
+          - uidmap
+          # And some utilities to help debug
+          - curl
+          - jq
+          - less
+
+    - name: Enable lingering for the vagrant user
+      become: true
+      ansible.builtin.command:
+        cmd: loginctl enable-linger vagrant
+        creates: /var/lib/systemd/linger/vagrant
 
     - name: Setup registries
       become: true
@@ -58,3 +101,7 @@
         dest: /etc/containers/registries.conf.d/050-registries.conf
         mode: "0o755"
       when: registries_conf is not none
+
+    - name: Reboot
+      become: true
+      ansible.builtin.reboot:

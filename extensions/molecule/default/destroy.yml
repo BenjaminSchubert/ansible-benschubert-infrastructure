@@ -3,9 +3,8 @@
   hosts: localhost
   gather_facts: false
   tasks:
-    - name: Remove container
-      containers.podman.podman_container:
-        name: "{{ hostvars[item].ansible_host }}"
-        state: absent
-        timeout: 10
-      loop: "{{ groups['molecule'] }}"
+    - name: Destroy Virtual machine
+      ansible.builtin.command:
+        cmd: vagrant destroy --force
+      register: _vagrant_destroy
+      changed_when: "'Domain is not created' in _vagrant_destroy.stdout"

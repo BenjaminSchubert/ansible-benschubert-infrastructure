@@ -20,7 +20,7 @@ dependency:
 driver:
   name: default
   options:
-    login_cmd_template: podman exec --user {ansible_user} -ti {ansible_host} bash
+    login_cmd_template: vagrant ssh
 
 platforms:
   - name: molecule-benschubert-infrastructure
