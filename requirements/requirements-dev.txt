@@ -2,5 +2,4 @@
 -r requirements-tests.txt
 ansible-lint
 molecule>=25.9
-molecule-plugins[podman]>=25.8.12
 tabulate
