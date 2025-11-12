@@ -22,7 +22,7 @@ def str_presenter(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
 yaml.add_representer(str, str_presenter)
 
 
-class LocalhostVerifyAdapter(requests.adapters.HTTPAdapter):
+class HostVerifyAdapter(requests.adapters.HTTPAdapter):
     def __init__(
         self,
         real_target: str,

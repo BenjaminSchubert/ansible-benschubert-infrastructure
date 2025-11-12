@@ -3,9 +3,8 @@
   hosts: localhost
   gather_facts: false
   tasks:
-    - name: Remove container
-      containers.podman.podman_container:
-        name: "{{ hostvars[item].ansible_host }}"
+    - name: Destroy the Virtual Machine
+      community.libvirt.virt_install:
+        name: molecule-benschubert-infrastructure-test
         state: absent
-        timeout: 10
-      loop: "{{ groups['molecule'] }}"
+        uri: qemu:///session

@@ -10,9 +10,7 @@ from testinfra.host import Host
 
 @pytest.fixture(scope="module")
 def containers(host: Host) -> list[str]:
-    result = host.run(
-        "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
-    )
+    result = host.run("podman container ps --all --format '{{ .Names }}'")
     assert result.succeeded
 
     return cast("list[str]", sorted(result.stdout.split()))
@@ -31,7 +29,7 @@ def test_infrastructure_service_starts_and_stops_all_services(
     for _ in range(30):
         try:
             result = host.run(
-                "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
+                "podman container ps --all --format '{{ .Names }}'"
             )
             assert result.succeeded
             assert result.stdout.split() == [], (
@@ -51,15 +49,13 @@ def test_infrastructure_service_starts_and_stops_all_services(
     assert result.succeeded
 
     # 4. We get the same amount of containers as at the start
-    result = host.run(
-        "podman container ps --all --format '{{ '{{' }}.Names{{ '}}' }}'"
-    )
+    result = host.run("podman container ps --all --format '{{ .Names }}'")
     assert result.succeeded
     assert sorted(result.stdout.split()) == containers
 
 
 def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
-    mount_format = "{{ '{{' }} json .Mounts {{ '}}' }}"
+    mount_format = "{{ json .Mounts }}"
     result = host.run(
         f"podman inspect --format '{mount_format}' {' '.join(containers)}",
     )
@@ -147,7 +143,7 @@ def test_all_networks_are_internal(host: Host) -> None:
 def test_all_containers_have_a_read_only_rootfs(
     host: Host, containers: list[str]
 ) -> None:
-    readonly_format = "{{ '{{' }} .HostConfig.ReadonlyRootfs {{ '}}' }}"
+    readonly_format = "{{ .HostConfig.ReadonlyRootfs }}"
     result = host.run(
         f"podman inspect --format '{readonly_format}' {' '.join(containers)}"
     )
@@ -167,7 +163,7 @@ def test_all_containers_have_a_read_only_rootfs(
 def test_all_containers_have_minimal_capabilities(
     host: Host, containers: list[str]
 ) -> None:
-    caps_format = "{{ '{{' }} json .BoundingCaps {{ '}}' }}"
+    caps_format = "{{ json .BoundingCaps }}"
     result = host.run(
         f"podman inspect --format '{caps_format}' {' '.join(containers)}"
     )

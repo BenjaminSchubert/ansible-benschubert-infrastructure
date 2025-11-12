@@ -1,60 +1,152 @@
 ---
 - name: Prepare hosts
   hosts: all
-  gather_facts: false
 
   tasks:
-    - name: Gather info about all present containers
-      containers.podman.podman_container_info:
-      register: _all_containers
-
-    - name: Remove all current containers
-      ansible.builtin.command:
-        cmd: podman pod rm {{ _all_containers.containers | map(attribute='Name') | join(' ') }}
-      changed_when: true
-      when: _all_containers.containers | length > 0
-
-    - name: Gather info about all present secrets
-      ansible.builtin.command:
-        cmd: podman secret ls --quiet
-      changed_when: false
-      register: _all_secrets
-
-    - name: Remove all current secrets
-      ansible.builtin.command:
-        cmd: podman secret rm {{ _all_secrets.stdout_lines | join(' ') }}
-      changed_when: true
-      when: _all_secrets.stdout_lines | length > 0
-
-    - name: Gather info about all present networks
-      containers.podman.podman_network_info:
-      register: _all_networks
-
-    - name: Remove all current networks
-      ansible.builtin.command:
-        cmd: >-
-          podman
-          network
-          rm
-          {{
-            _all_networks.networks
-            | map(attribute='name')
-            | reject('equalto', 'podman')
-            | join(' ')
-          }}
-      changed_when: true
-      when: _all_networks.networks | map(attribute='name') != ["podman"]
-
-    - name: Remove leftover files
+    - name: Configure /etc/hosts
       become: true
-      ansible.builtin.shell:
-        cmd: rm -rf /home/podman/infrastructure/*
-        removes: /home/podman/infrastructure/*
+      ansible.builtin.copy:
+        content: |
+          {{ template_warning }}
+          127.0.0.1       localhost molecule-benschubert-infrastructure {{ hostnames | join(' ') }}
+          ::1             localhost ip6-localhost ip6-loopback
+          ff02::1         ip6-allnodes
+          ff02::2         ip6-allrouters
+        dest: /etc/hosts
+        mode: "0o644"
+
+    - name: Configure apt proxy
+      become: true
+      when: apt_proxy | default("") | length > 0
+      ansible.builtin.copy:
+        content: |
+          {{ template_warning }}
+          Acquire::http::Proxy "{{ apt_proxy }}";
+        dest: /etc/apt/apt.conf.d/80-proxy
+        mode: "0o644"
+
+    - name: Remove default repositories
+      become: true
+      ansible.builtin.file:
+        path: /etc/apt/sources.list
+        state: absent
+
+    - name: Configure debian sources
+      become: true
+      ansible.builtin.deb822_repository:
+        name: debian
+        types:
+          - deb
+          - deb-src
+        uris: http://deb.debian.org/debian
+        # yamllint disable-line rule:line-length
+        suites: "{{ ansible_facts.distribution_release }} {{ ansible_facts.distribution_release }}-updates"
+        components: main contrib
+        signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
+
+    - name: Configure debian security sources
+      become: true
+      ansible.builtin.deb822_repository:
+        name: debian-security
+        types:
+          - deb
+          - deb-src
+        uris: http://security.debian.org/debian-security
+        suites: "{{ ansible_facts.distribution_release }}-security"
+        components: main contrib
+        signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
+
+    - name: Ensure all packages are up to date
+      become: true
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Install packages
+      become: true
+      ansible.builtin.apt:
+        name:
+          - aardvark-dns
+          - bash
+          - busybox-static
+          - ca-certificates
+          - catatonit
+          - dbus-user-session
+          - fuse-overlayfs
+          - init
+          - iproute2
+          - iptables
+          - nftables
+          - passt
+          - podman
+          - python3
+          - sudo
+          - systemd
+          - uidmap
+          # And some utilities to help debug
+          - curl
+          - jq
+          - less
+
+    - name: Enable lingering for the testuser user
+      become: true
+      ansible.builtin.command:
+        cmd: loginctl enable-linger testuser
+        creates: /var/lib/systemd/linger/testuser
+
+    - name: Setup isolated hosts for podman internal
+      become: true
+      ansible.builtin.copy:
+        content: |
+          127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+          ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+        dest: /etc/containers/isolated_hosts
+        mode: "0o644"
+
+    - name: Setup containers configuration
+      become: true
+      ansible.builtin.copy:
+        content: |
+          [containers]
+          base_hosts_file = "/etc/containers/isolated_hosts"
+        dest: /etc/containers/containers.conf
+        mode: "0o644"
 
     - name: Setup registries
       become: true
       ansible.builtin.copy:
         src: "{{ registries_conf }}"
         dest: /etc/containers/registries.conf.d/050-registries.conf
-        mode: "0o755"
+        mode: "0o644"
       when: registries_conf is not none
+
+    - name: Ensure the config directory for containers exists
+      ansible.builtin.file:
+        path: /home/testuser/.config/containers
+        state: directory
+        mode: "0o750"
+
+    - name: Setup storage configuration for containers
+      ansible.builtin.copy:
+        content: |
+          # FIXME: Use native overlay once it supports user namespaces
+          #        See https://github.com/containers/podman/issues/16541
+          [storage]
+          driver = "overlay"
+
+          [storage.options]
+          mount_program = "/usr/bin/fuse-overlayfs"
+        dest: /home/testuser/.config/containers/storage.conf
+        mode: "0o644"
+
+    - name: Allow access to low ports to non-root
+      become: true
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_unprivileged_port_start
+        value: "80"
+        sysctl_file: /etc/sysctl.d/privileged.conf
+
+    - name: Reboot
+      become: true
+      ansible.builtin.reboot:

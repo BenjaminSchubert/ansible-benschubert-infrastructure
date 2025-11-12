@@ -41,6 +41,8 @@ jobs:
         run: pip install -r requirements/requirements.txt
       - name: Install the collection
         run: ansible-galaxy collection install .
+      - name: Install test collections
+        run: ansible-galaxy install --role-file=extensions/molecule/default/requirements.yml
       - name: Run ansible-lint
         uses: ansible/ansible-lint@main
         with:
@@ -52,6 +54,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+      - name: Update apt cache
+        run: sudo apt-get update
+      - name: Install system dependencies
+        run: sudo apt-get install --assume-yes libvirt-dev
       - name: Install python
         uses: actions/setup-python@v6
         with:
@@ -71,6 +77,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+      - name: Update apt cache
+        run: sudo apt-get update
+      - name: Install system dependencies
+        run: sudo apt-get install --assume-yes libvirt-dev
       - name: Install python
         uses: actions/setup-python@v6
         with:
@@ -134,10 +144,6 @@ jobs:
       ANSIBLE_FORCE_COLOR: 1
     runs-on: ubuntu-latest
     steps:
-      - name: Increase subuids/subgids for runner
-        run: echo "${USER}:100000:655360" | sudo tee /etc/subuid /etc/subgid
-      - name: Reset podman
-        run: podman system reset --force
       - name: Checkout code
         uses: actions/checkout@v6
       - name: Install python
@@ -145,15 +151,25 @@ jobs:
         with:
           cache: pip
           python-version: ${{ env.PYTHON }}
+      - name: Update apt cache
+        run: sudo apt-get update
+      - name: Install libvirt and dependencies
+        run: sudo apt-get install --assume-yes cloud-image-utils libvirt-daemon-system libvirt-dev qemu-kvm virtinst
+      - name: Add user to the kvm group
+        run: sudo adduser "${USER}" kvm
+      - name: Add user to the libvirt-qemu group
+        run: sudo adduser "${USER}" libvirt-qemu
+      - name: Configure bridge for user-space networking
+        run: sudo mkdir /etc/qemu && echo "allow virbr0" | sudo tee /etc/qemu/bridge.conf
+      - name: Allow qemu-bridge-helper to be used as non-root
+        run: sudo chmod u+s /usr/lib/qemu/qemu-bridge-helper
       - name: Install dependencies
         run: pip install -r requirements/requirements-dev.txt
       - name: Allow binding to lower ports
         if: ${{ matrix.setup == 'privileged' }}
-        run: >-
-          sudo sysctl net.ipv4.ip_unprivileged_port_start=80
-          && cp extensions/molecule/default/configs/privileged-env.yml .env.yml
+        run: cp extensions/molecule/default/configs/privileged-env.yml .env.yml
       - name: molecule create
-        run: molecule create
+        run: sg kvm 'sg libvirt-qemu "sg \"${USER}\" \"molecule create\""'
       - name: molecule converge
         run: mkdir -p ${PWD}/.cache && molecule converge
         env:
@@ -172,6 +188,8 @@ jobs:
           && echo "## Idempotence" >> $GITHUB_STEP_SUMMARY &&
           python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence
           | tee --append $GITHUB_STEP_SUMMARY
+      - name: molecule destroy
+        run: molecule destroy
 
   ###
   # Package
