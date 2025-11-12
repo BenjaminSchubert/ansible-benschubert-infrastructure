@@ -113,5 +113,5 @@ addopts = "--color=yes --verbose --verbose"
 
 filterwarnings = [
     "error",
-    "ignore:.*to host 'localhost'.*:urllib3.exceptions.InsecureRequestWarning"
+    "ignore:.*to host '.*'.*:urllib3.exceptions.InsecureRequestWarning"
 ]

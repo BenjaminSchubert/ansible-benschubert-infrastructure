@@ -5,18 +5,20 @@ from urllib.parse import urlparse
 import requests
 
 
-def test_ingress_access_http_redirects_to_https(http_port: int) -> None:
+def test_ingress_access_http_redirects_to_https(
+    http_port: int, ip: str
+) -> None:
     resp = requests.get(
-        f"http://localhost:{http_port}",
+        f"http://{ip}:{http_port}",
         allow_redirects=False,
         timeout=10,
     )
     assert resp.status_code == HTTPStatus.MOVED_PERMANENTLY
 
 
-def test_ingress_access_https(https_port: int) -> None:
+def test_ingress_access_https(https_port: int, ip: str) -> None:
     resp = requests.get(
-        f"https://localhost:{https_port}",
+        f"https://{ip}:{https_port}",
         verify=False,  # noqa:S501
         timeout=10,
     )

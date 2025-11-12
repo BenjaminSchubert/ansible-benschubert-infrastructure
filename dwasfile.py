@@ -20,7 +20,7 @@ PYTHON_FILES = [
     "dwasfile.py",
     "docs/",
     "plugins",
-    "molecule/",
+    "extensions/molecule/",
     ".github/scripts",
 ]
 
@@ -36,6 +36,16 @@ def _install_collection(step: StepRunner) -> tuple[dict[str, str], str]:
     # FIXME: once we can set an environment variable from a step, we should
     #        have the build step take care of the installation and inject
     #        the collections path
+
+    step.run(
+        [
+            "ansible-galaxy",
+            "install",
+            "--role-file=extensions/molecule/default/requirements.yml",
+            "--force",
+        ],
+        env=env,
+    )
 
     step.run(
         [

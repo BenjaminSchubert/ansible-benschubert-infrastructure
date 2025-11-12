@@ -1,5 +1,8 @@
 ---
 ansible:
+  cfg:
+    ssh_connection:
+      ssh_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
   executor:
     args:
       ansible_playbook:
@@ -17,16 +20,10 @@ dependency:
   options:
     requirements-file: ${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml
 
-driver:
-  name: default
-  options:
-    login_cmd_template: podman exec --user {ansible_user} -ti {ansible_host} bash
-
 platforms:
   - name: molecule-benschubert-infrastructure
 
 verifier:
   name: testinfra
   options:
-    verbose: true
     ansible-inventory: inventory/
