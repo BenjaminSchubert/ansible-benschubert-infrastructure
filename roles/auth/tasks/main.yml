@@ -358,7 +358,7 @@
   loop_control:
     label: "{{ item.name }}"
   retries: 5
-  delay: 2
+  delay: 5
 
 - name: Configure the Alloy image if not provided explicitly
   ansible.builtin.set_fact:
