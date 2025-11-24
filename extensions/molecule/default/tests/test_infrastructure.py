@@ -100,11 +100,7 @@ def test_all_containers_succeed_healthchecks(
             ),
             strict=True,
         ):
-            if container == "monitoring-mimir":
-                assert res.exit_status != 0, (
-                    "Mimir did not have healthchecks set?"
-                )
-            elif res.exit_status != 0:
+            if res.exit_status != 0:
                 errors[container] = res.stderr
 
     assert not errors, "Some containers failed their healtchecks"

@@ -4,7 +4,7 @@
     msg: >-
       The bootstrap admin password is still injected. You might want to
       change the secrets and remove them from the variables for security
-  when: monitoring_grafana_admin_bootstrap_password
+  when: monitoring_grafana_admin_bootstrap_password | length > 0
   ignore_errors: true
   tags:
     - skip_ansible_lint

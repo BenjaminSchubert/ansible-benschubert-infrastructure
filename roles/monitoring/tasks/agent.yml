@@ -121,10 +121,11 @@
       - --disable-reporting
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
-    # FIXME: Once https://github.com/grafana/alloy/issues/477 is resolved
-    #        we should be able to set it to curl/wget
-    # healthcheck: wget -O- http://localhost:9009/-/healthy
-    healthcheck: /bin/true
+    healthcheck: CMD /busybox wget -O- http://127.0.0.1:12345/-/ready
+    healthcheck_interval: 1m
+    health_startup_interval: 10s
+    health_startup_timeout: 5min
+    sdnotify: healthy
     pull: newer
     read_only: true
     cap_drop: [all]
@@ -157,6 +158,7 @@
     volumes:
       - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,U,Z"
       - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:U,Z"
+      - /usr/bin/busybox:/busybox:ro,Z
     network: "{{ monitoring_agent_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
     userns: auto:size=474
     quadlet_options:
