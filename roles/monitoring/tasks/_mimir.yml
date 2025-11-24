@@ -58,8 +58,11 @@
     state: quadlet
     image: "{{ monitoring_mimir_image }}"
     command: --config.file=/etc/mimir/mimir.yml -config.expand-env=true
-    # FIXME: the image from 2.13 now doesn't have curl or wget
-    # healthcheck: wget -O- http://localhost:9009
+    healthcheck: CMD /busybox wget -O- http://localhost:9009/ready
+    healthcheck_interval: 1m
+    health_startup_interval: 10s
+    health_startup_timeout: 5min
+    sdnotify: healthy
     pull: newer
     read_only: true
     cap_drop: [all]
@@ -68,6 +71,7 @@
       - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
       - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
       - "{{ monitoring_mimir_data_path }}:/data:U,Z"
+      - /usr/bin/busybox:/busybox:ro,Z
     network: |
       {{
         ['ingress-monitoring.network'] +
@@ -99,12 +103,8 @@
     enabled: true
     daemon_reload: true
 
-- name: Ensure the mimir container is up
-  containers.podman.podman_container_info:
-    name: monitoring-mimir
-  register: _containers
-  until: (_containers.containers[0].State.Status | default('absent')) == "running"
-  retries: 10
+- name: Ensure the Mimir container is healthy
+  ansible.builtin.command: podman healthcheck run monitoring-mimir
   changed_when: false
 
 - name: Create an application for Mimir on Authentik
