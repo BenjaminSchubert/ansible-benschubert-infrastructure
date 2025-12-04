@@ -12,6 +12,7 @@
     - skip_ansible_lint
 
 - name: Create the required network
+  become: true
   containers.podman.podman_network:
     name: "{{ item }}"
     internal: true
@@ -19,6 +20,7 @@
   loop: "{{ auth_worker_additional_networks }}"
 
 - name: Ensure the paths for authentik exist
+  become: true
   ansible.builtin.file:
     path: "{{ auth_authentik_configuration_path }}/{{ item }}"
     state: directory
@@ -28,6 +30,7 @@
     - public
 
 - name: Copy the required blueprints
+  become: true
   ansible.builtin.template:
     src: "{{ item }}.yml.j2"
     dest: "{{ auth_authentik_configuration_path }}/blueprints/{{ item }}.yaml"
@@ -39,6 +42,7 @@
     - tenant
 
 - name: Copy the background for authentik
+  become: true
   ansible.builtin.copy:
     src: "{{ auth_authentik_background }}"
     dest: "{{ auth_authentik_configuration_path }}/{{ auth_authentik_background }}"
@@ -47,6 +51,7 @@
   register: _background
 
 - name: Copy the icon for authentik
+  become: true
   ansible.builtin.copy:
     src: "{{ auth_authentik_icon }}"
     dest: "{{ auth_authentik_configuration_path }}/{{ auth_authentik_icon }}"
@@ -55,6 +60,7 @@
   register: _icon
 
 - name: Create the required secrets
+  become: true
   containers.podman.podman_secret:
     name: "{{ item.name }}"
     data: "{{ item.data }}"
@@ -106,6 +112,7 @@
     redis_metrics_password: "{{ auth_redis_metrics_password }}"
 
 - name: Setup the Authentik server container
+  become: true
   containers.podman.podman_container:
     name: auth
     state: quadlet
@@ -209,9 +216,9 @@
   register: _container
 
 - name: Ensure the Authentik container is started
+  become: true
   ansible.builtin.systemd_service:
     name: auth
-    scope: user
     state: >-
       {{
         (_background.changed or _icon.changed or _container.changed)
@@ -221,10 +228,12 @@
     daemon_reload: true
 
 - name: Ensure the Authentik container is healthy
+  become: true
   ansible.builtin.command: podman healthcheck run auth
   changed_when: false
 
 - name: Setup the Authentik worker container
+  become: true
   containers.podman.podman_container:
     name: auth-worker
     state: quadlet
@@ -308,14 +317,15 @@
   register: _container
 
 - name: Ensure the Authentik worker container is started
+  become: true
   ansible.builtin.systemd_service:
     name: auth-worker
-    scope: user
     state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Authentik worker container is healthy
+  become: true
   ansible.builtin.command: podman healthcheck run auth-worker
   changed_when: false
 

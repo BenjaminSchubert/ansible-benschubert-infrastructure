@@ -125,12 +125,7 @@ jobs:
   # Tests
   ###
   molecule:
-    name: molecule (${{ matrix.setup }})
-    strategy:
-      matrix:
-        setup:
-          - default
-          - privileged
+    name: molecule
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
@@ -156,10 +151,6 @@ jobs:
           sudo usermod -a -G libvirt "${USER}"
       - name: Install dependencies
         run: pip install -r requirements/requirements-dev.txt
-      - name: Allow binding to lower ports
-        if: ${{ matrix.setup == 'privileged' }}
-        run: >-
-          cp extensions/molecule/default/configs/privileged-env.yml .env.yml
       - name: molecule create
         run: sg libvirt -c "sg ${USER} -c 'molecule create'"
       - name: molecule converge

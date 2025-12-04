@@ -10,7 +10,7 @@ from testinfra.host import Host
 
 @pytest.fixture(scope="module")
 def containers(host: Host) -> list[str]:
-    result = host.run("podman container ps --all --format '{{ .Names }}'")
+    result = host.run("sudo podman container ps --all --format '{{ .Names }}'")
     assert result.succeeded
 
     return cast("list[str]", sorted(result.stdout.split()))
@@ -20,16 +20,14 @@ def test_infrastructure_service_starts_and_stops_all_services(
     host: Host, containers: list[str]
 ) -> None:
     # 1. Stop the service
-    result = host.run(
-        "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user stop infrastructure.target"
-    )
+    result = host.run("sudo systemctl stop infrastructure.target")
     assert result.succeeded
 
     # 2. No more containers running
     for _ in range(30):
         try:
             result = host.run(
-                "podman container ps --all --format '{{ .Names }}'"
+                "sudo podman container ps --all --format '{{ .Names }}'"
             )
             assert result.succeeded
             assert result.stdout.split() == [], (
@@ -43,13 +41,11 @@ def test_infrastructure_service_starts_and_stops_all_services(
         raise e  # pylint: disable=used-before-assignment
 
     # 3. Restarting the service
-    result = host.run(
-        "XDG_RUNTIME_DIR=/run/user/1000 systemctl --user start infrastructure.target"
-    )
+    result = host.run("sudo systemctl start infrastructure.target")
     assert result.succeeded
 
     # 4. We get the same amount of containers as at the start
-    result = host.run("podman container ps --all --format '{{ .Names }}'")
+    result = host.run("sudo podman container ps --all --format '{{ .Names }}'")
     assert result.succeeded
     assert sorted(result.stdout.split()) == containers
 
@@ -57,7 +53,7 @@ def test_infrastructure_service_starts_and_stops_all_services(
 def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:
     mount_format = "{{ json .Mounts }}"
     result = host.run(
-        f"podman inspect --format '{mount_format}' {' '.join(containers)}",
+        f"sudo podman inspect --format '{mount_format}' {' '.join(containers)}",
     )
     assert result.succeeded
 
@@ -92,7 +88,8 @@ def test_all_containers_succeed_healthchecks(
         for container, res in zip(
             containers,
             pool.map(
-                lambda c: host.run(f"podman healthcheck run {c}"), containers
+                lambda c: host.run(f"sudo podman healthcheck run {c}"),
+                containers,
             ),
             strict=True,
         ):
@@ -105,7 +102,7 @@ def test_all_containers_succeed_healthchecks(
 def test_all_containers_run_in_a_user_namespace(
     host: Host, containers: list[str]
 ) -> None:
-    result = host.run(f"podman inspect {' '.join(containers)}")
+    result = host.run(f"sudo podman inspect {' '.join(containers)}")
     assert result.succeeded
 
     assert [
@@ -118,11 +115,11 @@ def test_all_containers_run_in_a_user_namespace(
 
 
 def test_all_networks_are_internal(host: Host) -> None:
-    result = host.run("podman network ls --quiet")
+    result = host.run("sudo podman network ls --quiet")
     assert result.succeeded
 
     result = host.run(
-        f"podman network inspect {' '.join(result.stdout.splitlines())}",
+        f"sudo podman network inspect {' '.join(result.stdout.splitlines())}",
     )
     assert result.succeeded
 
@@ -145,7 +142,7 @@ def test_all_containers_have_a_read_only_rootfs(
 ) -> None:
     readonly_format = "{{ .HostConfig.ReadonlyRootfs }}"
     result = host.run(
-        f"podman inspect --format '{readonly_format}' {' '.join(containers)}"
+        f"sudo podman inspect --format '{readonly_format}' {' '.join(containers)}"
     )
     assert result.succeeded
 
@@ -165,7 +162,7 @@ def test_all_containers_have_minimal_capabilities(
 ) -> None:
     caps_format = "{{ json .BoundingCaps }}"
     result = host.run(
-        f"podman inspect --format '{caps_format}' {' '.join(containers)}"
+        f"sudo podman inspect --format '{caps_format}' {' '.join(containers)}"
     )
     assert result.succeeded
     all_caps = (

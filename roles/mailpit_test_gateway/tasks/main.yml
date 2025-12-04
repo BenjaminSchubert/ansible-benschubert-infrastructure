@@ -1,11 +1,13 @@
 ---
 - name: Configure the mailpit authentication
+  become: true
   containers.podman.podman_secret:
     name: mailpit-smtp-auth
     # yamllint disable-line rule:line-length
     data: "{{ mailpit_test_gateway_smtp_username }}:{{ mailpit_test_gateway_smtp_password | password_hash('sha512', salt='x2m30987das3qw') }}"
 
 - name: Setup a Mailpit container
+  become: true
   containers.podman.podman_container:
     name: mailpit
     image: docker.io/axllent/mailpit:latest
@@ -39,14 +41,15 @@
   register: _container
 
 - name: Ensure the Mailpit container is started
+  become: true
   ansible.builtin.systemd_service:
     name: mailpit
-    scope: user
     state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Mailpit container is healthy
+  become: true
   ansible.builtin.command: podman healthcheck run mailpit
   changed_when: false
 

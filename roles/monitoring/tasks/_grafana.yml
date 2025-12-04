@@ -10,7 +10,6 @@
     - skip_ansible_lint
 
 - name: Ensure the paths for grafana exist
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     path: "{{ item }}"
@@ -22,7 +21,6 @@
     - "{{ monitoring_grafana_config_path }}/dashboards"
 
 - name: Create the Grafana provisioning configuration
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
     src: grafana-dashboard-provision.yml.j2
@@ -30,12 +28,14 @@
     mode: "0o744"
 
 - name: Create the Grafana network
+  become: true
   containers.podman.podman_network:
     name: ingress-monitoring
     internal: true
     state: quadlet
 
 - name: Create the Grafana external network
+  become: true
   containers.podman.podman_network:
     name: monitoring-grafana-external
     state: quadlet
@@ -83,6 +83,7 @@
       name: "{{ monitoring_grafana_admin_group_name }}"
 
 - name: Create the required secrets
+  become: true
   containers.podman.podman_secret:
     name: "{{ item.name }}"
     data: "{{ item.data }}"
@@ -116,6 +117,7 @@
     postgres_network: monitoring-grafana-postgres
 
 - name: Setup the Grafana container
+  become: true
   containers.podman.podman_container:
     name: monitoring-grafana
     state: quadlet
@@ -169,9 +171,11 @@
       - monitoring-grafana-client-secret,target=/run/secrets/monitoring-grafana-client-secret
       - monitoring-grafana-secret-key,target=/run/secrets/monitoring-grafana-secret-key
     volumes:
-      - "{{ monitoring_grafana_data_path }}:/var/lib/grafana:rw,U,Z"
-      - "{{ monitoring_grafana_config_path }}/provisioning:/etc/grafana/provisioning:ro,U,Z"
-      - "{{ monitoring_grafana_config_path }}/dashboards:/etc/grafana/dashboards:ro,U,Z"
+      - "{{ monitoring_grafana_data_path }}:/var/lib/grafana:rw,Z,idmap=uids=@0-472-1;gids=@0-0-1"
+      # yamllint disable-line rule:line-length
+      - "{{ monitoring_grafana_config_path }}/provisioning:/etc/grafana/provisioning:ro,Z,idmap=uids=@0-472-1;gids=@0-0-1"
+      # yamllint disable-line rule:line-length
+      - "{{ monitoring_grafana_config_path }}/dashboards:/etc/grafana/dashboards:ro,Z,idmap=uids=@0-472-1;gids=@0-0-1"
     network:
       - ingress-monitoring.network
       - monitoring-grafana-external.network
@@ -197,14 +201,15 @@
   register: _container
 
 - name: Ensure the Grafana container is started
+  become: true
   ansible.builtin.systemd_service:
     name: monitoring-grafana
-    scope: user
     state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the grafana container is healthy
+  become: true
   ansible.builtin.command: podman healthcheck run monitoring-grafana
   changed_when: false
 
