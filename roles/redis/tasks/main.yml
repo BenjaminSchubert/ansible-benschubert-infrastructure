@@ -1,11 +1,13 @@
 ---
 - name: Ensure the Redis paths exists for {{ redis_container }}
+  become: true
   ansible.builtin.file:
     path: "{{ redis_data_path }}"
     state: directory
     mode: "0o700"
 
 - name: Generate the secret for the Redis configuration
+  become: true
   containers.podman.podman_secret:
     name: "{{ redis_container }}-config"
     data: |
@@ -16,12 +18,14 @@
   register: _configuration
 
 - name: Create the Redis network for {{ redis_container }}
+  become: true
   containers.podman.podman_network:
     name: "{{ redis_network }}"
     internal: true
     state: quadlet
 
 - name: Setup a Redis container for {{ redis_container }}
+  become: true
   containers.podman.podman_container:
     name: "{{ redis_container }}"
     image: "{{ redis_image }}"
@@ -29,7 +33,7 @@
     user: redis
     state: quadlet
     volumes:
-      - "{{ redis_data_path }}/:/data:rw,U,Z"
+      - "{{ redis_data_path }}/:/data:rw,Z,idmap=uids=@0-999-1;gids=@0-999-1"
     healthcheck: redis-cli --user ping --pass '' ping | grep PONG
     healthcheck_interval: 1m
     health_startup_interval: 10s
@@ -50,14 +54,15 @@
   register: _container
 
 - name: Ensure the Redis container is running for {{ redis_container }}
+  become: true
   ansible.builtin.systemd_service:
     name: "{{ redis_container }}"
-    scope: user
     state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Redis container is healthy for {{ redis_container }}
+  become: true
   ansible.builtin.command: podman healthcheck run {{ redis_container }}
   changed_when: false
 

@@ -1,5 +1,6 @@
 ---
 - name: Create the required networks
+  become: true
   containers.podman.podman_network:
     name: "{{ item }}"
     internal: true
@@ -7,19 +8,20 @@
   loop: "{{ ingress_networks }}"
 
 - name: Create an ingress network to allow external access
+  become: true
   containers.podman.podman_network:
     name: ingress
     internal: false
     state: quadlet
 
 - name: Ensure the parent directory for traefik exists
+  become: true
   ansible.builtin.file:
     path: "{{ ingress_traefik_configuration_files_path | dirname }}"
     state: directory
     mode: "0o700"
 
 - name: Ensure the directory for traefik configuration exists
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     path: "{{ ingress_traefik_configuration_files_path }}/config/providers"
@@ -27,7 +29,6 @@
     mode: "0o700"
 
 - name: Create the traefik main configuration
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
     src: traefik.yml.j2
@@ -36,7 +37,6 @@
   register: _configuration
 
 - name: Create the acme.json file to store certificates
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     path: "{{ ingress_traefik_configuration_files_path }}/acme.json"
@@ -46,6 +46,7 @@
     mode: "0o600"
 
 - name: Create the required secrets
+  become: true
   containers.podman.podman_secret:
     name: ingress-{{ item.key.lower().replace('_', '-') }}
     data: "{{ item.value }}"
@@ -55,6 +56,7 @@
     label: "{{ item.key }}"
 
 - name: Setup the Traefik container
+  become: true
   containers.podman.podman_container:
     name: ingress
     image: "{{ ingress_traefik_image }}"
@@ -71,8 +73,8 @@
       - "{{ ingress_https_port }}:{{ ingress_https_port }}"
     userns: auto:size=6
     volumes:
-      - "{{ ingress_traefik_configuration_files_path }}/config:/etc/traefik:ro,U,Z"
-      - "{{ ingress_traefik_configuration_files_path }}/acme.json:/etc/traefik/acme.json:rw,U,Z"
+      - "{{ ingress_traefik_configuration_files_path }}/config:/etc/traefik:ro,Z,idmap"
+      - "{{ ingress_traefik_configuration_files_path }}/acme.json:/etc/traefik/acme.json:rw,Z,idmap"
     healthcheck: traefik healthcheck
     healthcheck_interval: 1m
     health_startup_interval: 10s
@@ -115,13 +117,14 @@
   register: _container
 
 - name: Ensure the Traefik container is running
+  become: true
   ansible.builtin.systemd_service:
     name: ingress
-    scope: user
     state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Traefik container is healthy
+  become: true
   ansible.builtin.command: podman healthcheck run ingress
   changed_when: false

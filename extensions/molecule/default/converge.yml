@@ -36,6 +36,7 @@
             name: benschubert.infrastructure.main
       rescue:
         - name: Gather facts for all containers
+          become: true
           containers.podman.podman_container_info:
           register: _containers
 
@@ -50,6 +51,7 @@
             label: "{{ item['Name'] }}"
 
         - name: Gather logs from failing containers
+          become: true
           ansible.builtin.command:
             cmd: podman logs --tail 20 {{ item["Name"] }}
           changed_when: false
@@ -266,7 +268,6 @@
             enabled: true
 
         - name: Ensure the directory to store alerts exists
-          become_method: containers.podman.podman_unshare
           become: true
           ansible.builtin.file:
             name: "{{ monitoring_loki_config_path }}/rules/fake"
@@ -275,14 +276,12 @@
 
         - name: Install alloy Loki alerts
           become: true
-          become_method: containers.podman.podman_unshare
           ansible.builtin.template:
             src: loki-alerts.yml.j2
             dest: "{{ monitoring_loki_config_path }}/rules/fake/node.yml"
             mode: "0o644"
 
         - name: Install the alerts for the host
-          become_method: containers.podman.podman_unshare
           become: true
           ansible.builtin.template:
             src: host-agent-alerts.yml.j2
