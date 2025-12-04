@@ -73,10 +73,8 @@
           - ca-certificates
           - catatonit
           - dbus-user-session
-          - fuse-overlayfs
           - init
           - iproute2
-          - iptables
           - nftables
           - passt
           - podman
@@ -88,12 +86,6 @@
           - curl
           - jq
           - less
-
-    - name: Enable lingering for the testuser user
-      become: true
-      ansible.builtin.command:
-        cmd: loginctl enable-linger testuser
-        creates: /var/lib/systemd/linger/testuser
 
     - name: Setup isolated hosts for podman internal
       become: true
@@ -121,31 +113,16 @@
         mode: "0o644"
       when: registries_conf is not none
 
-    - name: Ensure the config directory for containers exists
-      ansible.builtin.file:
-        path: /home/testuser/.config/containers
-        state: directory
-        mode: "0o750"
-
-    - name: Setup storage configuration for containers
+    - name: Setup sub{u,g}id
+      become: true
       ansible.builtin.copy:
         content: |
-          # FIXME: Use native overlay once it supports user namespaces
-          #        See https://github.com/containers/podman/issues/16541
-          [storage]
-          driver = "overlay"
-
-          [storage.options]
-          mount_program = "/usr/bin/fuse-overlayfs"
-        dest: /home/testuser/.config/containers/storage.conf
+          containers:100000:65536
+        dest: /etc/{{ item }}
         mode: "0o644"
-
-    - name: Allow access to low ports to non-root
-      become: true
-      ansible.posix.sysctl:
-        name: net.ipv4.ip_unprivileged_port_start
-        value: "80"
-        sysctl_file: /etc/sysctl.d/privileged.conf
+      loop:
+        - subuid
+        - subgid
 
     - name: Reboot
       become: true

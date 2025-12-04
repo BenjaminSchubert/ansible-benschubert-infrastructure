@@ -9,7 +9,7 @@
 This is an ansible collection to setup some base services for a web stack.
 
 The focus of this project is towards a single-node deployment, where everything
-runs in rootless podman containers on the same machine.
+runs in podman containers on the same machine.
 
 ## Services installed
 

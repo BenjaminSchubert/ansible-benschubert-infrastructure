@@ -1,6 +1,5 @@
 ---
 - name: Ensure the Mimir paths exist
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     path: "{{ item }}"
@@ -11,7 +10,6 @@
     - "{{ monitoring_mimir_data_path }}/tmp"
 
 - name: Create the Mimir configuration files
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
     src: "{{ item.src }}"
@@ -25,6 +23,7 @@
       dst: alertmanager-fallback-config.yml
 
 - name: Create the Mimir secrets
+  become: true
   containers.podman.podman_secret:
     name: monitoring-mimir-{{ item.lower().replace("_", "-") }}
     data: "{{ monitoring_mimir_secrets[item] }}"
@@ -32,6 +31,7 @@
   loop: "{{ monitoring_mimir_secrets.keys() }}"
 
 - name: Create the Mimir network
+  become: true
   containers.podman.podman_network:
     name: "{{ item }}"
     internal: true
@@ -53,6 +53,7 @@
   loop: "{{ monitoring_mimir_secrets.keys() }}"
 
 - name: Setup the Mimir container
+  become: true
   containers.podman.podman_container:
     name: monitoring-mimir
     state: quadlet
@@ -68,9 +69,9 @@
     cap_drop: [all]
     secrets: "{{ _mimir_secrets | default(omit) }}"
     volumes:
-      - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,U,Z"
-      - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:U,Z"
-      - "{{ monitoring_mimir_data_path }}:/data:U,Z"
+      - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,Z,idmap"
+      - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:Z,idmap"
+      - "{{ monitoring_mimir_data_path }}:/data:Z,idmap"
       - /usr/bin/busybox:/busybox:ro,Z
     network: |
       {{
@@ -96,14 +97,15 @@
   register: _container
 
 - name: Ensure the Mimir container is started
+  become: true
   ansible.builtin.systemd_service:
     name: monitoring-mimir
-    scope: user
     state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Mimir container is healthy
+  become: true
   ansible.builtin.command: podman healthcheck run monitoring-mimir
   changed_when: false
 
@@ -156,6 +158,7 @@
     validate_certs: false
 
 - name: Retrieve the Mimir container information
+  become: true
   containers.podman.podman_container_info:
     name: monitoring-mimir
   register: _mimir_container_info

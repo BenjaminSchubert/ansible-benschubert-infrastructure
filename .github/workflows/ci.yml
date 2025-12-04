@@ -133,12 +133,7 @@ jobs:
   # Tests
   ###
   molecule:
-    name: molecule (${{ matrix.setup }})
-    strategy:
-      matrix:
-        setup:
-          - default
-          - privileged
+    name: molecule
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
@@ -165,9 +160,6 @@ jobs:
         run: sudo chmod u+s /usr/lib/qemu/qemu-bridge-helper
       - name: Install dependencies
         run: pip install -r requirements/requirements-dev.txt
-      - name: Allow binding to lower ports
-        if: ${{ matrix.setup == 'privileged' }}
-        run: cp extensions/molecule/default/configs/privileged-env.yml .env.yml
       - name: molecule create
         run: sg kvm 'sg libvirt-qemu "sg \"${USER}\" \"molecule create\""'
       - name: molecule converge
