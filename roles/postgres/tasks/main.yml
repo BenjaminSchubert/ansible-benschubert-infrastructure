@@ -1,6 +1,5 @@
 ---
 - name: Ensure the PostgreSQL database path exists for {{ postgres_database }}
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     path: "{{ postgres_data_path }}"
@@ -8,19 +7,21 @@
     mode: "0o700"
 
 - name: Create the PostgreSQL network for {{ postgres_database }}
+  become: true
   containers.podman.podman_network:
     name: "{{ postgres_network }}"
     internal: true
     state: quadlet
 
 - name: Setup a PostgreSQL container for {{ postgres_database }}
+  become: true
   containers.podman.podman_container:
     name: "{{ postgres_container }}"
     image: "{{ postgres_image }}"
     user: postgres
     state: quadlet
     volumes:
-      - "{{ postgres_data_path }}:/var/lib/postgresql/:rw,U,Z"
+      - "{{ postgres_data_path }}:/var/lib/postgresql/:rw,Z,idmap=uids=@0-999-1;gids=@0-999-1"
     env:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
       POSTGRES_USER: "{{ postgres_user }}"
@@ -49,14 +50,15 @@
   register: _container
 
 - name: Ensure the PostgreSQL container is running for {{ postgres_database }}
+  become: true
   ansible.builtin.systemd_service:
     name: "{{ postgres_container }}"
-    scope: user
     state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the PostgreSQL container is healthy for {{ postgres_database }}
+  become: true
   ansible.builtin.command: podman healthcheck run {{ postgres_container }}
   changed_when: false
 

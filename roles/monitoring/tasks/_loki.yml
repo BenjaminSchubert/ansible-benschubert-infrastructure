@@ -1,6 +1,5 @@
 ---
 - name: Ensure the Loki paths exist
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     path: "{{ item }}"
@@ -11,7 +10,6 @@
     - "{{ monitoring_loki_data_path }}"
 
 - name: Create the Loki configuration file
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
     src: loki.yml.j2
@@ -20,12 +18,14 @@
   register: _configuration
 
 - name: Create the Loki network
+  become: true
   containers.podman.podman_network:
     name: ingress-monitoring
     internal: true
     state: quadlet
 
 - name: Setup the Loki container
+  become: true
   containers.podman.podman_container:
     name: monitoring-loki
     state: quadlet
@@ -39,9 +39,10 @@
     cap_drop: [all]
     pull: newer
     volumes:
-      - "{{ monitoring_loki_config_path }}:/etc/loki/:ro,U,Z"
-      - "{{ monitoring_loki_config_path }}/rules:/etc/loki/rules:U,Z"
-      - "{{ monitoring_loki_data_path }}:/data/loki:U,Z"
+      - "{{ monitoring_loki_config_path }}:/etc/loki/:ro,Z,idmap=uids=@0-10001-1;gids=@0-10001-1"
+      # yamllint disable-line rule:line-length
+      - "{{ monitoring_loki_config_path }}/rules:/etc/loki/rules:Z,idmap=uids=@0-10001-1;gids=@0-10001-1"
+      - "{{ monitoring_loki_data_path }}:/data/loki:Z,idmap=uids=@0-10001-1;gids=@0-10001-1"
       - /usr/bin/busybox:/busybox:ro,Z
     network:
       - ingress-monitoring.network
@@ -64,14 +65,15 @@
   register: _container
 
 - name: Ensure the Loki container is started
+  become: true
   ansible.builtin.systemd_service:
     name: monitoring-loki
-    scope: user
     state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the Loki container is healthy
+  become: true
   ansible.builtin.command: podman healthcheck run monitoring-loki
   changed_when: false
 

@@ -178,7 +178,7 @@
         - name: Add grafana apt repository
           become: true
           ansible.builtin.apt_repository:
-            repo: deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main
+            repo: deb [signed-by=/etc/apt/keyrings/grafana.gpg] http://apt.grafana.com stable main
             state: present
             filename: grafana
 
@@ -266,7 +266,6 @@
             enabled: true
 
         - name: Ensure the directory to store alerts exists
-          become_method: containers.podman.podman_unshare
           become: true
           ansible.builtin.file:
             name: "{{ monitoring_loki_config_path }}/rules/fake"
@@ -275,14 +274,12 @@
 
         - name: Install alloy Loki alerts
           become: true
-          become_method: containers.podman.podman_unshare
           ansible.builtin.template:
             src: loki-alerts.yml.j2
             dest: "{{ monitoring_loki_config_path }}/rules/fake/node.yml"
             mode: "0o644"
 
         - name: Install the alerts for the host
-          become_method: containers.podman.podman_unshare
           become: true
           ansible.builtin.template:
             src: host-agent-alerts.yml.j2

@@ -6,12 +6,13 @@ import pytest
 import requests
 from testinfra.host import Host
 
-from . import LocalhostVerifyAdapter
+from . import HostVerifyAdapter
 
 
 class _TCache(TypedDict, total=False):
     authentik_credentials: tuple[str, str]
     hostvars: dict[str, Any]
+    ip: str
 
 
 @pytest.fixture(scope="session")
@@ -39,7 +40,16 @@ def https_port(hostvars: dict[str, Any]) -> int:
 
 
 @pytest.fixture(scope="module")
+def ip(host: Host, cache: _TCache) -> str:
+    if "ip" not in cache:
+        cache["ip"] = host.interface.default().addresses[0]
+
+    return cache["ip"]
+
+
+@pytest.fixture(scope="module")
 def session(
+    ip: str,
     hostvars: dict[str, Any],
     https_port: int,
     cache: dict[str, Any],
@@ -71,8 +81,8 @@ def session(
             hostname = hostvars[hostname_var]
             session_.mount(
                 f"https://{hostname}",
-                LocalhostVerifyAdapter(
-                    "localhost",
+                HostVerifyAdapter(
+                    ip,
                     https_port,
                     hostname,
                     verify,

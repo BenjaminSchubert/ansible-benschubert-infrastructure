@@ -1,6 +1,5 @@
 ---
 - name: Ensure the Agent's paths exist for {{ monitoring_agent_product_name }}
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     path: "{{ item }}"
@@ -68,6 +67,7 @@
   register: _service_account_token
 
 - name: Create the mimir authentication secret for {{ monitoring_agent_product_name }}
+  become: true
   containers.podman.podman_secret:
     name: "{{ monitoring_agent_container }}-mimir-credentials"
     data: "{{ _service_account_token.key }}"
@@ -76,6 +76,7 @@
 - name: >-
     Create the secrets for the postgresql connection strings
     for {{ monitoring_agent_product_name }}
+  become: true
   containers.podman.podman_secret:
     name: "{{
         '{}-postgres-{}'.format(
@@ -94,6 +95,7 @@
     label: "{{ monitoring_agent_postgres_instances[item].instance }}"
 
 - name: Create the secrets for the redis passwords for {{ monitoring_agent_product_name }}
+  become: true
   containers.podman.podman_secret:
     name: "{{ monitoring_agent_container }}-redis-{{ monitoring_agent_redis_instances[item].name }}"
     data: "{{ monitoring_agent_redis_instances[item].password }}"
@@ -103,7 +105,6 @@
     label: "{{  monitoring_agent_redis_instances[item].name }}"
 
 - name: Create the agent default configuration file for {{ monitoring_agent_product_name }}
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
     src: agent-config.alloy.j2
@@ -112,6 +113,7 @@
   register: _configuration
 
 - name: Setup the Alloy's container for {{ monitoring_agent_product_name }}
+  become: true
   containers.podman.podman_container:
     name: "{{ monitoring_agent_container }}"
     state: quadlet
@@ -156,8 +158,8 @@
         )
       }}
     volumes:
-      - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,U,Z"
-      - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:U,Z"
+      - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,Z,idmap"
+      - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:Z,idmap"
       - /usr/bin/busybox:/busybox:ro,Z
     network: "{{ monitoring_agent_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
     userns: auto:size=474
@@ -175,19 +177,19 @@
   register: _container
 
 - name: Ensure the agent container is started for {{ monitoring_agent_product_name }}
+  become: true
   ansible.builtin.systemd_service:
     name: "{{ monitoring_agent_container }}"
-    scope: user
     state: "{{ (_container.changed or _configuration.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
 
 - name: Ensure the agent container is healthy for {{ monitoring_agent_product_name }}
+  become: true
   ansible.builtin.command: podman healthcheck run {{ monitoring_agent_container }}
   changed_when: false
 
 - name: Ensure the directory to store alerts exists for {{ monitoring_agent_product_name }}
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.file:
     name: "{{ monitoring_mimir_config_path }}/rules/anonymous"
@@ -195,7 +197,6 @@
     mode: "0o755"
 
 - name: Install the alerts for the service for {{ monitoring_agent_product_name }}
-  become_method: containers.podman.podman_unshare
   become: true
   ansible.builtin.template:
     src: agent-alerts.yml.j2
