@@ -23,6 +23,22 @@ dependency:
 platforms:
   - name: molecule-benschubert-infrastructure
 
+scenario:
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - side_effect
+    - idempotence
+    - verify
+    - cleanup
+    - destroy
+
 verifier:
   name: testinfra
   options:

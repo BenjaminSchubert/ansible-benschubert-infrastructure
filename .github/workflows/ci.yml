@@ -169,7 +169,15 @@ jobs:
       - name: molecule idempotence
         run: molecule idempotence
         env:
-          ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-idempotence
+          ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-idempotence-1
+      - name: molecule side-effect
+        run: molecule side-effect
+        env:
+          ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-side-effect
+      - name: molecule idempotence again
+        run: molecule idempotence
+        env:
+          ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-idempotence-2
       - name: molecule verify
         run: molecule verify
       - name: Analyse the output of molecule
@@ -177,8 +185,14 @@ jobs:
           echo "## Converge" >> $GITHUB_STEP_SUMMARY &&
           python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-converge
           | tee --append $GITHUB_STEP_SUMMARY
-          && echo "## Idempotence" >> $GITHUB_STEP_SUMMARY &&
-          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence
+          && echo "## Idempotence 1" >> $GITHUB_STEP_SUMMARY &&
+          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence-1
+          | tee --append $GITHUB_STEP_SUMMARY
+          && echo "## side-effect" >> $GITHUB_STEP_SUMMARY &&
+          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-side-effect-1
+          | tee --append $GITHUB_STEP_SUMMARY
+          && echo "## Idempotence 2" >> $GITHUB_STEP_SUMMARY &&
+          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence-2
           | tee --append $GITHUB_STEP_SUMMARY
       - name: molecule destroy
         run: molecule destroy
