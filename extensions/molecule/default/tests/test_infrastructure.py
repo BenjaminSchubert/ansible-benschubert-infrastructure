@@ -1,5 +1,4 @@
 import json
-import time
 from collections import defaultdict
 from multiprocessing.pool import ThreadPool
 from typing import cast
@@ -14,40 +13,6 @@ def containers(host: Host) -> list[str]:
     assert result.succeeded
 
     return cast("list[str]", sorted(result.stdout.split()))
-
-
-def test_infrastructure_service_starts_and_stops_all_services(
-    host: Host, containers: list[str]
-) -> None:
-    # 1. Stop the service
-    result = host.run("sudo systemctl stop infrastructure.target")
-    assert result.succeeded
-
-    # 2. No more containers running
-    for _ in range(30):
-        try:
-            result = host.run(
-                "sudo podman container ps --all --format '{{ .Names }}'"
-            )
-            assert result.succeeded
-            assert result.stdout.split() == [], (
-                "Some containers are still running"
-            )
-            break
-        except AssertionError as exc:
-            e = exc
-            time.sleep(1)
-    else:
-        raise e  # pylint: disable=used-before-assignment
-
-    # 3. Restarting the service
-    result = host.run("sudo systemctl start infrastructure.target")
-    assert result.succeeded
-
-    # 4. We get the same amount of containers as at the start
-    result = host.run("sudo podman container ps --all --format '{{ .Names }}'")
-    assert result.succeeded
-    assert sorted(result.stdout.split()) == containers
 
 
 def test_no_volumes_are_created(host: Host, containers: list[str]) -> None:

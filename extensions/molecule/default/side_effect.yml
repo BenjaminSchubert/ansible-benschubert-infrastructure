@@ -1,0 +1,45 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Get all running containers before reboot
+      become: true
+      containers.podman.podman_container_info:
+      register: _containers_before
+
+    - name: Reboot
+      become: true
+      ansible.builtin.reboot:
+
+    - name: Wait for the infrastructure target to be fully up
+      ansible.builtin.systemd_service:
+        name: infrastructure.target
+      register: _service
+      failed_when: _service.status.SubState != "active"
+      retries: 50
+      delay: 10
+
+    - name: Ensure all containers are restarted after a reboot
+      block:
+        - name: Get all running containers after reboot
+          become: true
+          containers.podman.podman_container_info:
+          register: _containers_after
+          failed_when: >-
+            _containers_before.containers
+              | map(attribute='Name')
+              | difference(_containers_after.containers
+              | map(attribute='Name'))
+              | length != 0
+      always:
+        - name: Missing containers
+          ansible.builtin.debug:
+            msg: >-
+              {{
+                _containers_before.containers
+                  | map(attribute='Name')
+                  | difference(_containers_after.containers
+                  | map(attribute='Name'))
+              }}
