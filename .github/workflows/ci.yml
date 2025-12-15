@@ -215,7 +215,7 @@ jobs:
       - name: Build collection
         run: ansible-galaxy collection build --output-path _artifacts/
       - name: Save packaged collection
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: package
           path: _artifacts/*
@@ -268,7 +268,7 @@ jobs:
       - name: Validate spelling
         run: sphinx-build -W --color -b=spelling docs/ /tmp/spelling
       - name: Save the documentation
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: docs
           path: ansible_collections/benschubert/infrastructure//_artifacts/*
