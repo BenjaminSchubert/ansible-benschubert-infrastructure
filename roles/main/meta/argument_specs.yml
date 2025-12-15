@@ -210,6 +210,11 @@ argument_specs:
             part of this collection through the ingress.
           - For a definition of what the entries can accept, see
             I(ingress_networks)
+      ingress_extra_entrypoints:
+        type: dict
+        description:
+          - A dictionary of names to ports to expose additionally on the
+            Traefik container.
       ingress_monitor_agent_config_path:
         type: str
         required: true

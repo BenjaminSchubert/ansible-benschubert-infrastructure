@@ -20,6 +20,10 @@ entryPoints:
     address: ":{{ ingress_https_port }}"
   metrics:
     address: ":8082"
+  {% for entrypoint, port in ( ingress_extra_entrypoints | default({})).items() -%}
+  {{ entrypoint }}:
+    address: ":{{ port }}"
+  {% endfor %}
 
 metrics:
   prometheus:

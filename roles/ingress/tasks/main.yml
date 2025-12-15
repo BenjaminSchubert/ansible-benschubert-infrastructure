@@ -68,9 +68,13 @@
         + ['ingress.network']
       }}
     network_aliases: "{{ ingress_network_aliases }}"
-    publish:
-      - "{{ ingress_http_port }}:{{ ingress_http_port }}"
-      - "{{ ingress_https_port }}:{{ ingress_https_port }}"
+    publish: |
+      {{
+        (
+          [ingress_http_port, ingress_https_port]
+          + ((ingress_extra_entrypoints | default({})).values() | list)
+        ) | map('regex_replace', '^(.+)$', '\1:\1') | list
+      }}
     userns: auto:size=6
     volumes:
       - "{{ ingress_traefik_configuration_files_path }}/config:/etc/traefik:ro,Z,idmap"
