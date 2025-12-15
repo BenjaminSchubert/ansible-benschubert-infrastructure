@@ -9,3 +9,5 @@ updates:
       actions:
         patterns:
           - "*"
+    assignees:
+      - "@benjaminschubert"
