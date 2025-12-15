@@ -151,6 +151,11 @@ argument_specs:
           - The path on disk to a custom certificate to validate the TLS
             certificates when ansible makes requests if they are not available
             in the root certificate authorities
+      ingress_extra_entrypoints:
+        type: dict
+        description:
+          - A dictionary of names to ports to expose additionally on the
+            Traefik container.
       ingress_monitor_agent_config_path:
         type: str
         required: true
