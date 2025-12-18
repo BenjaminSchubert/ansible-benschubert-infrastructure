@@ -69,9 +69,10 @@
     cap_drop: [all]
     secrets: "{{ _mimir_secrets | default(omit) }}"
     volumes:
-      - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,Z,idmap"
-      - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:Z,idmap"
-      - "{{ monitoring_mimir_data_path }}:/data:Z,idmap"
+      - "{{ monitoring_mimir_config_path }}:/etc/mimir/:ro,Z,idmap=uids=@0-0-1;gids=@0-0-1"
+      # yamllint disable-line rule:line-length
+      - "{{ monitoring_mimir_config_path }}/alertmanager:/etc/mimir/alertmanager:Z,idmap=uids=@0-0-1;gids=@0-0-1"
+      - "{{ monitoring_mimir_data_path }}:/data:Z,idmap=uids=@0-0-1;gids=@0-0-1"
       - /usr/bin/busybox:/busybox:ro,Z
     network: |
       {{
