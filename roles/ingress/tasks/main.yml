@@ -77,8 +77,10 @@
       }}
     userns: auto:size=6
     volumes:
-      - "{{ ingress_traefik_configuration_files_path }}/config:/etc/traefik:ro,Z,idmap"
-      - "{{ ingress_traefik_configuration_files_path }}/acme.json:/etc/traefik/acme.json:rw,Z,idmap"
+      # yamllint disable-line rule:line-length
+      - "{{ ingress_traefik_configuration_files_path }}/config:/etc/traefik:ro,Z,idmap=uids=@0-0-1;gids=@0-0-1"
+      # yamllint disable-line rule:line-length
+      - "{{ ingress_traefik_configuration_files_path }}/acme.json:/etc/traefik/acme.json:rw,Z,idmap=uids=@0-0-1;gids=@0-0-1"
     healthcheck: traefik healthcheck
     healthcheck_interval: 1m
     health_startup_interval: 10s

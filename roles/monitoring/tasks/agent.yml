@@ -158,8 +158,9 @@
         )
       }}
     volumes:
-      - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,Z,idmap"
-      - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:Z,idmap"
+      # yamllint disable-line rule:line-length
+      - "{{ monitoring_agent_config_path }}/config.alloy:/etc/alloy/config.alloy:ro,Z,idmap=uids=@0-0-1;gids=@0-0-1"
+      - "{{ monitoring_agent_data_path }}:/var/lib/alloy/data:Z,idmap=uids=@0-0-1;gids=@0-0-1"
       - /usr/bin/busybox:/busybox:ro,Z
     network: "{{ monitoring_agent_networks | map('regex_replace', '^(.*)$', '\\1.network') }}"
     userns: auto:size=474
