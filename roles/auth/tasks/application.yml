@@ -115,16 +115,8 @@
       group: "{{ group }}"
       open_in_new_tab: true
       meta_description: "{{ meta_description }}"
+      meta_icon: "{{ icon_url }}"
   register: _app
-
-- name: Configure the application icon for {{ application_name }}
-  benschubert.infrastructure.authentik_application_icon_url:
-    authentik_token: "{{ auth_authentik_token }}"
-    authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
-    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-    validate_certs: "{{ ingress_validate_certs }}"
-    slug: "{{ application_slug }}"
-    url: "{{ icon_url }}"
 
 - name: Configure the internal outpost for {{ application_name }}
   benschubert.infrastructure.authentik_outpost:

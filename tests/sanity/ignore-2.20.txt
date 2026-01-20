@@ -1,5 +1,4 @@
 plugins/modules/authentik_application.py validate-modules:missing-gplv3-license
-plugins/modules/authentik_application_icon_url.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_certificate_info.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_flow_info.py validate-modules:missing-gplv3-license
 plugins/modules/authentik_group.py validate-modules:missing-gplv3-license

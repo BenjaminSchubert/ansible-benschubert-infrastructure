@@ -27,21 +27,26 @@ def test_no_tasks_failed(
     hostvars: dict[str, Any],
     session: requests.Session,
 ) -> None:
-    resp = session.get(
-        f"https://{hostvars['auth_authentik_hostname']}/api/v3/tasks/tasks/?ordering=mtime&page_size=100000",
-        headers={
-            "Authorization": f"Bearer {hostvars['auth_authentik_superadmin_bootstrap_token']}"
-        },
-        allow_redirects=False,
-        timeout=10,
-    )
+    collected = []
+    next_page = 1
 
-    assert resp.status_code == HTTPStatus.OK
-    data = resp.json()
-    assert data["pagination"]["total_pages"] == 1
+    while next_page != 0:
+        resp = session.get(
+            f"https://{hostvars['auth_authentik_hostname']}/api/v3/tasks/tasks/?ordering=mtime&page={next_page}&page_size=100",
+            headers={
+                "Authorization": f"Bearer {hostvars['auth_authentik_superadmin_bootstrap_token']}"
+            },
+            allow_redirects=False,
+            timeout=10,
+        )
+
+        assert resp.status_code == HTTPStatus.OK
+        data = resp.json()
+        next_page = data["pagination"]["next"]
+        collected.extend(data["results"])
 
     results = {}
-    for task in data["results"]:
+    for task in collected:
         if task["aggregated_status"] == "successful":
             continue
         results[task["uid"]] = {
@@ -49,7 +54,7 @@ def test_no_tasks_failed(
             "status": task["aggregated_status"],
         }
 
-    unsuccessful = {k: v for k, v in results.items() if v["status"] != "info"}
+    unsuccessful = {k: v for k, v in results.items() if v["status"] != "done"}
     # FIXME: can we fix our blueprints to not fail the tasks?
     if unsuccessful and all(
         key.startswith("authentik.blueprints.v1.tasks.apply_blueprint:")
@@ -67,7 +72,7 @@ def test_all_blueprints_applied(
     session: requests.Session,
 ) -> None:
     resp = session.get(
-        f"https://{hostvars['auth_authentik_hostname']}/api/v3/managed/blueprints/",
+        f"https://{hostvars['auth_authentik_hostname']}/api/v3/managed/blueprints/?page_size=100",
         headers={
             "Authorization": f"Bearer {hostvars['auth_authentik_superadmin_bootstrap_token']}"
         },

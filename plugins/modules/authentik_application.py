@@ -24,6 +24,10 @@ options:
         description:
           - The description of the application
         type: str
+      meta_icon:
+        description:
+          - The url to the icon to display for this application
+        type: str
       name:
         description:
           - The name of the application
@@ -102,6 +106,7 @@ def main() -> NoReturn:  # type: ignore[misc]
             "provider": {"type": "int", "required": True},
             "group": {"type": "str"},
             "meta_description": {"type": "str"},
+            "meta_icon": {"type": "str"},
             "open_in_new_tab": {"type": "bool", "default": False},
         },
     }
