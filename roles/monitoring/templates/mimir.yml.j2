@@ -57,7 +57,7 @@ ruler_storage:
 
 server:
   http_listen_port: 9009
-  log_level: info
+  log_level: {{ monitoring_mimir_log_level }}
 
 store_gateway:
   sharding_ring:

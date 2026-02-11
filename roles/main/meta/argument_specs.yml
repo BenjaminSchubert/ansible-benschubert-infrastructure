@@ -461,6 +461,11 @@ argument_specs:
         default: See I(monitoring_mimir_image) from the monitoring role
         description:
           - The container image path and tag to use for Mimir
+      monitoring_mimir_log_level:
+        type: str
+        default: info
+        description:
+          - The log level to use for Mimir
       monitoring_mimir_per_user_series_limit:
         type: int
         default: 150000
