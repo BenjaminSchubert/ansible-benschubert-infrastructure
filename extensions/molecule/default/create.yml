@@ -51,21 +51,21 @@
 
     - name: Download the Debian base image
       ansible.builtin.get_url:
-        url: https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2
-        dest: "{{ molecule_ephemeral_directory | dirname }}/original-debian-13.qcow2"
+        url: https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.raw
+        dest: "{{ molecule_ephemeral_directory | dirname }}/original-debian-13.raw"
         mode: "0o644"
         checksum: sha512:https://cloud.debian.org/images/cloud/trixie/latest/SHA512SUMS
 
     - name: Copy the pre-downloaded image
       ansible.builtin.copy:
-        src: "{{ molecule_ephemeral_directory | dirname }}/original-debian-13.qcow2"
-        dest: "{{ molecule_ephemeral_directory }}/disk.qcow2"
+        src: "{{ molecule_ephemeral_directory | dirname }}/original-debian-13.raw"
+        dest: "{{ molecule_ephemeral_directory }}/disk.raw"
         mode: "0o644"
         force: false
 
     - name: Expand the disk
       ansible.builtin.command:
-        cmd: qemu-img resize {{ molecule_ephemeral_directory }}/disk.qcow2 10G
+        cmd: qemu-img resize {{ molecule_ephemeral_directory }}/disk.raw 10G
       changed_when: true
 
     - name: Start the VM
@@ -75,7 +75,7 @@
         vcpus: 4
         cdrom: "{{ molecule_ephemeral_directory }}/cloud-init/cloud-init.iso"
         disks:
-          - path: "{{ molecule_ephemeral_directory }}/disk.qcow2"
+          - path: "{{ molecule_ephemeral_directory }}/disk.raw"
         import: true
         graphics:
           type: spice
