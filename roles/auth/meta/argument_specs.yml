@@ -6,8 +6,7 @@ argument_specs:
       - This sets up an L(Authentik, https://goauthentik.io/) webserver to
         act as an authentication and SSO server used by the rest of the services
         in this collection.
-      - Additionally, it will setup a PostgreSQL database and a Redis instance
-        for it.
+      - Additionally, it will setup a PostgreSQL database for it.
     options:
       auth_authentik_authentication_page_title:
         type: str
@@ -138,26 +137,6 @@ argument_specs:
         required: true
         description:
           - The password used to connect to PostgreSQL database
-      auth_redis_data_path:
-        type: str
-        required: true
-        description:
-          - The path on disk where the Redis instance should store its data
-      auth_redis_image:
-        type: str
-        default: See I(redis_image) from the Redis role
-        description: The container image path and tag to use for Redis
-      auth_redis_metrics_password:
-        type: str
-        required: true
-        description:
-          - The password to allow the metric gathering agent to connect to Redis
-      auth_redis_password:
-        type: str
-        required: true
-        description:
-          - The password that Authentik will use to connect to Redis
-          - This is also used to configure the Redis instance
       auth_worker_additional_networks:
         type: list
         elements: str

@@ -72,7 +72,6 @@ def test_services_are_up(
             "1",
         ),
         ("agent", "prometheus.scrape.host", "1"),
-        ("auth-redis", "integrations/redis", "1"),
         (
             "authentik",
             "prometheus.scrape.benschubert_infrastructure_auth_monitoring",
@@ -152,35 +151,6 @@ def test_postgres_databases_are_up(
             "integrations/postgres",
             "1",
         ),
-    }
-
-
-def test_redis_deployments_are_up(
-    hostvars: dict[str, Any],
-    session: requests.Session,
-    authentik_credentials: tuple[str, str],
-) -> None:
-    resp = session.get(
-        f"https://{hostvars['monitoring_mimir_hostname']}/prometheus/api/v1/query",
-        params={"query": "redis_up"},
-        allow_redirects=False,
-        auth=authentik_credentials,
-        timeout=10,
-    )
-    print(resp.text)
-    assert resp.status_code == HTTPStatus.OK
-    result = resp.json()
-    assert result["status"] == "success"
-    entries = {
-        (r["metric"]["instance"], r["metric"]["job"], r["value"][1])
-        for r in result["data"]["result"]
-    }
-    assert entries == {
-        (
-            "auth-redis",
-            "integrations/redis",
-            "1",
-        )
     }
 
 
