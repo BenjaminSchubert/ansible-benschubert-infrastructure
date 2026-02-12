@@ -162,36 +162,6 @@ loki.process "add_log_level" {
 
   }
 
-  // Redis
-  stage.match {
-    selector = "{container=~\".*-redis\"}"
-
-    stage.regex {
-      expression = `(?P<ts>\d{2} [[:alpha:]]{3} \d{4} \d{2}:\d{2}:\d{2}.\d{3}) (?P<redis_level>[\.\-\*#]) `
-    }
-
-    stage.template {
-        source   = "redis_level"
-        template = `{{ '{{' }} if eq .redis_level "." {{ '}}' }}debug{{ '{{' }} else if eq .redis_level "-" {{ '}}' }}verbose{{ '{{' }} else if eq .redis_level "*" {{ '}}' }}info{{ '{{' }} else if eq .redis_level "#" {{ '}}' }}warning{{ '{{' }}end{{ '}}' }}`
-    }
-
-    stage.labels {
-      values = { "level" = "redis_level" }
-    }
-
-    stage.timestamp {
-      format = "02 Jan 2006 03:04:05.000"
-      source = "ts"
-      action_on_failure = "skip"
-    }
-
-    // Remove the level and timestamp from the logs, it is part of the labels
-    stage.replace {
-      expression = `\s+(\d{2} [[:alpha:]]{3} \d{4} \d{2}:\d{2}:\d{2}.\d{3}) (?P<redis_level>[\.\-\*#])\s+`
-      replace = ""
-    }
-  }
-
   // Traefik
   stage.match {
     selector = "{container=~\".*-traefik\"}"

@@ -71,8 +71,6 @@
       data: "{{ auth_authentik_secret_key }}"
     - name: auth-postgres-password
       data: "{{ auth_postgres_password }}"
-    - name: auth-redis-password
-      data: "{{ auth_redis_password }}"
     - name: auth-email-password
       data: "{{ auth_authentik_email_config.password | default('') }}"
   loop_control:
@@ -95,22 +93,6 @@
     postgres_database: authentik
     postgres_network: auth-postgres
 
-- name: Configure the Redis image if not provided explicitly
-  ansible.builtin.set_fact:
-    auth_redis_image: "{{ redis_image }}"
-  when: auth_redis_image is not defined
-
-- name: Create the Authentik redis instance
-  ansible.builtin.import_role:
-    name: benschubert.infrastructure.redis
-  vars:
-    redis_container: auth-redis
-    redis_data_path: "{{ auth_redis_data_path }}"
-    redis_image: "{{ auth_redis_image }}"
-    redis_network: auth-redis
-    redis_password: "{{ auth_redis_password }}"
-    redis_metrics_password: "{{ auth_redis_metrics_password }}"
-
 - name: Setup the Authentik server container
   become: true
   containers.podman.podman_container:
@@ -125,8 +107,6 @@
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: file:///run/secrets/auth-postgres-password
-      AUTHENTIK_REDIS__HOST: auth-redis
-      AUTHENTIK_REDIS__PASSWORD: file:///run/secrets/auth-redis-password
       # Make Authentik not access the outside world
       AUTHENTIK_DISABLE_UPDATE_CHECK: true
       AUTHENTIK_ERROR_REPORTING__ENABLED: false
@@ -182,7 +162,6 @@
         [
           'auth-secret-key',
           'auth-postgres-password',
-          'auth-redis-password',
         ] + (
           ['auth-email-password']
           if (auth_authentik_email_config.password | default(False))
@@ -194,17 +173,14 @@
     network:
       - ingress-auth.network
       - auth-postgres.network
-      - auth-redis.network
     userns: auto:size=1001
     quadlet_options:
       - |
         [Unit]
         PartOf=infrastructure.target
         After=auth-postgres.service
-        After=auth-redis.service
         Before=auth-worker.service
         Requires=auth-postgres.service
-        Requires=auth-redis.service
         Requires=ingress.service
         Wants=auth-worker.service
 
@@ -245,8 +221,6 @@
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: file:///run/secrets/auth-postgres-password
-      AUTHENTIK_REDIS__HOST: auth-redis
-      AUTHENTIK_REDIS__PASSWORD: file:///run/secrets/auth-redis-password
       # Bootstrap information
       AUTHENTIK_BOOTSTRAP_EMAIL: "{{ auth_authentik_superadmin_bootstrap_email or omit }}"
       AUTHENTIK_BOOTSTRAP_PASSWORD: "{{ auth_authentik_superadmin_bootstrap_password or omit }}"
@@ -286,7 +260,6 @@
         [
           'auth-secret-key',
           'auth-postgres-password',
-          'auth-redis-password',
         ] + (
           ['auth-email-password']
           if (auth_authentik_email_config.password | default(False))
@@ -296,7 +269,7 @@
     read_only: true
     cap_drop: [all]
     network: "{{
-        ['auth-postgres.network', 'auth-redis.network']
+        ['auth-postgres.network']
         + (auth_worker_additional_networks | map('regex_replace', '^(.*)$', '\\1.network'))
       }}"
     userns: auto:size=1001
@@ -305,9 +278,7 @@
         [Unit]
         PartOf=infrastructure.target
         After=auth-postgres.service
-        After=auth-redis.service
         Requires=auth-postgres.service
-        Requires=auth-redis.service
 
         [Install]
         WantedBy=infrastructure.target
@@ -387,7 +358,6 @@
     monitoring_agent_networks:
       - ingress-auth
       - auth-postgres
-      - auth-redis
     monitoring_agent_container: auth-monitoring
     monitoring_agent_prometheus_endpoints:
       - name: authentik
@@ -400,8 +370,5 @@
         username: authentik
         password: "{{ auth_postgres_password }}"
         database: authentik
-    monitoring_agent_redis_instances:
-      - name: auth-redis
-        user: metrics
-        password: "{{ auth_redis_metrics_password }}"
+    monitoring_agent_redis_instances: []
     monitoring_agent_user_group: "{{ auth_monitor_agent_user_group }}"
