@@ -11,6 +11,7 @@ ansible:
     ANSIBLE_CALLBACKS_ENABLED: ansible.posix.profile_roles, ansible.posix.profile_tasks
     ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
     ANSIBLE_DIFF_ALWAYS: "True"
+    ANSIBLE_MAX_DIFF_SIZE: 100000
     ANSIBLE_PIPELINING: "True"
     PROFILE_TASKS_SUMMARY_ONLY: "True"
     PROFILE_ROLES_SUMMARY_ONLY: "True"
