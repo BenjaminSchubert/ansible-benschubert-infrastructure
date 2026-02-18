@@ -108,10 +108,12 @@
   ansible.builtin.import_role:
     name: benschubert.infrastructure.postgres
   vars:
+    postgres_args: "{{ monitoring_grafana_postgres_args | default(omit) }}"
     postgres_container: monitoring-grafana-postgres
     postgres_password_secret: monitoring-grafana-postgres-password
     postgres_data_path: "{{ monitoring_grafana_postgres_data_path }}"
     postgres_image: "{{ monitoring_grafana_postgres_image }}"
+    postgres_initdb_args: "{{ monitoring_grafana_postgres_initdb_args | default(omit) }}"
     postgres_user: grafana
     postgres_database: grafana
     postgres_network: monitoring-grafana-postgres

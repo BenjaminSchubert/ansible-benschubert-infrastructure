@@ -85,10 +85,12 @@
   ansible.builtin.import_role:
     name: benschubert.infrastructure.postgres
   vars:
+    postgres_args: "{{ auth_postgres_args | default(omit) }}"
     postgres_container: auth-postgres
     postgres_password_secret: auth-postgres-password
     postgres_data_path: "{{ auth_postgres_data_path }}"
     postgres_image: "{{ auth_postgres_image }}"
+    postgres_initdb_args: "{{ auth_postgres_initdb_args | default(omit) }}"
     postgres_user: authentik
     postgres_database: authentik
     postgres_network: auth-postgres

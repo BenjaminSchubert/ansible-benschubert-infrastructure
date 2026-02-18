@@ -100,6 +100,10 @@ argument_specs:
         default: docker.io/grafana/grafana:latest
         description:
           - The container image path and tag to use for Grafana
+      monitoring_grafana_postgres_args:
+        type: str
+        required: false
+        description: Arguments to pass to the Postgres cli
       monitoring_grafana_postgres_data_path:
         type: str
         required: true
@@ -109,7 +113,11 @@ argument_specs:
       monitoring_grafana_postgres_image:
         type: str
         default: See I(postgres_image) from the Postgres role
-        description: The container image path and tag to use for Postgres
+        description: The container image path and tag to use for
+      monitoring_grafana_postgres_initdb_args:
+        type: str
+        required: false
+        description: Arguments to pass to initdb when Postgres initializes
       monitoring_grafana_postgres_password:
         type: str
         required: true

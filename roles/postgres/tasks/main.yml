@@ -18,6 +18,7 @@
   containers.podman.podman_container:
     name: "{{ postgres_container }}"
     image: "{{ postgres_image }}"
+    command: "{{ postgres_args | default(omit) }}"
     user: postgres
     state: quadlet
     volumes:
@@ -26,6 +27,7 @@
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
       POSTGRES_USER: "{{ postgres_user }}"
       POSTGRES_DB: "{{ postgres_database }}"
+      POSTGRES_INITDB_ARGS: "{{ postgres_initdb_args | default(omit) }}"
     secrets:
       - "{{ postgres_password_secret }},target=/run/secrets/postgres-password"
     healthcheck: pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
