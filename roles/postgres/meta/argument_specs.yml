@@ -14,6 +14,10 @@ argument_specs:
           - The path to where the Grafana configuration is kept
           - This is used to install a basic PostgreSQL dashboard for viewing
             metrics
+      postgres_args:
+        type: str
+        required: false
+        description: Arguments to pass to the Postgres cli
       postgres_data_path:
         type: str
         required: true
@@ -26,6 +30,10 @@ argument_specs:
         type: str
         default: docker.io/library/postgres:latest
         description: The container image path and tag to use for Postgres
+      postgres_initdb_args:
+        type: str
+        required: false
+        description: Arguments to pass to initdb when Postgres initializes
       postgres_network:
         type: str
         required: true

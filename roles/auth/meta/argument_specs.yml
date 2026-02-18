@@ -128,10 +128,18 @@ argument_specs:
         required: true
         description:
           - The path on disk where the PostgreSQL instance should store its data
+      auth_postgres_args:
+        type: str
+        required: false
+        description: Arguments to pass to the Postgres cli
       auth_postgres_image:
         type: str
         default: See I(postgres_image) from the Postgres role
         description: The container image path and tag to use for Postgres
+      auth_postgres_initdb_args:
+        type: str
+        required: false
+        description: Arguments to pass to initdb when Postgres initializes
       auth_postgres_password:
         type: str
         required: true
