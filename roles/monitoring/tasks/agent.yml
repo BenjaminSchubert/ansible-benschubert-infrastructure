@@ -85,8 +85,9 @@
         )
       }}"
     data: "{{
-        'postgresql://{username}:{password}@{instance}:5432/{database}?sslmode=disable'.format(
-          **monitoring_agent_postgres_instances[item]
+        'postgresql://{username}:{encoded_password}@{instance}:5432/{database}?sslmode=disable'.format(
+          encoded_password=(monitoring_agent_postgres_instances[item].password | urlencode),
+          **monitoring_agent_postgres_instances[item],
         )
       }}"
     state: present
