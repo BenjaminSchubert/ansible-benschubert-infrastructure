@@ -61,14 +61,14 @@ argument_specs:
         default: Grafana Admins
         description:
           - The name of the group in Authentik that should be admins in Grafana
-      monitoring_grafana_admin_password:
+      monitoring_grafana_admin_api_key:
         type: str
-        default: "{{ monitoring_grafana_admin_bootstrap_password }}"
+        required: false
         description:
-          - The password to authenticate as admin on Grafana for setting up
+          - The service account API key to authenticate as admin on Grafana for setting up
             dashboards and other resources
-          - Defaults to I(monitoring_grafana_admin_bootstrap_password) if not set.
-      monitoring_grafana_admin_user:
+          - Required if I(monitoring_grafana_admin_bootstrap_password) if not set.
+      monitoring_grafana_admin_bootstrap_user:
         type: str
         default: admin
         description:
