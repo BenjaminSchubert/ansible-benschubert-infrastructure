@@ -5,8 +5,8 @@
       The bootstrap superadmin secrets are still injected. You might want to
       change the secrets and remove them from the variables for security
   when: >-
-    auth_authentik_superadmin_bootstrap_password is not none
-    or auth_authentik_superadmin_bootstrap_token is not none
+    (auth_authentik_superadmin_bootstrap_password | default("") | length > 0)
+    or (auth_authentik_superadmin_bootstrap_token | default("") | length > 0)
   ignore_errors: true
   tags:
     - skip_ansible_lint

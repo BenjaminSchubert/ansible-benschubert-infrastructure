@@ -107,8 +107,9 @@
     ds_type: loki
     ds_url: http://monitoring-loki:3100
     grafana_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}
-    grafana_user: "{{ monitoring_grafana_admin_user }}"
-    grafana_password: "{{ monitoring_grafana_admin_password }}"
+    grafana_api_key: "{{ monitoring_grafana_admin_api_key | default(omit) }}"
+    grafana_user: "{{ monitoring_grafana_admin_bootstrap_username | default(omit) }}"
+    grafana_password: "{{ monitoring_grafana_admin_bootstrap_password | default(omit) }}"
     validate_certs: false
 
 - name: Install Loki's dashboard
