@@ -108,7 +108,11 @@
     ds_url: http://monitoring-loki:3100
     grafana_url: https://{{ monitoring_grafana_hostname }}:{{ ingress_https_port }}
     grafana_api_key: "{{ monitoring_grafana_admin_api_key | default(omit) }}"
-    grafana_user: "{{ monitoring_grafana_admin_bootstrap_username | default(omit) }}"
+    grafana_user: >-
+      {{
+        monitoring_grafana_admin_bootstrap_password is defined
+        | ternary(monitoring_grafana_admin_bootstrap_username, omit)
+      }}
     grafana_password: "{{ monitoring_grafana_admin_bootstrap_password | default(omit) }}"
     validate_certs: false
 

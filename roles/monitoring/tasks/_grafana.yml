@@ -10,12 +10,8 @@
           (monitoring_grafana_admin_bootstrap_password | default("") | length > 0)
           and (monitoring_grafana_admin_api_key | default("") | length > 0)
         )
-      - |
-        (monitoring_grafana_admin_bootstrap_password | default("") | length > 0)
-        == (monitoring_grafana_admin_bootstrap_username | default("") | length > 0)
     fail_msg: >-
-      Only one of (monitoring_grafana_admin_bootstrap_password and
-      monitoring_grafana_admin_bootstrap_username) or monitoring_grafana_admin_api_key
+      Only one of monitoring_grafana_admin_bootstrap_password or monitoring_grafana_admin_api_key
       can be set at once
 
 - name: Warn if the bootstrap secrets are set
@@ -23,17 +19,7 @@
     msg: >-
       The bootstrap admin password is still injected. You might want to
       change the secrets and remove them from the variables for security
-  when: (monitoring_grafana_admin_bootstrap_password | default("") | length > 0)
-  ignore_errors: true
-  tags:
-    - skip_ansible_lint
-
-- name: Warn if the bootstrap username is set
-  ansible.builtin.fail:
-    msg: >-
-      The bootstrap admin username is still injected. You might want to remove
-      them from the variables for security
-  when: (monitoring_grafana_admin_bootstrap_username | default("") | length > 0)
+  when: monitoring_grafana_admin_bootstrap_password is defined
   ignore_errors: true
   tags:
     - skip_ansible_lint
@@ -176,7 +162,10 @@
       # yamllint disable-line rule:line-length
       GF_AUTH_SIGNOUT_REDIRECT_URL: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/application/o/benschubert-infrastructure-grafana/end-session/
       GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: >-
-        {{ '1' if (not ingress_validate_certs or ingress_custom_ca_cert) else omit }}
+        {{
+          (not ingress_validate_certs or (ingress_custom_ca_cert | default(false)))
+          | ternary('1', omit)
+        }}
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: >-
         contains(groups[*], '{{ monitoring_grafana_admin_group_name }}') && 'Admin' || 'Viewer'
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_STRICT: "true"
@@ -194,7 +183,11 @@
       GF_ANALYTICS_CHECK_FOR_UPDATES: "0"
       GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "0"
       GF_SECURITY_SECRET_KEY__FILE: /run/secrets/monitoring-grafana-secret-key
-      GF_SECURITY_ADMIN_USER: "{{ monitoring_grafana_admin_bootstrap_username | default(omit) }}"
+      GF_SECURITY_ADMIN_USER: >-
+        {{
+          monitoring_grafana_admin_bootstrap_password is defined
+          | ternary(monitoring_grafana_admin_bootstrap_username, omit)
+        }}
       GF_SECURITY_ADMIN_PASSWORD: >-
         {{ monitoring_grafana_admin_bootstrap_password | default(omit) }}
     pull: newer
