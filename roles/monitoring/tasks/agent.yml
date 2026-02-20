@@ -14,7 +14,7 @@
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-    validate_certs: "{{ ingress_validate_certs }}"
+    validate_certs: "{{ ingress_validate_certs | default(true) }}"
     user:
       name: "{{ monitoring_agent_container }}"
       username: "{{ monitoring_agent_container }}"
@@ -30,7 +30,7 @@
         authentik_token: "{{ auth_authentik_token }}"
         authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
         ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-        validate_certs: "{{ ingress_validate_certs }}"
+        validate_certs: "{{ ingress_validate_certs | default(true) }}"
         group:
           name: "{{ monitoring_agent_user_group }}"
       register: _service_account_group
@@ -40,7 +40,7 @@
         authentik_token: "{{ auth_authentik_token }}"
         authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
         ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-        validate_certs: "{{ ingress_validate_certs }}"
+        validate_certs: "{{ ingress_validate_certs | default(true) }}"
         group_pk: "{{ _service_account_group.data.pk }}"
         user_pk: "{{ _service_account.data.pk }}"
 
@@ -49,7 +49,7 @@
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-    validate_certs: "{{ ingress_validate_certs }}"
+    validate_certs: "{{ ingress_validate_certs | default(true) }}"
     token:
       identifier: "{{ monitoring_agent_container }}-agent-auth-token"
       intent: app_password
@@ -62,7 +62,7 @@
     authentik_token: "{{ auth_authentik_token }}"
     authentik_url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-    validate_certs: "{{ ingress_validate_certs }}"
+    validate_certs: "{{ ingress_validate_certs | default(true) }}"
     token: "{{ monitoring_agent_container }}-agent-auth-token"
   register: _service_account_token
 
