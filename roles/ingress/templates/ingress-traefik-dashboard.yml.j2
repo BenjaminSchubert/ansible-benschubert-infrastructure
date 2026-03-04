@@ -6,7 +6,6 @@ http:
       rule: Host(`{{ hostname }}`)
       service: api@internal
       priority: 10
-      tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
       middlewares:
         - authentik@file
 
@@ -19,4 +18,3 @@ http:
       rule: Host(`{{ hostname }}`) && PathPrefix(`/dashboard/icons/favicon-32x32.png`)
       service: api@internal
       priority: 15
-      tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }

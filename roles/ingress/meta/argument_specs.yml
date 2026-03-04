@@ -30,14 +30,13 @@ argument_specs:
           - The list of podman networks that the Traefik pod should attach to.
           - This is to let Traefik act as a reverse proxy for other services
             hosted in podman, without exposing them to other places.
-      ingress_traefik_certificates_resolvers:
+      ingress_traefik_default_certificates_resolver:
         type: dict
-        default: {}
+        default: null
         description:
-          - The configuration for the certificate resolvers
-          - When created, it expects at least a 'default' entry, which will be
-            used for all services that don't specify an explicit resolver in
-            their configuration
+          - The configuration for the default certificates resolver
+          - All services configured by this role will expect to be using this
+            default resolver
           - See L(Traefik's documentation,
             https://doc.traefik.io/traefik/https/acme/) for more information
       ingress_traefik_configuration_files_path:
@@ -200,21 +199,6 @@ argument_specs:
         description:
           - The port under which Traefik is exposed to the outside world. This
             is used to be able to show the icon of Traefik on
-      ingress_traefik_certificates_resolvers:
-        type: dict
-        default: {}
-        description:
-          - The configuration for the certificate resolvers
-          - When created, it expects at least a 'default' entry, which will be
-            used for all services that don't specify an explicit resolver in
-            their configuration
-          - "'storage' MUST be set as C(/etc/traefik/acme.json)"
-          - See L(Traefik's documentation,
-            https://doc.traefik.io/traefik/https/acme/) for more information
-      ingress_traefik_image:
-        type: str
-        default: docker.io/traefik:latest
-        description: The container image path and tag to use for Traefik
       ingress_validate_certs:
         type: bool
         default: true

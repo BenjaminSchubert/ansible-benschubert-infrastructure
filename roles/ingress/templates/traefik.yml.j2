@@ -18,6 +18,8 @@ entryPoints:
           to: web-secure
   web-secure:
     address: ":{{ ingress_https_port }}"
+    http:
+      tls: { {%- if ingress_traefik_default_certificates_resolver %}certresolver: default{% endif -%} }
   metrics:
     address: ":8082"
   {% for entrypoint, port in ( ingress_extra_entrypoints | default({})).items() -%}
@@ -37,6 +39,8 @@ providers:
     directory: /etc/traefik/providers
     watch: true
 
-{% if ingress_traefik_certificates_resolvers %}
-{{ {"certificatesResolvers": (ingress_traefik_certificates_resolvers or {})} | to_yaml }}
+{% if ingress_traefik_default_certificates_resolver %}
+certificatesResolvers:
+  default:
+    {{ ingress_traefik_default_certificates_resolver | to_yaml(indent=6) }}
 {% endif %}

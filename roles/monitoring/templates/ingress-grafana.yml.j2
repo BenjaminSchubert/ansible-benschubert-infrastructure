@@ -6,7 +6,6 @@ http:
       rule: Host(`{{ hostname }}`)
       service: grafana
       priority: 10
-      tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
 
   services:
     grafana:

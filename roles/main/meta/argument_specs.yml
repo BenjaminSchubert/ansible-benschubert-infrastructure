@@ -236,11 +236,11 @@ argument_specs:
           - Users not in any of the specified groups won't be able to see or
             login to the dashboard.
           - C(null) or C([]) doesn't restrict the access.
-      ingress_traefik_certificates_resolvers:
+      ingress_traefik_default_certificates_resolver:
         type: dict
-        default: {}
+        default: null
         description:
-          - The configuration for the certificate resolvers
+          - The configuration for the default certificates resolver
           - When created, it expects at least a 'default' entry, which will be
             used for all services that don't specify an explicit resolver in
             their configuration
