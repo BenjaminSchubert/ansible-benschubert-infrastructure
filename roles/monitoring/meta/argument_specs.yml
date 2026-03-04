@@ -34,17 +34,6 @@ argument_specs:
         default: 443
         description:
           - The port at which the service is exposed via the ingress
-      ingress_traefik_certificates_resolvers:
-        type: dict
-        default: {}
-        description:
-          - The configuration for the certificate resolvers
-          - When created, it expects at least a 'default' entry, which will be
-            used for all services that don't specify an explicit resolver in
-            their configuration
-          - "'storage' MUST be set as C(/etc/traefik/acme.json)"
-          - See L(Traefik's documentation,
-            https://doc.traefik.io/traefik/https/acme/) for more information
       ingress_validate_certs:
         type: bool
         default: true

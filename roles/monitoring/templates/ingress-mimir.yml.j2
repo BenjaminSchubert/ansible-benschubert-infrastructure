@@ -6,7 +6,6 @@ http:
       rule: Host(`{{ hostname }}`)
       service: mimir
       priority: 10
-      tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
       middlewares:
         - mimir-auth@file
 

@@ -5,7 +5,6 @@ http:
     authentik:
       rule: Host(`{{ hostname }}`)
       service: authentik
-      tls: { {% if ingress_traefik_certificates_resolvers %}"certResolver": "default"{% endif %} }
 
   services:
     authentik:
