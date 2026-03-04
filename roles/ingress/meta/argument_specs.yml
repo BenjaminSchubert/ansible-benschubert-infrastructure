@@ -30,6 +30,15 @@ argument_specs:
           - The list of podman networks that the Traefik pod should attach to.
           - This is to let Traefik act as a reverse proxy for other services
             hosted in podman, without exposing them to other places.
+      ingress_traefik_additional_dynamic_configuration:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of templates to install additionally as dynamic configuration
+            for Traefik to pick up
+          - This can be useful to further configure Traefik base setup and the
+            currently provided services definitions
       ingress_traefik_default_certificates_resolver:
         type: dict
         default: null

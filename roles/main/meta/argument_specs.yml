@@ -236,6 +236,15 @@ argument_specs:
           - Users not in any of the specified groups won't be able to see or
             login to the dashboard.
           - C(null) or C([]) doesn't restrict the access.
+      ingress_traefik_additional_dynamic_configuration:
+        type: list
+        elements: str
+        default: []
+        description:
+          - A list of templates to install additionally as dynamic configuration
+            for Traefik to pick up
+          - This can be useful to further configure Traefik base setup and the
+            currently provided services definitions
       ingress_traefik_default_certificates_resolver:
         type: dict
         default: null
