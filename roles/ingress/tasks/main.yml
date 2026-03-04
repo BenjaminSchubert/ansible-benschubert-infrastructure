@@ -36,6 +36,21 @@
     mode: "0o400"
   register: _configuration
 
+- name: Install additional dynamic configuration
+  become: true
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: >-
+      {{
+        [
+          ingress_traefik_configuration_files_path,
+          "config/providers",
+          item | basename | splitext | first,
+        ] | path_join
+      }}
+    mode: "0o600"
+  loop: "{{ ingress_traefik_additional_dynamic_configuration | default([]) }}"
+
 - name: Create the acme.json file to store certificates
   become: true
   ansible.builtin.file:
