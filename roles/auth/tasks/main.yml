@@ -320,6 +320,8 @@
     return_content: true
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
+  check_mode: false  # This has no side effects
+  changed_when: false
   register: _blueprints
   retries: 5
   delay: 2

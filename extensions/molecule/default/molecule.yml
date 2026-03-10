@@ -36,9 +36,14 @@ scenario:
     - idempotence
     - side_effect
     - idempotence
+    - check
     - verify
     - cleanup
     - destroy
+  # Check sequence generally runs a destroy then converge then check
+  # It's easier to run independently and as part of the test sequence
+  check_sequence:
+    - check
 
 verifier:
   name: testinfra
