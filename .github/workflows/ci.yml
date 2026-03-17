@@ -31,20 +31,23 @@ jobs:
       ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - name: Install python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
-          cache: pip
           python-version: ${{ env.PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        with:
+          enable-cache: true
       - name: Install dependencies
-        run: pip install -r requirements/requirements.txt
+        run: uv sync --locked --no-default-groups --group ansible-lint
       - name: Install the collection
-        run: ansible-galaxy collection install .
+        run: uv run --no-sync ansible-galaxy collection install .
       - name: Install test collections
-        run: ansible-galaxy install --role-file=extensions/molecule/default/requirements.yml
+        run: uv run --no-sync ansible-galaxy install --role-file=extensions/molecule/default/requirements.yml
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@main
+        uses: ansible/ansible-lint@8ba9595a4acd1b906eb75568b34f6ef592cd1528  # 26.3.0
         with:
           args: --strict
           setup_python: false
@@ -53,65 +56,62 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - name: Update apt cache
         run: sudo apt-get update
       - name: Install system dependencies
         run: sudo apt-get install --assume-yes libvirt-dev
       - name: Install python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
-          cache: pip
           python-version: ${{ env.PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        with:
+          enable-cache: true
       - name: Install dependencies
-        run: >-
-          pip install
-          mypy
-          -r requirements/requirements-docs.txt
-          -r requirements/requirements-tests.txt
-          -r requirements/requirements-types.txt
+        run: uv sync --locked --only-group mypy
       - name: Run mypy
-        run: mypy .
+        run: uv run --no-sync mypy .
   pylint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - name: Update apt cache
         run: sudo apt-get update
       - name: Install system dependencies
         run: sudo apt-get install --assume-yes libvirt-dev
       - name: Install python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
-          cache: pip
           python-version: ${{ env.PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        with:
+          enable-cache: true
       - name: Install dependencies
-        run: >-
-          pip install
-          pylint
-          -r requirements/requirements.txt
-          -r requirements/requirements-tests.txt
+        run: uv sync --locked --only-group pylint
       - name: Run Pylint
-        run: pylint .
+        run: uv run --no-sync pylint .
   ruff:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - name: Run ruff
-        uses: astral-sh/ruff-action@v3
+        uses: astral-sh/ruff-action@4919ec5cf1f49eff0871dbcea0da843445b837e6  # v3.6.1
       - name: Check format
-        uses: astral-sh/ruff-action@v3
+        uses: astral-sh/ruff-action@4919ec5cf1f49eff0871dbcea0da843445b837e6  # v3.6.1
         with:
           args: format --diff
   sanity:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - name: Run sanity checks
-        uses: ansible-community/ansible-test-gh-action@release/v1
+        uses: ansible-community/ansible-test-gh-action@d3a8ec7a59694e25e210fcd44738910149537f0e  # v1.17.0
         with:
           ansible-core-version: stable-${{ env.ANSIBLE }}
           coverage: never
@@ -123,11 +123,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
       - name: Secret Scanning
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@6c05c4a00b91aa542267d8e32a8254774799d68d  # v.3.93.8
 
   ###
   # Tests
@@ -140,12 +140,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - name: Install python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
-          cache: pip
           python-version: ${{ env.PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        with:
+          enable-cache: true
       - name: Update apt cache
         run: sudo apt-get update
       - name: Install libvirt and dependencies
@@ -159,50 +162,50 @@ jobs:
       - name: Allow qemu-bridge-helper to be used as non-root
         run: sudo chmod u+s /usr/lib/qemu/qemu-bridge-helper
       - name: Install dependencies
-        run: pip install -r requirements/requirements-dev.txt
+        run: uv sync --locked --no-default-groups --group tests
       - name: molecule create
-        run: sg kvm 'sg libvirt-qemu "sg \"${USER}\" \"molecule create\""'
+        run: sg kvm 'sg libvirt-qemu "sg \"${USER}\" \"uv run --no-sync molecule create\""'
       - name: molecule converge
-        run: mkdir -p ${PWD}/.cache && molecule converge
+        run: mkdir -p ${PWD}/.cache && uv run --no-sync molecule converge
         env:
           ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-converge
       - name: molecule idempotence
-        run: molecule idempotence
+        run: uv run --no-sync molecule idempotence
         env:
           ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-idempotence-1
       - name: molecule side-effect
-        run: molecule side-effect
+        run: uv run --no-sync molecule side-effect
         env:
           ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-side-effect
       - name: molecule idempotence again
-        run: molecule idempotence
+        run: uv run --no-sync molecule idempotence
         env:
           ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-idempotence-2
       - name: molecule check
-        run: molecule check
+        run: uv run --no-sync molecule check
         env:
           ANSIBLE_LOG_PATH: ${PWD}/.cache/ansible-logs-check
       - name: molecule verify
-        run: molecule verify
+        run: uv run --no-sync molecule verify
       - name: Analyse the output of molecule
         run: >-
           echo "## Converge" >> $GITHUB_STEP_SUMMARY &&
-          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-converge
+          uv run --no-sync python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-converge
           | tee --append $GITHUB_STEP_SUMMARY
           && echo "## Idempotence 1" >> $GITHUB_STEP_SUMMARY &&
-          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence-1
+          uv run --no-sync python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence-1
           | tee --append $GITHUB_STEP_SUMMARY
           && echo "## side-effect" >> $GITHUB_STEP_SUMMARY &&
-          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-side-effect-1
+          uv run --no-sync python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-side-effect-1
           | tee --append $GITHUB_STEP_SUMMARY
           && echo "## Idempotence 2" >> $GITHUB_STEP_SUMMARY &&
-          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence-2
+          uv run --no-sync python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-idempotence-2
           | tee --append $GITHUB_STEP_SUMMARY
           && echo "## Check" >> $GITHUB_STEP_SUMMARY &&
-          python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-check
+          uv run --no-sync python .github/scripts/analyse-ansible-output.py .cache/ansible-logs-check
           | tee --append $GITHUB_STEP_SUMMARY
       - name: molecule destroy
-        run: molecule destroy
+        run: uv run --no-sync molecule destroy
 
   ###
   # Package
@@ -211,18 +214,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - name: Install python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
-          cache: pip
           python-version: ${{ env.PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        with:
+          enable-cache: true
       - name: Install dependencies
-        run: pip install -r requirements/requirements.txt
+        run: uv sync --locked --no-install-project --no-default-groups
       - name: Build collection
-        run: ansible-galaxy collection build --output-path _artifacts/
+        run: uv run --no-sync ansible-galaxy collection build --output-path _artifacts/
       - name: Save packaged collection
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: package
           path: _artifacts/*
@@ -240,19 +246,22 @@ jobs:
       ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           path: ansible_collections/benschubert/infrastructure/
       - name: Install python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
-          cache: pip
           python-version: ${{ env.PYTHON }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        with:
+          enable-cache: true
       - name: Install dependencies
-        run: pip install -r requirements/requirements-docs.txt
+        run: uv sync --locked --only-group docs
       - name: Validate the collection's documentation
         run: >-
-          antsibull-docs
+          uv run --no-sync antsibull-docs
           --config-file=docs/antsibull-docs.cfg
           lint-collection-docs
           --plugin-docs
@@ -260,7 +269,7 @@ jobs:
           .
       - name: Generate the collection's documentation
         run: >-
-          antsibull-docs
+          uv run --no-sync antsibull-docs
           --config-file=docs/antsibull-docs.cfg
           collection
           --use-current
@@ -269,13 +278,13 @@ jobs:
           --squash-hierarchy
           benschubert.infrastructure
       - name: Build documentation
-        run: sphinx-build -W --color -b=html docs/ _artifacts/docs
+        run: uv run --no-sync sphinx-build -W --color -b=html docs/ _artifacts/docs
       - name: Validate links
-        run: sphinx-build -W --color -b=linkcheck docs/ /tmp/linkcheck
+        run: uv run --no-sync sphinx-build -W --color -b=linkcheck docs/ /tmp/linkcheck
       - name: Validate spelling
-        run: sphinx-build -W --color -b=spelling docs/ /tmp/spelling
+        run: uv run --no-sync sphinx-build -W --color -b=spelling docs/ /tmp/spelling
       - name: Save the documentation
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: docs
           path: ansible_collections/benschubert/infrastructure//_artifacts/*

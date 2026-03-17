@@ -1,5 +1,0 @@
--r requirements.txt
--r requirements-tests.txt
-ansible-lint
-molecule>=25.9
-tabulate

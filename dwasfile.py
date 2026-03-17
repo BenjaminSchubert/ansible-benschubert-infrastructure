@@ -7,6 +7,7 @@ from pathlib import Path
 
 from dwas import (
     StepRunner,
+    StepWithDependentSetup,
     managed_step,
     parametrize,
     register_managed_step,
@@ -25,60 +26,54 @@ PYTHON_FILES = [
 ]
 
 
-def _install_collection(step: StepRunner) -> tuple[dict[str, str], str]:
-    ansible_home = step.cache_path / "ansible"
-    collection_path = str(
-        ansible_home
-        / "collections/ansible_collections/benschubert/infrastructure"
+def _get_collection_path(step: "StepRunner") -> str:
+    return str(
+        step.cache_path
+        / "ansible/collections/ansible_collections/benschubert/infrastructure"
     )
-
-    env = {"ANSIBLE_HOME": str(ansible_home)}
-    # FIXME: once we can set an environment variable from a step, we should
-    #        have the build step take care of the installation and inject
-    #        the collections path
-
-    step.run(
-        [
-            "ansible-galaxy",
-            "install",
-            "--role-file=extensions/molecule/default/requirements.yml",
-            "--force",
-        ],
-        env=env,
-    )
-
-    step.run(
-        [
-            "ansible-galaxy",
-            "collection",
-            "install",
-            "--force",
-            *step.get_artifacts("ansible_collections"),
-        ],
-        env=env,
-    )
-
-    # ansible-test sanity ignores the installed part otherwise, since it's
-    # in our gitignore
-    step.run(
-        ["git", "init", collection_path],
-        external_command=True,
-        silent_on_success=True,
-    )
-
-    return env, collection_path
 
 
 ##
 # Packaging
 ##
-class Build:
-    def gather_artifacts(self, step: "StepRunner") -> dict[str, list[str]]:
-        return {
-            "ansible_collections": [
-                str(collection) for collection in step.cache_path.glob("*")
+class Build(StepWithDependentSetup):
+    def setup_dependent(
+        self,
+        original_step: StepRunner,
+        current_step: StepRunner,
+    ) -> None:
+        ansible_home = current_step.cache_path / "ansible"
+        current_step.set_env("ANSIBLE_HOME", str(ansible_home))
+
+        current_step.run(
+            [
+                "ansible-galaxy",
+                "install",
+                "--role-file=extensions/molecule/default/requirements.yml",
+                "--force",
             ],
-        }
+        )
+
+        current_step.run(
+            [
+                "ansible-galaxy",
+                "collection",
+                "install",
+                "--force",
+                *[
+                    str(collection)
+                    for collection in original_step.cache_path.glob("*")
+                ],
+            ],
+        )
+
+        # ansible-test sanity ignores the installed part otherwise, since it's
+        # in our gitignore
+        current_step.run(
+            ["git", "init", _get_collection_path(current_step)],
+            external_command=True,
+            silent_on_success=True,
+        )
 
     def __call__(self, step: StepRunner) -> None:
         with suppress(FileNotFoundError):
@@ -104,7 +99,8 @@ class Build:
 
 register_managed_step(
     Build(),
-    ["-rrequirements/requirements.txt"],
+    [],
+    dependencies_sync=True,
     name="build",
     description="Build the collection",
 )
@@ -115,21 +111,13 @@ register_managed_step(
 ##
 register_managed_step(
     mypy(files=PYTHON_FILES),
-    dependencies=[
-        "mypy",
-        "-rrequirements/requirements-docs.txt",
-        "-rrequirements/requirements-tests.txt",
-        "-rrequirements/requirements-types.txt",
-    ],
+    dependencies=["--only-group=mypy"],
+    dependencies_sync=True,
 )
 register_managed_step(
     pylint(files=PYTHON_FILES),
-    dependencies=[
-        "dwas",
-        "pylint",
-        "-rrequirements/requirements.txt",
-        "-rrequirements/requirements-tests.txt",
-    ],
+    dependencies=["--only-group=pylint"],
+    dependencies_sync=True,
 )
 register_managed_step(ruff())
 register_managed_step(
@@ -148,10 +136,8 @@ register_managed_step(
 )
 
 
-@managed_step(["-rrequirements/requirements.txt"], requires=["build"])
+@managed_step([], dependencies_sync=True, requires=["build"])
 def sanity(step: StepRunner) -> None:
-    env, collection_path = _install_collection(step)
-
     command = [
         "ansible-test",
         "sanity",
@@ -167,27 +153,26 @@ def sanity(step: StepRunner) -> None:
 
     step.run(
         command,
-        cwd=collection_path,
-        env={"HOME": str(step.cache_path / "home"), **env},
+        cwd=_get_collection_path(step),
+        env={"HOME": str(step.cache_path / "home")},
     )
 
 
 @managed_step(
-    ["-rrequirements/requirements.txt", "ansible-lint"],
+    ["--only-group=ansible-lint"],
+    dependencies_sync=True,
     requires=["build"],
     name="ansible-lint",
 )
 def ansible_lint(step: StepRunner) -> None:
-    env, collection_path = _install_collection(step)
-
-    command = ["ansible-lint", "--strict"]
+    command = ["ansible-lint", "--offline", "--strict"]
     if step.config.colors:
         command.append("--force-color")
 
     step.run(
         command,
-        cwd=collection_path,
-        env={"HOME": str(step.cache_path / "home"), **env},
+        cwd=_get_collection_path(step),
+        env={"HOME": str(step.cache_path / "home")},
     )
 
 
@@ -208,7 +193,8 @@ register_step_group(
 # Test
 ##
 @managed_step(
-    ["-rrequirements/requirements-dev.txt"],
+    ["--only-group=tests"],
+    dependencies_sync=True,
     description="Run molecule tests against the collection",
     passenv=["USER", "HOME"],
 )
@@ -225,15 +211,15 @@ def molecule(step: StepRunner, user_args: list[str] | None) -> None:
 # Docs
 ##
 @managed_step(
-    ["-rrequirements/requirements-docs.txt"],
+    ["--only-group=docs"],
+    dependencies_sync=True,
     requires=["build"],
     run_by_default=False,
 )
 def autodoc(step: StepRunner) -> None:
-    env, collection_path = _install_collection(step)
     home_path = step.cache_path / "home"
-    home_path.mkdir(exist_ok=True)
-    env["HOME"] = str(home_path)
+    home_path.mkdir(exist_ok=True, parents=True)
+    env = {"HOME": str(home_path)}
 
     with suppress(FileNotFoundError):
         shutil.rmtree("docs/collections")
@@ -258,7 +244,7 @@ def autodoc(step: StepRunner) -> None:
             "lint-collection-docs",
             "--plugin-docs",
             "--validate-collection-refs=all",
-            collection_path,
+            _get_collection_path(step),
         ],
         env=env,
     )
@@ -285,7 +271,8 @@ register_managed_step(
     ),
     name="docs",
     description="Build and validate the documentation",
-    dependencies=["-rrequirements/requirements-docs.txt"],
+    dependencies=["--only-group=docs"],
+    dependencies_sync=True,
     requires=["autodoc"],
     run_by_default=False,
 )

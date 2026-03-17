@@ -1,6 +1,0 @@
-dwas
-types-colorama
-types-docutils
-types-pyyaml
-types-requests
-types-tabulate
