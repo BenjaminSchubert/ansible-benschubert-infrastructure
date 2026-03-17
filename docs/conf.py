@@ -45,7 +45,10 @@ intersphinx_mapping = {
 }
 
 # Linkcheck config
-linkcheck_ignore = ["https://docs.goauthentik.io/docs/applications"]
+linkcheck_ignore = [
+    "https://docs.goauthentik.io/docs/applications",
+    "https://mailpit.axllent.org",
+]
 
 # Spelling config
 spelling_show_suggestions = True
