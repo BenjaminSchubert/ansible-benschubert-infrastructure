@@ -1,7 +1,0 @@
-Pygments
-pytest
-pytest-testinfra
-libvirt-python
-lxml
-pyyaml
-requests

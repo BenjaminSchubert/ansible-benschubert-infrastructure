@@ -4,7 +4,17 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    groups:
+      actions:
+        patterns:
+          - "*"
+    assignees:
+      - "@benjaminschubert"
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: monthly
     groups:
       actions:
         patterns:
