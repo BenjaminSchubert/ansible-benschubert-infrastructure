@@ -53,7 +53,7 @@ data:
           "preferred_username": request.user.username,
           "nickname": request.user.username,
           # groups is not part of the official userinfo schema, but is a quasi-standard
-          "groups": [group.name for group in request.user.ak_groups.all()],
+          "groups": [group.name for group in request.user.groups.all()],
       }
     managed: goauthentik.io/providers/oauth2/scope-profile
     meta_model_name: authentik_providers_oauth2.scopemapping
