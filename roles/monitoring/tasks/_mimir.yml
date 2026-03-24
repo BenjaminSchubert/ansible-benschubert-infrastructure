@@ -214,11 +214,11 @@
         | to_json(indent=4)
         | regex_replace(
           'job=~\\"\(\$namespace\)\/[^"]+"',
-          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitor\\"'
+          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitoring\\"'
         )
         | regex_replace(
           'namespace=~\\"\$namespace\\"',
-          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitor\\"'
+          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitoring\\"'
         )
         | regex_replace('cluster=~\\"\$cluster\\",? ?', '')
         | regex_replace('\(cluster_job(?:_[^:]+)?:([^:]+):[^{]+{', '(\1{')
@@ -235,9 +235,60 @@
         | rejectattr('name', 'match', '.*-networking.json$')
         | rejectattr('name', 'match', '^mimir-rollout-progress.json$')
         | rejectattr('name', 'match', '^mimir-overrides.json$')
+        | rejectattr('name', 'match', '^mimir-queries.json$')
         | rejectattr('name', 'match', '^mimir-slow-queries.json$')
         | rejectattr('name', 'match', '^mimir-top-tenants.json$')
         | rejectattr('name', 'match', '^mimir-scaling.json$')
+    }}
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install Mimir dashboards for queries
+  ansible.builtin.include_role:
+    name: benschubert.infrastructure.monitoring
+    tasks_from: dashboard
+  vars:
+    content: >-
+      {%-
+        set _dashboard_data = lookup(
+          "ansible.builtin.url",
+          item.download_url,
+          split_lines=False,
+        ) | from_json
+      %}
+      {{
+        _dashboard_data
+        | combine(
+          {
+            "templating": {
+              "list": (_dashboard_data)["templating"]["list"]
+              | rejectattr("name", "equalto", "namespace")
+              | rejectattr("name", "equalto", "cluster")
+              | rejectattr("name", "equalto", "read_path_matcher")
+            }
+          }
+        )
+        | to_json(indent=4)
+        | regex_replace(
+          "\$read_path_matcher",
+          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitoring\\"',
+        )
+        | regex_replace(
+          'namespace=\\"\$namespace\\"',
+          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitoring\\"'
+        )
+        | regex_replace(
+          'job=~\\"\(\$namespace\)\/[^"]+"',
+          'job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitoring\\"'
+        )
+        | regex_replace('component=\\"[^\\]+\\", ?', '')
+        | regex_replace('cluster=~\\"[^\\]+\\", ?', '')
+      }}
+    destination: monitoring/{{ item.name }}
+  loop: >-
+    {{
+      _mimir_dashboard_list.content
+        | selectattr('name', 'match', '^mimir-queries.json$')
     }}
   loop_control:
     label: "{{ item.name }}"
