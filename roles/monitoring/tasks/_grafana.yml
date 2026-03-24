@@ -264,7 +264,7 @@
         | regex_replace("\${DS_PROMETHEUS}", "mimir")
         | regex_replace(
           'job=\\"grafana\\"',
-          'instance=\\"grafana\\", job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitor\\"',
+          'instance=\\"grafana\\", job=\\"prometheus.scrape.benschubert_infrastructure_monitoring_monitoring\\"',
         )
         | from_json
         | to_json(indent=4)
