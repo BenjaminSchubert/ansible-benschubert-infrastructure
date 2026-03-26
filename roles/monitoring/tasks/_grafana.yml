@@ -253,12 +253,14 @@
     name: benschubert.infrastructure.monitoring
     tasks_from: dashboard
   vars:
+    # FIXME: replace with newer dashboard once available.
+    #        See https://github.com/grafana/grafana/pull/121084
     # yamllint disable rule:line-length
     content: >-
       {{
         lookup(
           "ansible.builtin.url",
-          "https://raw.githubusercontent.com/grafana/grafana/refs/heads/main/public/app/plugins/datasource/prometheus/dashboards/grafana_stats.json",
+          "https://raw.githubusercontent.com/grafana/grafana/refs/tags/v12.4.2/public/app/plugins/datasource/prometheus/dashboards/grafana_stats.json",
           split_lines=False,
         )
         | regex_replace("\${DS_PROMETHEUS}", "mimir")
