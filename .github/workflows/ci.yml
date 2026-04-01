@@ -37,7 +37,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57  # v8.0.0
         with:
           enable-cache: true
       - name: Install dependencies
@@ -66,7 +66,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57  # v8.0.0
         with:
           enable-cache: true
       - name: Install dependencies
@@ -87,7 +87,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57  # v8.0.0
         with:
           enable-cache: true
       - name: Install dependencies
@@ -127,7 +127,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Secret Scanning
-        uses: trufflesecurity/trufflehog@6c05c4a00b91aa542267d8e32a8254774799d68d  # v.3.93.8
+        uses: trufflesecurity/trufflehog@586f66d7886cd0b037c7c245d4a6e34ef357ab10  # v.3.94.1
 
   ###
   # Tests
@@ -146,7 +146,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57  # v8.0.0
         with:
           enable-cache: true
       - name: Update apt cache
@@ -220,7 +220,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57  # v8.0.0
         with:
           enable-cache: true
       - name: Install dependencies
@@ -254,7 +254,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57  # v8.0.0
         with:
           enable-cache: true
       - name: Install dependencies
