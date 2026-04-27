@@ -30,7 +30,6 @@
     quadlet_options:
       - |
         [Unit]
-        PartOf=infrastructure.target
         Before=infrastructure.target
 
         [Install]

@@ -209,13 +209,9 @@
     quadlet_options:
       - |
         [Unit]
-        PartOf=infrastructure.target
         Before=infrastructure.target
-        After=auth.service
-        After=ingress.service
+        StopPropagatedFrom=infrastructure.target
         After=monitoring-grafana-postgres.service
-        Requires=auth.service
-        Requires=ingress.service
         Requires=monitoring-grafana-postgres.service
 
         [Install]

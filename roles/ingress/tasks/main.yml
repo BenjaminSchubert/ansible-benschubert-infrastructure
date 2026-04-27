@@ -130,8 +130,11 @@
     quadlet_options:
       - |
         [Unit]
-        PartOf=infrastructure.target
         Before=infrastructure.target
+        StopPropagatedFrom=infrastructure.target
+
+        [Install]
+        WantedBy=infrastructure.target
 
         [Service]
         TimeoutSec=5min

@@ -179,12 +179,14 @@
     quadlet_options:
       - |
         [Unit]
-        PartOf=infrastructure.target
         After=auth-postgres.service
+        After=ingress.service
         Before=auth-worker.service
         Requires=auth-postgres.service
-        Requires=ingress.service
+        Wants=ingress.service
         Wants=auth-worker.service
+        Before=infrastructure.target
+        StopPropagatedFrom=infrastructure.target
 
         [Install]
         WantedBy=infrastructure.target
@@ -278,9 +280,10 @@
     quadlet_options:
       - |
         [Unit]
-        PartOf=infrastructure.target
         After=auth-postgres.service
         Requires=auth-postgres.service
+        Before=infrastructure.target
+        StopPropagatedFrom=infrastructure.target
 
         [Install]
         WantedBy=infrastructure.target

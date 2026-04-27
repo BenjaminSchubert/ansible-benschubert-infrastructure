@@ -83,12 +83,8 @@
     quadlet_options:
       - |
         [Unit]
-        PartOf=infrastructure.target
         Before=infrastructure.target
-        After=auth.service
-        After=ingress.service
-        Requires=auth.service
-        Requires=ingress.service
+        StopPropagatedFrom=infrastructure.target
 
         [Service]
         TimeoutSec=5min
