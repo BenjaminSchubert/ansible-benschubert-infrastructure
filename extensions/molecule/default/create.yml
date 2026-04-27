@@ -3,6 +3,22 @@
   hosts: localhost
   gather_facts: false
   tasks:
+    - name: Gather facts about storage pools
+      community.libvirt.virt_pool:
+        command: facts
+        uri: qemu:///session
+
+    - name: Setup the location for the data pool
+      ansible.builtin.set_fact:
+        pool_path: >-
+          {{
+            lookup(
+              'ansible.builtin.env',
+              'POOL_PATH',
+              default=ansible_facts.libvirt_pools.default.path
+            )
+          }}
+
     - name: Ensure required directories exist
       ansible.builtin.file:
         path: "{{ molecule_ephemeral_directory }}/{{ item }}"
@@ -41,13 +57,14 @@
         dest: "{{ molecule_ephemeral_directory }}/cloud-init/user-data"
         mode: "0o644"
 
+    # yamllint disable rule:line-length
     - name: Generate cloud-init iso
       ansible.builtin.command:
         cmd: >-
           cloud-localds
-            {{ molecule_ephemeral_directory }}/cloud-init/cloud-init.iso
+            {{ pool_path }}/molecule-benschubert-infrastructure-test-cloud-init.iso
             {{ molecule_ephemeral_directory }}/cloud-init/user-data
-        creates: "{{ molecule_ephemeral_directory }}/cloud-init/cloud-init.iso"
+        creates: "{{ pool_path }}/molecule-benschubert-infrastructure-test-cloud-init.iso"
 
     - name: Download the Debian base image
       ansible.builtin.get_url:
@@ -59,13 +76,13 @@
     - name: Copy the pre-downloaded image
       ansible.builtin.copy:
         src: "{{ molecule_ephemeral_directory | dirname }}/original-debian-13.raw"
-        dest: "{{ molecule_ephemeral_directory }}/disk.raw"
+        dest: "{{ pool_path }}/molecule-benschubert-infrastructure-test-disk.raw"
         mode: "0o644"
         force: false
 
     - name: Expand the disk
       ansible.builtin.command:
-        cmd: qemu-img resize {{ molecule_ephemeral_directory }}/disk.raw 10G
+        cmd: qemu-img resize {{ pool_path }}/molecule-benschubert-infrastructure-test-disk.raw 10G
       changed_when: true
 
     - name: Start the VM
@@ -73,9 +90,9 @@
         name: molecule-benschubert-infrastructure-test
         memory: 8192
         vcpus: 4
-        cdrom: "{{ molecule_ephemeral_directory }}/cloud-init/cloud-init.iso"
+        cdrom: "{{ pool_path }}/molecule-benschubert-infrastructure-test-cloud-init.iso"
         disks:
-          - path: "{{ molecule_ephemeral_directory }}/disk.raw"
+          - path: "{{ pool_path }}/molecule-benschubert-infrastructure-test-disk.raw"
         import: true
         graphics:
           type: spice
@@ -88,6 +105,7 @@
         transient: false
         uri: qemu:///session
         virt_type: kvm
+    # yamllint enable rule:line-length
 
     - name: Recover the VM connection information
       ansible.builtin.command:
