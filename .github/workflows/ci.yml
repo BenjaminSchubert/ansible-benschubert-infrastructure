@@ -137,6 +137,7 @@ jobs:
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
+      POOL_PATH: "./"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
