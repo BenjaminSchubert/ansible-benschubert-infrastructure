@@ -170,8 +170,8 @@
         [Unit]
         Before=infrastructure.target
         StopPropagatedFrom=infrastructure.target
-        Requires=auth.service
-        Requires=ingress.service
+        Wants=auth.service
+        Wants=ingress.service
 
         [Service]
         TimeoutSec=5min
