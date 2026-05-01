@@ -2,7 +2,7 @@
 name = "ansible-benschubert-infrastructure"
 version = "0.0.1"
 requires-python = ">=3.12"
-dependencies = ["ansible-core>=2.14.0,<2.21", "distlib"]
+dependencies = ["ansible-core>=2.20.5,<2.21", "distlib"]
 
 [dependency-groups]
 dev = [
@@ -34,7 +34,7 @@ pylint = ["pylint"]
 tests = [
     "libvirt-python",
     "lxml",
-    "molecule>=25.9",
+    "molecule>=26.4.0",
     "passlib",
     "Pygments",
     "pytest",
