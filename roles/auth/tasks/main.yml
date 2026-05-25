@@ -211,6 +211,10 @@
   become: true
   ansible.builtin.command: podman healthcheck run auth
   changed_when: false
+  register: _cmd
+  until: _cmd.rc == 0
+  retries: 15
+  delay: 5
 
 - name: Setup the Authentik worker container
   become: true
@@ -304,6 +308,10 @@
   become: true
   ansible.builtin.command: podman healthcheck run auth-worker
   changed_when: false
+  register: _cmd
+  until: _cmd.rc == 0
+  retries: 15
+  delay: 5
 
 - name: Setup an ingress for Authentik
   ansible.builtin.import_role:
