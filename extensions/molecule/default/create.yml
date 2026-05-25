@@ -72,6 +72,7 @@
         dest: "{{ molecule_ephemeral_directory | dirname }}/original-debian-13.raw"
         mode: "0o644"
         checksum: sha512:https://cloud.debian.org/images/cloud/trixie/latest/SHA512SUMS
+        timeout: 300
 
     - name: Copy the pre-downloaded image
       ansible.builtin.copy:
