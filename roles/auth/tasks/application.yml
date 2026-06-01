@@ -70,6 +70,7 @@
         provider:
           name: "{{ application_name }}"
           authorization_flow: "{{ _authorization_flow.data.pk }}"
+          grant_types: "{{ provider_oauth2.grant_types }}"
           invalidation_flow: "{{ _invalidation_flow.data.pk }}"
           property_mappings: "{{ _scopes.results | map(attribute='data.pk') }}"
           signing_key: "{{ _signing_key.data.pk }}"

@@ -257,10 +257,15 @@ argument_specs:
           - The configuration for the provider if it is using OAuth2
           - Mutually exclusive with C(provider_proxy)
         options:
+          grant_types:
+            type: list
+            required: false
           redirect_uris:
             description:
               - The list of valid URIs where Authentik can redirect after login
-              - "Each entry must be a dict of {url: <url>, matching_mode: \"strict\" | \"regex\"}"
+              - "Each entry must be a dict of
+                {url: <url>, matching_mode: \"strict\" | \"regex\",
+                redirect_uri_type: \"authorization\" | \"logout\" }"
             type: list
             elements: dict
             required: true

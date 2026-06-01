@@ -22,6 +22,15 @@ options:
             to the connected application
         type: str
         required: true
+      grant_types:
+        description:
+          - The types of grants that the oauth2 application can ask for.
+          - Any of C(authorization_code), C(implicit), C(hybrid),
+            C(refresh_token), C(client_credentials), C(password),
+            C(urn:ietf:params:oauth:grant-type:device_code)
+        type: list
+        elements: str
+        required: true
       invalidation_flow:
         description:
           - The slug for the invalidation flow used to invalidate a session
@@ -131,6 +140,11 @@ def main() -> NoReturn:  # type: ignore[misc]
         "options": {
             "name": {"type": "str", "required": True},
             "authorization_flow": {"type": "str", "required": True},
+            "grant_types": {
+                "type": "list",
+                "required": True,
+                "elements": "str",
+            },
             "invalidation_flow": {"type": "str", "required": True},
             "property_mappings": {
                 "type": "list",
