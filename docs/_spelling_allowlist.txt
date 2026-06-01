@@ -27,6 +27,7 @@ redis
 resolvers
 subdomain
 Traefik
+uri
 url
 urls
 webserver
