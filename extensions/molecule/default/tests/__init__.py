@@ -88,7 +88,7 @@ class HostVerifyAdapter(requests.adapters.HTTPAdapter):
         **pool_kwargs: Any,
     ) -> None:
         pool_kwargs["server_hostname"] = self._server_hostname
-        super().init_poolmanager(  # type: ignore[no-untyped-call]
+        super().init_poolmanager(
             connections,
             maxsize,
             block,
