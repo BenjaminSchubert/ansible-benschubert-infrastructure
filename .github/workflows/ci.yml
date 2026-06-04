@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ANSIBLE: "2.20"
+  ANSIBLE: "2.21"
   PYTHON: "3.14"
 
 jobs:
