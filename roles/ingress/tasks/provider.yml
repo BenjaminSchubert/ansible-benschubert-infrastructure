@@ -8,16 +8,39 @@
     mode: "0o400"
 
 - name: Wait until the service is accessible for {{ ingress_name }}
-  ansible.builtin.uri:
-    url: https://{{ hostname }}{{
-        "" if ingress_https_port == 443 else ":{}".format(ingress_https_port)
-      }}/
-    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-    validate_certs: "{{ ingress_validate_certs }}"
-    follow_redirects: none
-    status_code:
-      - "{{ expected_status_code }}"
-  register: _service
-  until: _service.status == expected_status_code
-  retries: 25
-  delay: 2
+  block:
+    - name: Wait until the service is accessible
+      ansible.builtin.uri:
+        url: https://{{ hostname }}{{
+            "" if ingress_https_port == 443 else ":{}".format(ingress_https_port)
+          }}/
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        follow_redirects: none
+        status_code:
+          - "{{ expected_status_code }}"
+      register: _service
+      until: _service.status == expected_status_code
+      retries: 10
+      delay: 2
+  rescue:
+    - name: Restart the ingress service in case it's a problem generating the certificate
+      become: true
+      ansible.builtin.systemd:
+        name: ingress
+        state: restarted
+
+    - name: Wait again until the service is accessible
+      ansible.builtin.uri:
+        url: https://{{ hostname }}{{
+            "" if ingress_https_port == 443 else ":{}".format(ingress_https_port)
+          }}/
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+        follow_redirects: none
+        status_code:
+          - "{{ expected_status_code }}"
+      register: _service
+      until: _service.status == expected_status_code
+      retries: 10
+      delay: 2
