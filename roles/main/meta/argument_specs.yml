@@ -453,6 +453,11 @@ argument_specs:
         default: info
         description:
           - The log level to use for Mimir
+      monitoring_mimir_max_label_value_length:
+        type: int
+        default: 2048
+        description:
+          - The maximum allowed size for label values
       monitoring_mimir_per_user_series_limit:
         type: int
         default: 150000

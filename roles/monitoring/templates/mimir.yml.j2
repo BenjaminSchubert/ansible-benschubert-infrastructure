@@ -6,6 +6,7 @@ usage_stats:
 
 limits:
   max_global_series_per_user: {{ monitoring_mimir_per_user_series_limit }}
+  max_label_value_length: {{ monitoring_mimir_max_label_value_length }}
 
 target: all,alertmanager
 
