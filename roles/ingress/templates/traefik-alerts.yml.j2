@@ -8,7 +8,10 @@
     description: Traefik returned a 5xx response \n  VALUE = {{ '{{' }} $value {{ '}}' }}\n  LABELS = {{ '{{' }} $labels {{ '}}' }}
 
 - alert: TraefikHigh4xxErrorRate
-  expr: sum(rate(traefik_service_requests_total{instance="{{ name }}", code=~"4.*"}[5m])) by (service) / sum(rate(traefik_service_requests_total[5m])) by (service) > 0.2
+  expr: |
+    sum(rate(traefik_service_requests_total{instance="{{ name }}", code=~"4.*"{% if ingress_traefik_4xx_alerts_exclude_services %},service!~"{{ "|".join(ingress_traefik_4xx_alerts_exclude_services) }}"{% endif %}}[5m])) by (service)
+    /
+    sum(rate(traefik_service_requests_total{instance="{{ name }}"{% if ingress_traefik_4xx_alerts_exclude_services %},service!~"{{ "|".join(ingress_traefik_4xx_alerts_exclude_services) }}"{% endif %}}[5m])) by (service) > 0.2
   for: 3m
   labels:
     severity: critical
