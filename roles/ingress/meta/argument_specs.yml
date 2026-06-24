@@ -69,6 +69,13 @@ argument_specs:
             <key: value>"
           - The key of each secret will be set as an environment variable
             pointing to the secret containing the value
+      ingress_traefik_4xx_alerts_exclude_services:
+        type: list
+        default: []
+        elements: str
+        description:
+          - A list of services that should be excluded from the global ingress
+            4XX alerts
       template_warning:
         type: str
         required: true

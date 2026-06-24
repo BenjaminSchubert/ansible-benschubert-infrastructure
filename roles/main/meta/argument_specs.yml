@@ -297,6 +297,13 @@ argument_specs:
         description:
           - Whether the TLS certificate to access the Traefik should be
             validated or not
+      ingress_traefik_4xx_alerts_exclude_services:
+        type: list
+        default: []
+        elements: str
+        description:
+          - A list of services that should be excluded from the global ingress
+            4XX alerts
 
       ##
       # Monitoring
