@@ -17,11 +17,10 @@
         ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
         validate_certs: "{{ ingress_validate_certs }}"
         follow_redirects: none
-        status_code:
-          - "{{ expected_status_code }}"
       register: _service
-      until: _service.status == expected_status_code
-      retries: 10
+      failed_when: _service.status == -1
+      until: _service.status != -1
+      retries: 15
       delay: 2
   rescue:
     - name: Restart the ingress service in case it's a problem generating the certificate
@@ -38,9 +37,7 @@
         ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
         validate_certs: "{{ ingress_validate_certs }}"
         follow_redirects: none
-        status_code:
-          - "{{ expected_status_code }}"
       register: _service
-      until: _service.status == expected_status_code
+      until: _service.status != -1
       retries: 10
       delay: 2

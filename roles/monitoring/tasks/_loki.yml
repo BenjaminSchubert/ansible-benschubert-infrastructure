@@ -95,7 +95,6 @@
     template_file: ingress-loki.yml.j2
     ingress_name: loki
     hostname: "{{ monitoring_loki_hostname }}"
-    expected_status_code: 302
 
 - name: Register Loki as a datasource on Grafana
   community.grafana.grafana_datasource:

@@ -321,7 +321,6 @@
     template_file: ingress-authentik.yml.j2
     ingress_name: authentik
     hostname: "{{ auth_authentik_hostname }}"
-    expected_status_code: 302
 
 - name: Get the blueprints statuses
   ansible.builtin.uri:

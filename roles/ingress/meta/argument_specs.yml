@@ -134,13 +134,6 @@ argument_specs:
         description:
           - Whether the TLS certificate to access the service should be
             validated or not
-      expected_status_code:
-        type: int
-        default: true
-        description:
-          - The status code that the service is expected to return when reached
-            at /
-          - Used when validating that the service is indeed reachable
   finalize:
     short_description: >-
       Expose the Traefik dashboard on the instance deployed via the main

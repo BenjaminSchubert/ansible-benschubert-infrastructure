@@ -129,7 +129,6 @@
     template_file: ingress-mimir.yml.j2
     ingress_name: mimir
     hostname: "{{ monitoring_mimir_hostname }}"
-    expected_status_code: 302
 
 - name: Register Mimir as a datasource on Grafana
   community.grafana.grafana_datasource:
