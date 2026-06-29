@@ -75,4 +75,3 @@
     template_file: ingress-mailpit.yml.j2
     ingress_name: mailpit
     hostname: "{{ mailpit_test_gateway_mailpit_hostname }}"
-    expected_status_code: 302

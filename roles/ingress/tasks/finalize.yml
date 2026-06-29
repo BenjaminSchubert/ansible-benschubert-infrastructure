@@ -22,7 +22,6 @@
     template_file: ingress-traefik-dashboard.yml.j2
     ingress_name: traefik-dashboard
     hostname: "{{ ingress_traefik_dashboard_hostname }}"
-    expected_status_code: 302
 
 - name: Configure the Alloy image if not provided explicitly
   ansible.builtin.set_fact:

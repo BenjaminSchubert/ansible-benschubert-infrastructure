@@ -247,7 +247,6 @@
     template_file: ingress-grafana.yml.j2
     ingress_name: grafana
     hostname: "{{ monitoring_grafana_hostname }}"
-    expected_status_code: 302
 
 - name: Install Grafana dashboards
   ansible.builtin.include_role:
