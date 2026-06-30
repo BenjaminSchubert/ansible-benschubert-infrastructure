@@ -13,6 +13,9 @@
     name: ingress
     internal: false
     state: quadlet
+    quadlet_options: |
+      [Network]
+      PodmanArgs= --interface-name br-traefik
 
 - name: Ensure the parent directory for traefik exists
   become: true

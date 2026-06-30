@@ -54,6 +54,10 @@
   containers.podman.podman_network:
     name: monitoring-grafana-external
     state: quadlet
+    quadlet_options: |
+      [Network]
+      PodmanArgs= --interface-name br-grafana
+
 
 - name: Create an application for Grafana on Authentik
   ansible.builtin.import_role:
