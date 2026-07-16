@@ -89,17 +89,21 @@ def test_all_networks_are_internal(host: Host) -> None:
     assert result.succeeded
 
     networks = json.loads(result.stdout)
-    networks_without_internal = [
-        network["name"] for network in networks if not network["internal"]
-    ]
-    assert sorted(networks_without_internal) == [
+    networks_without_internal = {
+        network["name"]: sorted(
+            c["name"] for c in network["containers"].values()
+        )
+        for network in networks
+        if not network["internal"]
+    }
+    assert networks_without_internal == {
         # traefik needs outside world access to generate ssl certificates
-        "ingress",
+        "ingress": ["ingress"],
         # Grafana also requires internet access for plugins
-        "monitoring-grafana-external",
+        "monitoring-grafana-external": ["monitoring-grafana"],
         # The default podman network
-        "podman",
-    ]
+        "podman": [],
+    }
 
 
 def test_all_containers_have_a_read_only_rootfs(

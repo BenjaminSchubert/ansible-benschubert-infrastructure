@@ -17,6 +17,13 @@
       [Network]
       PodmanArgs= --interface-name br-traefik
 
+- name: Create an ingress network for the monitoring agent
+  become: true
+  containers.podman.podman_network:
+    name: ingress-monitor-internal
+    internal: true
+    state: quadlet
+
 - name: Ensure the parent directory for traefik exists
   become: true
   ansible.builtin.file:
@@ -83,7 +90,7 @@
     network: |
       {{
         (ingress_networks | map('regex_replace', '^(.*)$', '\1.network'))
-        + ['ingress.network']
+        + ['ingress-monitor-internal.network', 'ingress.network']
       }}
     network_aliases: "{{ ingress_network_aliases }}"
     publish: |
