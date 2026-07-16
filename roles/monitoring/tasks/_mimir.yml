@@ -93,18 +93,35 @@
         WantedBy=infrastructure.target
   register: _container
 
-- name: Ensure the Mimir container is started
-  become: true
-  ansible.builtin.systemd_service:
-    name: monitoring-mimir
-    state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
-    enabled: true
-    daemon_reload: true
+- name: Start and check the health of the Mimir container
+  block:
+    - name: Ensure the Mimir container is started
+      become: true
+      ansible.builtin.systemd_service:
+        name: monitoring-mimir
+        state: >-
+          {{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}
+        enabled: true
+        daemon_reload: true
 
-- name: Ensure the Mimir container is healthy
-  become: true
-  ansible.builtin.command: podman healthcheck run monitoring-mimir
-  changed_when: false
+    - name: Ensure the Mimir container is healthy
+      become: true
+      ansible.builtin.command: podman healthcheck run monitoring-mimir
+      changed_when: false
+  rescue:
+    - name: Gather the logs of the Mimir service
+      become: true
+      ansible.builtin.command:
+        cmd: journalctl -u monitoring-mimir.service --no-pager -n 20
+      changed_when: false
+      register: _mimir_logs
+
+    - name: And finally fail
+      ansible.builtin.fail:
+        msg: |-
+          Mimir is unhealthy:
+
+          {{ _mimir_logs.stdout }}
 
 - name: Create an application for Mimir on Authentik
   ansible.builtin.import_role:
