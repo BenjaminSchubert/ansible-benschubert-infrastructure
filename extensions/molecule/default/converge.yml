@@ -169,17 +169,22 @@
           tags:
             - skip_ansible_lint
 
-        - name: Add grafana apt repository
+        - name: Configure grafana sources
           become: true
-          ansible.builtin.apt_repository:
-            repo: deb [signed-by=/etc/apt/keyrings/grafana.gpg] http://apt.grafana.com stable main
-            state: present
-            filename: grafana
+          ansible.builtin.deb822_repository:
+            name: grafana
+            types:
+              - deb
+            uris: http://apt.grafana.com
+            suites: stable
+            components: main
+            signed_by: https://apt.grafana.com/gpg.key
 
         - name: Install alloy
           become: true
           ansible.builtin.apt:
             name: alloy
+            update_cache: true
 
         - name: Create the agent's service account to authenticate
           benschubert.infrastructure.authentik_user:
