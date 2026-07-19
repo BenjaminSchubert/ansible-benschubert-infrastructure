@@ -20,7 +20,7 @@
       register: _service
       failed_when: _service.status == -1
       until: _service.status != -1
-      retries: 15
+      retries: 25
       delay: 2
   rescue:
     - name: Restart the ingress service in case it's a problem generating the certificate
@@ -38,6 +38,7 @@
         validate_certs: "{{ ingress_validate_certs }}"
         follow_redirects: none
       register: _service
+      failed_when: _service.status == -1
       until: _service.status != -1
-      retries: 10
+      retries: 25
       delay: 2
