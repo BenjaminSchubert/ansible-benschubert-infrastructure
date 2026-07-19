@@ -20,7 +20,7 @@
       register: _service
       failed_when: _service.status == -1
       until: _service.status != -1
-      retries: 25
+      retries: 30
       delay: 2
   rescue:
     - name: Restart the ingress service in case it's a problem generating the certificate
@@ -40,5 +40,5 @@
       register: _service
       failed_when: _service.status == -1
       until: _service.status != -1
-      retries: 25
+      retries: 30
       delay: 2
