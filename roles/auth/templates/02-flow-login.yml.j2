@@ -13,6 +13,7 @@ entries:
     name: {{ auth_authentik_authentication_page_title }}
     title: {{ auth_authentik_authentication_page_title }}
     authentication: require_unauthenticated
+    compatibility_mode: true
 
 - id: benschubert-infrastructure-authentication-password
   model: authentik_stages_password.passwordstage
@@ -57,7 +58,7 @@ entries:
   identifiers:
     name: benschubert-infrastructure-authentication-login
   attrs:
-    session_duration: days=7
+    session_duration: days={{ auth_session_duration }}
 
 # Apply the various bindings
 - model: authentik_flows.flowstagebinding

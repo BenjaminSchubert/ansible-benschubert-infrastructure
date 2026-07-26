@@ -145,6 +145,11 @@ argument_specs:
         required: true
         description:
           - The password used to connect to PostgreSQL database
+      auth_session_duration:
+        type: int
+        default: 14
+        description:
+          - The number of days for a session to be valid
       auth_worker_additional_networks:
         type: list
         elements: str
