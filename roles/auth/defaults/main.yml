@@ -12,3 +12,4 @@ auth_authentik_superadmin_bootstrap_token: null
 auth_authentik_token: "{{ auth_authentik_superadmin_bootstrap_token }}"
 auth_monitor_agent_user_group: null
 auth_worker_additional_networks: []
+auth_session_duration: 14
