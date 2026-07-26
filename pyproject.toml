@@ -117,6 +117,7 @@ line-length = 79
 select = ["ALL"]
 ignore = [
     "ANN401",  # Allow using Any as typing
+    "CPY001",  # Don't require copyright notice per file
     "C901",  # Disable complexity checks
     "COM812",  # Otherwise conflicts with the formatter
     "D104",  # Don't force documenting packages

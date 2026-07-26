@@ -63,10 +63,10 @@ class HostVerifyAdapter(requests.adapters.HTTPAdapter):
         self,
         request: requests.PreparedRequest,
         stream: bool = False,
-        timeout: None
-        | float
+        timeout: float
         | tuple[float, float]
-        | tuple[float, None] = None,
+        | tuple[float, None]
+        | None = None,
         verify: bool | str = True,  # noqa: ARG002
         cert: bytes | str | tuple[bytes | str, bytes | str] | None = None,
         proxies: Mapping[str, str] | None = None,
