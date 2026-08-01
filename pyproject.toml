@@ -2,7 +2,7 @@
 name = "ansible-benschubert-infrastructure"
 version = "0.0.1"
 requires-python = ">=3.12"
-dependencies = ["ansible-core>=2.21.1,<2.22", "distlib"]
+dependencies = ["ansible-core>=2.21.2,<2.22", "distlib"]
 
 [dependency-groups]
 dev = [
