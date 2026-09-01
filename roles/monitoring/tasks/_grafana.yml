@@ -32,7 +32,10 @@
     mode: "0o755"
   loop:
     - "{{ monitoring_grafana_data_path }}"
+    - "{{ monitoring_grafana_config_path }}/provisioning/alerting"
     - "{{ monitoring_grafana_config_path }}/provisioning/dashboards"
+    - "{{ monitoring_grafana_config_path }}/provisioning/datasources"
+    - "{{ monitoring_grafana_config_path }}/provisioning/plugins"
     - "{{ monitoring_grafana_config_path }}/dashboards"
 
 - name: Create the Grafana provisioning configuration
@@ -204,6 +207,10 @@
       - monitoring-grafana-postgres-password,target=/run/secrets/monitoring-grafana-postgres-password
       - monitoring-grafana-client-secret,target=/run/secrets/monitoring-grafana-client-secret
       - monitoring-grafana-secret-key,target=/run/secrets/monitoring-grafana-secret-key
+    tmpfs:
+      # Hide bundled plugins, Grafana will install them anyhow from the registry.
+      # Otherwise we get errors in logs about the removal of those failing.
+      /usr/share/grafana/data/plugins-bundled/:
     volumes:
       - "{{ monitoring_grafana_data_path }}:/var/lib/grafana:rw,Z,idmap=uids=@0-472-1;gids=@0-0-1"
       # yamllint disable-line rule:line-length
