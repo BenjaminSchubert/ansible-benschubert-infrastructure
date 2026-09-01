@@ -40,6 +40,7 @@
     - 02-flow-login
     - 03-tenant
     - 04-flow-enrollment
+    - 05-flow-authorization
 
 - name: Copy the background for authentik
   become: true

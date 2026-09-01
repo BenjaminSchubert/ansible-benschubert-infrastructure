@@ -21,7 +21,7 @@
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     timeout: 15
     validate_certs: "{{ ingress_validate_certs }}"
-    slug: default-provider-authorization-explicit-consent
+    slug: benschubert-infrastructure-authorization-explicit-consent
   register: _authorization_flow
   until: _authorization_flow.data is not none
   retries: 5

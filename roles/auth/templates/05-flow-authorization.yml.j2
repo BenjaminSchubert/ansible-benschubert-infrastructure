@@ -1,0 +1,30 @@
+{{ template_warning }}
+metadata:
+  name: benschubert-infrastructure - Authorization Flow
+version: 1
+context: {}
+entries:
+  - model: authentik_stages_consent.consentstage
+    id: benschubert-infrastructure-explicit-consent
+    identifiers:
+      name: benschubert-infrastructure-explicit-consent
+    attrs:
+      mode: permanent
+
+  - model: authentik_flows.flow
+    id: benschubert-infrastructure-authorization-explicit-consent
+    identifiers:
+      slug: benschubert-infrastructure-authorization-explicit-consent
+    attrs:
+      name: Authorization Application
+      designation: authorization
+      title: Redirecting to %(app)s
+      layout: stacked
+      authentication: require_authenticated
+      denied_action: message_continue
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      order: 0
+      stage: !KeyOf benschubert-infrastructure-explicit-consent
+      target: !KeyOf benschubert-infrastructure-authorization-explicit-consent
