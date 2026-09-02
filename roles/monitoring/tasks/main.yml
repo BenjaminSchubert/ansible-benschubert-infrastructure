@@ -28,6 +28,7 @@
     monitoring_agent_networks:
       - ingress-monitoring
       - monitoring-grafana-postgres
+      - monitoring-grafana
     monitoring_agent_container: monitoring-monitoring
     monitoring_agent_prometheus_endpoints:
       - name: mimir
@@ -38,6 +39,10 @@
       - name: loki
         address: monitoring-loki:3100
         alerting_rules_template: loki-alerts.yml.j2
+      - name: egress
+        address: egress:9901
+        metrics_path: /stats/prometheus
+        alerting_rules_template: /egress-alerts.yml.j2
     monitoring_agent_postgres_instances:
       - instance: monitoring-grafana-postgres
         username: grafana

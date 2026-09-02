@@ -198,6 +198,23 @@ argument_specs:
         description:
           - A dictionary of names to ports to expose additionally on the
             Traefik container.
+      ingress_egress_allowed_remotes:
+        type: list
+        elements: str
+        description:
+          - A list of hostnames that Traefik should be allowed to contact
+          - By default, will prevent any contacts with the outside world
+      ingress_egress_config_path:
+        type: str
+        required: false
+        description:
+          - The directory in which to store the egress configuration if
+            C(ingress_egress_allowed_remotes) is set
+      ingress_egress_envoy_image:
+        type: str
+        default: I(egress_default_envoy_image)
+        description:
+          - The image to use for the egress controller for Traefik
       ingress_monitor_agent_config_path:
         type: str
         required: true
@@ -358,6 +375,16 @@ argument_specs:
         required: true
         description:
           - The directory in which the Grafana data will be stored
+      monitoring_grafana_egress_config_path:
+        type: str
+        required: false
+        description:
+          - The directory in which to store the egress configuration for Grafana
+      monitoring_grafana_egress_envoy_image:
+        type: str
+        default: I(egress_default_envoy_image)
+        description:
+          - The image to use for the egress controller for Grafana
       monitoring_grafana_image:
         type: str
         default: See I(monitoring_grafana_image) from the monitoring role

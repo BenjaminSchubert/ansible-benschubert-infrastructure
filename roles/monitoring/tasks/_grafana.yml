@@ -48,19 +48,25 @@
 - name: Create the Grafana network
   become: true
   containers.podman.podman_network:
-    name: ingress-monitoring
+    name: "{{ item }}"
     internal: true
     state: quadlet
+  loop:
+    - ingress-monitoring
+    - monitoring-grafana
 
-- name: Create the Grafana external network
-  become: true
-  containers.podman.podman_network:
-    name: monitoring-grafana-external
-    state: quadlet
-    quadlet_options: |
-      [Network]
-      PodmanArgs= --interface-name br-grafana
-
+- name: Setup the egress proxy for grafana
+  ansible.builtin.include_role:
+    name: benschubert.infrastructure.egress
+  vars:
+    egress_name: monitoring-grafana-egress
+    egress_config_path: "{{ monitoring_grafana_egress_config_path }}"
+    egress_app_networks:
+      - monitoring-grafana.network
+    egress_allowed_domains:
+      - grafana.com
+      - storage.googleapis.com
+    ingress_egress_envoy_image: "{{ monitoring_grafana_egress_envoy_image }}"
 
 - name: Create an application for Grafana on Authentik
   ansible.builtin.import_role:
@@ -203,6 +209,8 @@
         }}
       GF_SECURITY_ADMIN_PASSWORD: >-
         {{ monitoring_grafana_admin_bootstrap_password | default(omit) }}
+      HTTPS_PROXY: http://egress:3128
+      NO_PROXY: localhost,127.0.0.1,{{ auth_authentik_hostname }}
     pull: newer
     secrets:
       - monitoring-grafana-postgres-password,target=/run/secrets/monitoring-grafana-postgres-password
@@ -220,16 +228,18 @@
       - "{{ monitoring_grafana_config_path }}/dashboards:/etc/grafana/dashboards:ro,Z,idmap=uids=@0-472-1;gids=@0-0-1"
     network:
       - ingress-monitoring.network
-      - monitoring-grafana-external.network
+      - monitoring-grafana.network
       - monitoring-grafana-postgres.network
     userns: auto:size=473
     quadlet_options:
       - |
         [Unit]
         Before=infrastructure.target
+        After=monitoring-grafana-egress.service
         StopPropagatedFrom=infrastructure.target
         After=monitoring-grafana-postgres.service
         Requires=monitoring-grafana-postgres.service
+        Wants=monitoring-grafana-egress.service
 
         [Install]
         WantedBy=infrastructure.target

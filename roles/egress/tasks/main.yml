@@ -1,0 +1,67 @@
+---
+- name: Ensure the egress configuration path exists for {{ egress_name }}
+  become: true
+  ansible.builtin.file:
+    path: "{{ egress_config_path }}"
+    state: directory
+    mode: "0o700"
+
+- name: Create the egress podman network for {{ egress_name }}
+  become: true
+  containers.podman.podman_network:
+    name: "{{ egress_name }}"
+    state: quadlet
+
+- name: Render the envoy configuration for {{ egress_name }}
+  become: true
+  ansible.builtin.template:
+    src: envoy.yml.j2
+    dest: "{{ egress_config_path }}/envoy.yml"
+    mode: "0o400"
+  register: _configuration
+
+- name: Setup the envoy container for {{ egress_name }}
+  become: true
+  containers.podman.podman_container:
+    name: "{{ egress_name }}"
+    state: quadlet
+    image: "{{ egress_envoy_image | default(egress_default_envoy_image) }}"
+    command:
+      - --config-path /etc/envoy/envoy.yml
+      - --log-level warning
+    read_only: true
+    cap_drop: [all]
+    hostname: egress
+    env:
+      ENVOY_UID: "0"
+    tmpfs:
+      /tmp:
+    volumes:
+      - "{{ egress_config_path }}/envoy.yml:/etc/envoy/envoy.yml:ro,Z,idmap=uids=@0-0-1;gids=@0-0-1"
+      - /usr/bin/busybox:/busybox:ro,Z
+    healthcheck: CMD /busybox wget -qO- http://127.0.0.1:9901/ready
+    healthcheck_interval: 1m
+    health_startup_interval: 3s
+    health_startup_timeout: 1m
+    health_startup_cmd: CMD /busybox wget -qO- http://127.0.0.1:9901/ready
+    sdnotify: healthy
+    pull: newer
+    userns: auto:size=6
+    network: >-
+      {{
+        ["{}.network".format(egress_name)] + egress_app_networks
+      }}
+  register: _container
+
+- name: Ensure the envoy container is started
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ egress_name }}"
+    state: "{{ (_container.changed or _configuration.changed) | ternary('restarted', 'started') }}"
+    enabled: true
+    daemon_reload: true
+
+- name: Ensure the envoy container is healthy
+  become: true
+  ansible.builtin.command: podman healthcheck run {{ egress_name }}
+  changed_when: false

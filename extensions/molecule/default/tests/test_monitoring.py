@@ -83,6 +83,16 @@ def test_services_are_up(
             "1",
         ),
         (
+            "egress",
+            "prometheus.scrape.benschubert_infrastructure_ingress_monitoring",
+            "1",
+        ),
+        (
+            "egress",
+            "prometheus.scrape.benschubert_infrastructure_monitoring_monitoring",
+            "1",
+        ),
+        (
             "grafana",
             "prometheus.scrape.benschubert_infrastructure_monitoring_monitoring",
             "1",

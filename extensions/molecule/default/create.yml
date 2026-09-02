@@ -57,7 +57,6 @@
         dest: "{{ molecule_ephemeral_directory }}/cloud-init/user-data"
         mode: "0o644"
 
-    # yamllint disable rule:line-length
     - name: Generate cloud-init iso
       ansible.builtin.command:
         cmd: >-
@@ -76,6 +75,7 @@
 
     - name: Extract the pre-downloaded image
       ansible.builtin.command:
+      # yamllint disable-line rule:line-length
         cmd: tar -xJf {{ molecule_ephemeral_directory | dirname }}/debian-13-genericcloud-amd64.tar.xz --transform 's|^disk\.raw$|molecule-benschubert-infrastructure-test-disk.raw|' disk.raw
         creates: "{{ pool_path }}/molecule-benschubert-infrastructure-test-disk.raw"
         chdir: "{{ pool_path }}"
@@ -108,7 +108,6 @@
         transient: false
         uri: qemu:///session
         virt_type: kvm
-    # yamllint enable rule:line-length
 
     - name: Recover the VM connection information
       ansible.builtin.command:
