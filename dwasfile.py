@@ -211,7 +211,7 @@ def molecule(step: StepRunner, user_args: list[str] | None) -> None:
 # Docs
 ##
 @managed_step(
-    ["--only-group=docs"],
+    ["--group=docs"],
     dependencies_sync=True,
     requires=["build"],
     run_by_default=False,
@@ -271,7 +271,7 @@ register_managed_step(
     ),
     name="docs",
     description="Build and validate the documentation",
-    dependencies=["--only-group=docs"],
+    dependencies=["--group=docs"],
     dependencies_sync=True,
     requires=["autodoc"],
     run_by_default=False,

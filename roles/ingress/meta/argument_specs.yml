@@ -7,6 +7,10 @@ argument_specs:
       - This sets up a L(Traefik, https://traefik.io/) webserver to act as a
         reverse proxy and gateway to expose the rest of the services in this
         collection.
+      - By default, the container will have access to the internet because it
+        requires DNS access to be able to resolve DNS01 challenges.
+      - To ensure it does not access other systems, you can leverage a firewall,
+        and limit traffic on the br-ingress bridge to only DNS, or bridge internal.
     options:
       ingress_http_port:
         type: int
@@ -39,6 +43,17 @@ argument_specs:
             for Traefik to pick up
           - This can be useful to further configure Traefik base setup and the
             currently provided services definitions
+      ingress_egress_allowed_remotes:
+        type: list
+        elements: str
+        description:
+          - A list of hostnames that Traefik should be allowed to contact
+          - By default, will prevent any contacts with the outside world
+      ingress_egress_envoy_image:
+        type: str
+        default: I(egress_default_envoy_image)
+        description:
+          - The image to use for the egress controller for Traefik
       ingress_traefik_default_certificates_resolver:
         type: dict
         default: null
@@ -54,6 +69,12 @@ argument_specs:
         description:
           - The directory in which the configuration files for Traefik will be
             stored
+      ingress_egress_config_path:
+        type: str
+        required: false
+        description:
+          - The directory in which to store the egress configuration if
+            C(ingress_egress_allowed_remotes) is set
       ingress_traefik_environment_variables:
         type: dict
         default: {}
@@ -164,6 +185,12 @@ argument_specs:
         description:
           - A dictionary of names to ports to expose additionally on the
             Traefik container.
+      ingress_egress_allowed_remotes:
+        type: list
+        elements: str
+        description:
+          - A list of hostnames that Traefik should be allowed to contact
+          - By default, will prevent any contacts with the outside world
       ingress_monitor_agent_config_path:
         type: str
         required: true

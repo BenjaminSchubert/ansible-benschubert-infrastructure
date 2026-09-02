@@ -40,10 +40,26 @@
     monitoring_agent_networks:
       - ingress-monitor-internal
     monitoring_agent_container: ingress-monitoring
-    monitoring_agent_prometheus_endpoints:
-      - name: traefik
-        address: ingress:8082
-        alerting_rules_template: traefik-alerts.yml.j2
+    monitoring_agent_prometheus_endpoints: >-
+      {{
+        [
+          {
+            'name': 'traefik',
+            'address': 'ingress:8082',
+            'alerting_rules_template': 'traefik-alerts.yml.j2'
+          }
+        ] + (
+          [
+            {
+              'name': 'egress',
+              'address': 'egress:9901',
+              'metrics_path': '/stats/prometheus',
+              'alerting_rules_template': '/egress-alerts.yml.j2'
+            }
+          ]
+          if (ingress_egress_allowed_remotes | default([])) | length > 0 else []
+        )
+      }}
     monitoring_agent_postgres_instances: []
     monitoring_agent_redis_instances: []
     monitoring_agent_user_group: "{{ ingress_monitor_agent_user_group }}"

@@ -1,0 +1,45 @@
+---
+argument_specs:
+  main:
+    short_description: >-
+      Set up an egress proxy for a service, restricting its internet access.
+    description:
+      - This role deploys an Envoy-based forward proxy that only forwards
+        traffic to an allow-listed set of domains.
+      - The consuming service must run on an internal podman network (no
+        direct route to the internet) and point its proxy configuration at
+        the deployed envoy instance, at http://egress:3128.
+    options:
+      egress_name:
+        type: str
+        required: true
+        description:
+          - The name of the egress instance. Used to derive the podman
+            network, container and configuration path names.
+          - Must match C(^[a-z][a-z0-9-]*$)
+      egress_config_path:
+        type: str
+        required: true
+        description:
+          - The path on disk where the envoy configuration should be stored.
+      egress_app_networks:
+        type: list
+        elements: str
+        required: true
+        description:
+          - The podman networks, in quadlet format
+            (C(<network>.network)), that the proxy should join.
+          - These must be internal networks hosting the consuming
+            applications, the egress will be available at http://egress:3128.
+      egress_allowed_domains:
+        type: list
+        elements: str
+        required: true
+        description:
+          - The domains the proxy may forward traffic to.
+          - Both the bare domain and all its subdomains are allowed.
+      egress_envoy_image:
+        type: str
+        default: docker.io/envoyproxy/envoy:latest
+        description:
+          - The container image path and tag to use for envoy.

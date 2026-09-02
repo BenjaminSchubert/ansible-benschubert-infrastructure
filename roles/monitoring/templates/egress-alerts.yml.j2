@@ -1,0 +1,60 @@
+
+##
+# Egress proxy allowlist enforcement
+##
+
+# Steady-state denials: config drift or new undocumented dependency.
+# This is the discovery signal - investigate before extending the allowlist.
+- alert: EgressDeniedRequests
+  expr: increase(envoy_http_egress_downstream_rq_403_total{instance="{{ name }}"}[1h]) > 0
+  for: 0m
+  labels:
+    severity: warning
+  annotations:
+    summary: Egress proxy denied requests {{ log_instance }}
+    description: The egress proxy rejected traffic to a non-allowlisted domain. If the request looks legitimate, extend the allowlist explicitly in ansible; never blanket-allow.\n  {{ log_values_and_labels }}
+
+# Burst of denials: misbehaving or compromised application, exfil attempt,
+# or runaway retry loop - not config drift. Needs immediate eyes.
+- alert: EgressDeniedRequestsBurst
+  expr: increase(envoy_http_egress_downstream_rq_403_total{instance="{{ name }}"}[5m]) > 50
+  for: 0m
+  labels:
+    severity: critical
+  annotations:
+    summary: Egress proxy denied-request burst {{ log_instance }}
+    description: The egress proxy is rejecting a sudden volume of traffic. Check the access logs for the target authorities - this is the signature of a misbehaving application, not configuration drift.\n  {{ log_values_and_labels }}
+
+##
+# Egress proxy availability
+##
+
+# DNS dead means all egress dead for this instance.
+- alert: EgressDnsResolutionFailures
+  expr: increase(envoy_dns_cache_dynamic_forward_proxy_cache_config_dns_query_failure_total{instance="{{ name }}"}[5m]) > 0
+  for: 0m
+  labels:
+    severity: critical
+  annotations:
+    summary: Egress DNS resolution failures {{ log_instance }}
+    description: The egress proxy failed to resolve allowed domains. All proxied internet access for this service is failing until DNS recovers.\n  {{ log_values_and_labels }}
+
+# Proxy answering 5xx: egress is broken for this service.
+- alert: EgressProxyServerErrors
+  expr: increase(envoy_http_egress_downstream_rq_5xx_total{instance="{{ name }}"}[10m]) > 0
+  for: 5m
+  labels:
+    severity: critical
+  annotations:
+    summary: Egress proxy server errors {{ log_instance }}
+    description: The egress proxy returned server errors to the monitored service. Check envoy logs and the upstream health of the allowlisted domains.\n  {{ log_values_and_labels }}
+
+# Sporadic upstream connect failures - tolerated briefly, alert if persistent.
+- alert: EgressUpstreamConnectionFailures
+  expr: increase(envoy_cluster_dynamic_forward_proxy_upstream_cx_connect_fail_total{instance="{{ name }}"}[10m]) > 5
+  for: 10m
+  labels:
+    severity: warning
+  annotations:
+    summary: Egress upstream connection failures {{ log_instance }}
+    description: The egress proxy is repeatedly failing to connect to allowlisted destinations. If only one destination is affected, the upstream itself is likely down.\n  {{ log_values_and_labels }}

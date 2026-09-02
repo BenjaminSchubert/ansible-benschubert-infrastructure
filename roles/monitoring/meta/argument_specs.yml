@@ -84,6 +84,16 @@ argument_specs:
         required: true
         description:
           - The directory in which the Grafana data will be stored
+      monitoring_grafana_egress_config_path:
+        type: str
+        required: false
+        description:
+          - The directory in which to store the egress configuration for Grafana
+      monitoring_grafana_egress_envoy_image:
+        type: str
+        default: I(egress_default_envoy_image)
+        description:
+          - The image to use for the egress controller for Grafana
       monitoring_grafana_image:
         type: str
         default: docker.io/grafana/grafana:latest

@@ -1,0 +1,2 @@
+---
+egress_default_envoy_image: docker.io/envoyproxy/envoy:v1.39-latest

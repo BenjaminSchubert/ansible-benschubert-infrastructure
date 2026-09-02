@@ -7,15 +7,17 @@
     state: quadlet
   loop: "{{ ingress_networks }}"
 
-- name: Create an ingress network to allow external access
+- name: Create an ingress network to connect to the egress
   become: true
   containers.podman.podman_network:
     name: ingress
+    # Keep this network not-internal, it's required for DNS resolution for
+    # DNS challenges
     internal: false
     state: quadlet
     quadlet_options: |
       [Network]
-      PodmanArgs= --interface-name br-traefik
+      PodmanArgs= --interface-name br-ingress
 
 - name: Create an ingress network for the monitoring agent
   become: true
@@ -23,6 +25,18 @@
     name: ingress-monitor-internal
     internal: true
     state: quadlet
+
+- name: Setup the egress proxy for Traefik
+  ansible.builtin.include_role:
+    name: benschubert.infrastructure.egress
+  when: ((ingress_egress_allowed_remotes | default([])) | length) > 0
+  vars:
+    egress_name: ingress-egress
+    egress_config_path: "{{ ingress_egress_config_path }}"
+    egress_app_networks:
+      - ingress-monitor-internal.network
+    egress_allowed_domains: "{{ ingress_egress_allowed_remotes }}"
+    egress_envoy_image: "{{ ingress_egress_envoy_image }}"
 
 - name: Ensure the parent directory for traefik exists
   become: true
@@ -114,7 +128,11 @@
     sdnotify: healthy
     read_only: true
     env: "{{
-      ingress_traefik_environment_variables
+      {
+        'HTTPS_PROXY': 'http://egress:3128',
+        'NO_PROXY': 'localhost,127.0.0.1',
+      }
+      | combine(ingress_traefik_environment_variables)
       | combine(
         ingress_traefik_secrets
         | zip(
@@ -143,6 +161,10 @@
         [Unit]
         Before=infrastructure.target
         StopPropagatedFrom=infrastructure.target
+        {%- if ((ingress_egress_allowed_remotes | default([])) | length) > 0 %}
+        After=ingress-egress.service
+        Wants=ingress-egress.service
+        {% endif %}
 
         [Install]
         WantedBy=infrastructure.target
