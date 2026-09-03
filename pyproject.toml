@@ -14,7 +14,7 @@ dev = [
 ]
 ansible-lint = ["ansible-lint"]
 docs = [
-    "antsibull-docs>=2.25.0,<3.0.0",
+    "antsibull-docs>=2.26.0,<3.0.0",
     "sphinx",
     "sphinx-ansible-theme >=0.9.0",
     "sphinxcontrib-spelling",
@@ -34,7 +34,7 @@ pylint = ["pylint"]
 tests = [
     "libvirt-python",
     "lxml",
-    "molecule>=26.6.0",
+    "molecule>=26.8.0",
     "passlib",
     "Pygments",
     "pytest",
