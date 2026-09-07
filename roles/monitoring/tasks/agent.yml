@@ -126,8 +126,9 @@
       - /etc/alloy/config.alloy
     healthcheck: CMD /busybox wget -O- http://127.0.0.1:12345/-/ready
     healthcheck_interval: 1m
-    health_startup_interval: 10s
-    health_startup_timeout: 5min
+    health_startup_interval: 5s
+    health_startup_timeout: 5m
+    health_startup_cmd: CMD /busybox wget -O- http://127.0.0.1:12345/-/ready
     sdnotify: healthy
     pull: newer
     read_only: true
@@ -186,7 +187,7 @@
     name: "{{ monitoring_agent_container }}"
     state: "{{ (_container.changed or _configuration.changed) | ternary('restarted', 'started') }}"
     enabled: true
-    daemon_reload: true
+    daemon_reload: "{{ _container.changed }}"
 
 - name: Ensure the agent container is healthy for {{ monitoring_agent_product_name }}
   become: true

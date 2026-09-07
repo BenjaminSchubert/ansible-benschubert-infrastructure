@@ -133,7 +133,8 @@
     healthcheck: /lifecycle/ak healthcheck
     healthcheck_interval: 1m
     health_startup_interval: 10s
-    health_startup_timeout: 10min
+    health_startup_timeout: 5m
+    health_startup_cmd: /lifecycle/ak healthcheck
     sdnotify: healthy
     pull: newer
     volumes: >-
@@ -206,7 +207,7 @@
         | ternary('restarted', 'started')
       }}
     enabled: true
-    daemon_reload: true
+    daemon_reload: "{{ _container.changed }}"
 
 - name: Ensure the Authentik container is healthy
   become: true
@@ -256,7 +257,8 @@
     healthcheck: /lifecycle/ak healthcheck
     healthcheck_interval: 1m
     health_startup_interval: 10s
-    health_startup_timeout: 15min
+    health_startup_timeout: 5m
+    health_startup_cmd: /lifecycle/ak healthcheck
     sdnotify: healthy
     pull: newer
     volumes:
@@ -303,7 +305,7 @@
     name: auth-worker
     state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
-    daemon_reload: true
+    daemon_reload: "{{ _container.changed }}"
 
 - name: Ensure the Authentik worker container is healthy
   become: true

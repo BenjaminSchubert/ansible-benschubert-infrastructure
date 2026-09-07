@@ -154,7 +154,8 @@
     healthcheck: curl --fail http://localhost:3000
     healthcheck_interval: 1m
     health_startup_interval: 10s
-    health_startup_timeout: 7min
+    health_startup_timeout: 5m
+    health_startup_cmd: curl --fail http://localhost:3000
     sdnotify: healthy
     read_only: true
     cap_drop: [all]
@@ -243,7 +244,7 @@
     name: monitoring-grafana
     state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
-    daemon_reload: true
+    daemon_reload: "{{ _container.changed }}"
 
 - name: Ensure the grafana container is healthy
   become: true

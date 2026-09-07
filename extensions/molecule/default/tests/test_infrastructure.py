@@ -64,6 +64,22 @@ def test_all_containers_succeed_healthchecks(
     assert not errors, "Some containers failed their healtchecks"
 
 
+def test_all_containers_define_a_startup_healthchecks(
+    host: Host,
+    containers: list[str],
+) -> None:
+    result = host.run(f"sudo podman inspect {' '.join(containers)}")
+    assert result.succeeded
+
+    assert [
+        container
+        for container, info in zip(
+            containers, json.loads(result.stdout), strict=True
+        )
+        if info["Config"].get("StartupHealthCheck") is None
+    ] == [], "Some containers are missing a startup healthcheck"
+
+
 def test_all_containers_run_in_a_user_namespace(
     host: Host, containers: list[str]
 ) -> None:
@@ -76,7 +92,7 @@ def test_all_containers_run_in_a_user_namespace(
             containers, json.loads(result.stdout), strict=True
         )
         if info["HostConfig"]["UsernsMode"] != "private"
-    ] == [], "Some pods are not running in a user namespace"
+    ] == [], "Some containers are not running in a user namespace"
 
 
 def test_all_networks_are_internal(host: Host) -> None:
