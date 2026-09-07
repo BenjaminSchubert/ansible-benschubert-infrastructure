@@ -37,7 +37,8 @@
     healthcheck: redis-cli --user ping --pass '' ping | grep PONG
     healthcheck_interval: 1m
     health_startup_interval: 10s
-    health_startup_timeout: 5min
+    health_startup_timeout: 5m
+    health_startup_cmd: redis-cli --user ping --pass '' ping | grep PONG
     sdnotify: healthy
     pull: newer
     read_only: true
@@ -59,7 +60,7 @@
     name: "{{ redis_container }}"
     state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
-    daemon_reload: true
+    daemon_reload: "{{ _container.changed }}"
 
 - name: Ensure the Redis container is healthy for {{ redis_container }}
   become: true

@@ -108,8 +108,9 @@
       - "{{ ingress_traefik_configuration_files_path }}/acme.json:/etc/traefik/acme.json:rw,Z,idmap=uids=@0-0-1;gids=@0-0-1"
     healthcheck: traefik healthcheck
     healthcheck_interval: 1m
-    health_startup_interval: 10s
-    health_startup_timeout: 5min
+    health_startup_interval: 5s
+    health_startup_timeout: 5m
+    health_startup_cmd: traefik healthcheck
     sdnotify: healthy
     read_only: true
     env: "{{
@@ -156,7 +157,7 @@
     name: ingress
     state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
-    daemon_reload: true
+    daemon_reload: "{{ _container.changed }}"
 
 - name: Ensure the Traefik container is healthy
   become: true

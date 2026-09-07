@@ -32,8 +32,9 @@
       - "{{ postgres_password_secret }},target=/run/secrets/postgres-password"
     healthcheck: pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
     healthcheck_interval: 1m
-    health_startup_interval: 10s
-    health_startup_timeout: 5min
+    health_startup_interval: 5s
+    health_startup_timeout: 5m
+    health_startup_cmd: pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
     sdnotify: healthy
     pull: newer
     read_only: true
@@ -57,7 +58,7 @@
     name: "{{ postgres_container }}"
     state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
-    daemon_reload: true
+    daemon_reload: "{{ _container.changed }}"
 
 - name: Ensure the PostgreSQL container is healthy for {{ postgres_database }}
   become: true

@@ -62,7 +62,8 @@
     healthcheck: CMD /busybox wget -O- http://localhost:9009/ready
     healthcheck_interval: 1m
     health_startup_interval: 10s
-    health_startup_timeout: 5min
+    health_startup_timeout: 5m
+    health_startup_cmd: CMD /busybox wget -O- http://localhost:9009/ready
     sdnotify: healthy
     pull: newer
     read_only: true
@@ -102,7 +103,7 @@
         state: >-
           {{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}
         enabled: true
-        daemon_reload: true
+        daemon_reload: "{{ _container.changed }}"
 
     - name: Ensure the Mimir container is healthy
       become: true
