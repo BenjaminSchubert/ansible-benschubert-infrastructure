@@ -325,38 +325,21 @@
     ingress_name: authentik
     hostname: "{{ auth_authentik_hostname }}"
 
-- name: Get the blueprints statuses
+- name: Wait for Blueprints to apply properly
   ansible.builtin.uri:
-    url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/
+    url: >-
+      https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/
     headers:
       Authorization: Bearer {{ auth_authentik_token }}
-    return_content: true
     ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
     validate_certs: "{{ ingress_validate_certs }}"
-  check_mode: false  # This has no side effects
-  changed_when: false
   register: _blueprints
-  retries: 5
-  delay: 2
-
-- name: Ensure all blueprints have converged
-  ansible.builtin.uri:
-      # yamllint disable-line rule:line-length
-    url: https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/{{ item.pk }}/apply/
-    method: post
-    headers:
-      Authorization: Bearer {{ auth_authentik_token }}
-    return_content: true
-    timeout: 60
-    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-    validate_certs: "{{ ingress_validate_certs }}"
-  failed_when: _blueprint_run.status != 200 or _blueprint_run.json.status != 'successful'
-  register: _blueprint_run
-  loop: "{{ _blueprints.json.results | rejectattr('status', 'equalto', 'successful') }}"
-  loop_control:
-    label: "{{ item.name }}"
-  retries: 10
-  delay: 5
+  until: >-
+    _blueprints.json.results
+    | rejectattr('status', 'equalto', 'successful') | list | length == 0
+  retries: 30
+  delay: 3
+  changed_when: false
 
 - name: Configure the Alloy image if not provided explicitly
   ansible.builtin.set_fact:

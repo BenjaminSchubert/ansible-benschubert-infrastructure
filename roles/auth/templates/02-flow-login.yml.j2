@@ -3,6 +3,26 @@ version: 1
 metadata:
   name: benschubert.infrastructure - Authentication flow
 entries:
+- model: authentik_blueprints.metaapplyblueprint
+  attrs:
+    identifiers:
+      name: Default - Password change flow
+- model: authentik_blueprints.metaapplyblueprint
+  attrs:
+    identifiers:
+      name: Default - Static MFA setup flow
+- model: authentik_blueprints.metaapplyblueprint
+  attrs:
+    identifiers:
+      name: Default - TOTP MFA setup flow
+- model: authentik_blueprints.metaapplyblueprint
+  attrs:
+    identifiers:
+      name: Default - WebAuthn MFA setup flow
+- model: authentik_blueprints.metaapplyblueprint
+  attrs:
+    identifiers:
+      name: benschubert.infrastructure - Recovery with email verification
 
 - id: flow
   model: authentik_flows.flow
