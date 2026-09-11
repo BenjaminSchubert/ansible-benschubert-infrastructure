@@ -104,11 +104,6 @@
           {{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}
         enabled: true
         daemon_reload: "{{ _container.changed }}"
-
-    - name: Ensure the Mimir container is healthy
-      become: true
-      ansible.builtin.command: podman healthcheck run monitoring-mimir
-      changed_when: false
   rescue:
     - name: Gather the logs of the Mimir service
       become: true

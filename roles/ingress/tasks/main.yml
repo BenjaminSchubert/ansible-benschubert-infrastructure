@@ -180,8 +180,3 @@
     state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: "{{ _container.changed }}"
-
-- name: Ensure the Traefik container is healthy
-  become: true
-  ansible.builtin.command: podman healthcheck run ingress
-  changed_when: false

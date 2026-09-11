@@ -62,11 +62,6 @@
     enabled: true
     daemon_reload: "{{ _container.changed }}"
 
-- name: Ensure the Redis container is healthy for {{ redis_container }}
-  become: true
-  ansible.builtin.command: podman healthcheck run {{ redis_container }}
-  changed_when: false
-
 - name: Install Redis dashboards for {{ redis_container }}
   ansible.builtin.import_role:
     name: benschubert.infrastructure.monitoring

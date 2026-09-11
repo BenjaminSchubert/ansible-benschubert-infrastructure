@@ -60,8 +60,3 @@
     state: "{{ (_container.changed or _configuration.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: true
-
-- name: Ensure the envoy container is healthy
-  become: true
-  ansible.builtin.command: podman healthcheck run {{ egress_name }}
-  changed_when: false
