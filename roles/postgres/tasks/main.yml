@@ -60,11 +60,6 @@
     enabled: true
     daemon_reload: "{{ _container.changed }}"
 
-- name: Ensure the PostgreSQL container is healthy for {{ postgres_database }}
-  become: true
-  ansible.builtin.command: podman healthcheck run {{ postgres_container }}
-  changed_when: false
-
 - name: Install Postgres dashboard for {{ postgres_database }}
   ansible.builtin.import_role:
     name: benschubert.infrastructure.monitoring

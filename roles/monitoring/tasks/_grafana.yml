@@ -256,11 +256,6 @@
     enabled: true
     daemon_reload: "{{ _container.changed }}"
 
-- name: Ensure the grafana container is healthy
-  become: true
-  ansible.builtin.command: podman healthcheck run monitoring-grafana
-  changed_when: false
-
 - name: Setup an ingress for Grafana
   ansible.builtin.import_role:
     name: benschubert.infrastructure.ingress

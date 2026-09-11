@@ -69,11 +69,6 @@
     enabled: true
     daemon_reload: "{{ _container.changed }}"
 
-- name: Ensure the Loki container is healthy
-  become: true
-  ansible.builtin.command: podman healthcheck run monitoring-loki
-  changed_when: false
-
 - name: Create an application for Loki on Authentik
   ansible.builtin.import_role:
     name: benschubert.infrastructure.auth

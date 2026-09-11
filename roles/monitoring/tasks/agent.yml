@@ -189,11 +189,6 @@
     enabled: true
     daemon_reload: "{{ _container.changed }}"
 
-- name: Ensure the agent container is healthy for {{ monitoring_agent_product_name }}
-  become: true
-  ansible.builtin.command: podman healthcheck run {{ monitoring_agent_container }}
-  changed_when: false
-
 - name: Ensure the directory to store alerts exists for {{ monitoring_agent_product_name }}
   become: true
   ansible.builtin.file:
