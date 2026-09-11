@@ -19,3 +19,4 @@ runs in podman containers on the same machine.
 - [Mimir](https://grafana.com/oss/mimir/) to ingest logs and metrics, and provide an [AlertManager](https://prometheus.io/docs/alerting/latest/alertmanager/) deployment
 - [Loki](https://grafana.com/oss/loki/) to store logs and handle alerts based on logs
 - [Grafana Alloy](https://grafana.com/oss/alloy-opentelemetry-collector/) to publish metrics and logs
+- [Envoy](https://www.envoyproxy.io/) to filter outgoing communications per service
