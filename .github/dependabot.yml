@@ -10,7 +10,7 @@ updates:
         patterns:
           - "*"
     assignees:
-      - "@benjaminschubert"
+      - BenjaminSchubert
   - package-ecosystem: uv
     directory: /
     schedule:
@@ -20,4 +20,4 @@ updates:
         patterns:
           - "*"
     assignees:
-      - "@benjaminschubert"
+      - BenjaminSchubert
