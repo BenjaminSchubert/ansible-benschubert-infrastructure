@@ -307,21 +307,38 @@
     ingress_name: authentik
     hostname: "{{ auth_authentik_hostname }}"
 
-- name: Wait for Blueprints to apply properly
-  ansible.builtin.uri:
-    url: >-
-      https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/
-    headers:
-      Authorization: Bearer {{ auth_authentik_token }}
-    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-    validate_certs: "{{ ingress_validate_certs }}"
-  register: _blueprints
-  until: >-
-    _blueprints.json.results
-    | rejectattr('status', 'equalto', 'successful') | list | length == 0
-  retries: 30
-  delay: 3
-  changed_when: false
+- name: Ensure blueprints apply properly
+  block:
+    - name: Wait for blueprints to apply properly
+      ansible.builtin.uri:
+        url: >-
+          https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/
+        headers:
+          Authorization: Bearer {{ auth_authentik_token }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+      register: _blueprints
+      until: >-
+        _blueprints.json.results
+        | rejectattr('status', 'equalto', 'successful') | list | length == 0
+      retries: 30
+      delay: 3
+      changed_when: false
+  rescue:
+    - name: Get logs from the worker
+      ansible.builtin.command:
+        cmd: journalctl -u auth-worker --since="10 min ago" --cat
+      changed_when: false
+      register: _auth_journald_logs
+
+    - name: Fail with information
+      ansible.builtin.fail:
+        msg: |
+          Blueprint convergence for Authentik failed
+
+          {% for line in _auth_journald_logs.stdout_lines %}
+          {{ line }}
+          {% endfor %}
 
 - name: Configure the Alloy image if not provided explicitly
   ansible.builtin.set_fact:
