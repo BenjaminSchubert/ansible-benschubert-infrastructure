@@ -331,6 +331,7 @@
       changed_when: false
       register: _auth_journald_logs
 
+    - debug: var=_auth_journald_logs
     - name: Fail with information
       ansible.builtin.fail:
         msg: |
