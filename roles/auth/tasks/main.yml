@@ -328,7 +328,7 @@
     - name: Get logs from the worker
       become: true
       ansible.builtin.command:
-        cmd: journalctl -u auth-worker --since="10 min ago" --cat
+        cmd: journalctl -u auth --since="10 min ago" --cat
       changed_when: false
       register: _auth_journald_logs
 
