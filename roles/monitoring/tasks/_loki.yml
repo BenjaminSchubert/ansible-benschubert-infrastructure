@@ -68,6 +68,10 @@
     state: "{{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: "{{ _container.changed }}"
+  async: 900
+  poll: 0
+  register: _loki_container_start
+  changed_when: false
 
 - name: Create an application for Loki on Authentik
   ansible.builtin.import_role:
@@ -137,3 +141,14 @@
         | regex_replace(', stream=~\\"\$stream\\"', '')
       }}
     destination: monitoring/loki.json
+
+- name: Wait for the Loki container to be started
+  become: true
+  ansible.builtin.async_status:
+    jid: "{{ _loki_container_start.ansible_job_id }}"
+  register: _result
+  until: _result.finished
+  retries: 100
+  delay: 3
+  changed_when: _result.changed
+  failed_when: _result.failed
