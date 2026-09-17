@@ -255,6 +255,10 @@
     state: "{{ _container.changed | ternary('restarted', 'started') }}"
     enabled: true
     daemon_reload: "{{ _container.changed }}"
+  async: 900
+  poll: 0
+  register: _grafana_container_start
+  changed_when: false
 
 - name: Setup an ingress for Grafana
   ansible.builtin.import_role:
@@ -290,3 +294,14 @@
       }}
     # yamllint enable rule:line-length
     destination: monitoring/grafana.json
+
+- name: Wait for the Grafana container to be started
+  become: true
+  ansible.builtin.async_status:
+    jid: "{{ _grafana_container_start.ansible_job_id }}"
+  register: _result
+  until: _result.finished
+  retries: 100
+  delay: 3
+  changed_when: _result.changed
+  failed_when: _result.failed

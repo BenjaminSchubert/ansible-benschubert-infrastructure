@@ -208,6 +208,30 @@
       }}
     enabled: true
     daemon_reload: "{{ _container.changed }}"
+  async: 900
+  poll: 0
+  register: _auth_container_start
+  changed_when: false
+
+- name: Setup an ingress for Authentik
+  ansible.builtin.import_role:
+    name: benschubert.infrastructure.ingress
+    tasks_from: provider
+  vars:
+    template_file: ingress-authentik.yml.j2
+    ingress_name: authentik
+    hostname: "{{ auth_authentik_hostname }}"
+
+- name: Wait for the Auth container to be started
+  become: true
+  ansible.builtin.async_status:
+    jid: "{{ _auth_container_start.ansible_job_id }}"
+  register: _result
+  until: _result.finished
+  retries: 100
+  delay: 3
+  changed_when: _result.changed
+  failed_when: _result.failed
 
 - name: Setup the Authentik worker container
   become: true
@@ -298,15 +322,6 @@
     enabled: true
     daemon_reload: "{{ _container.changed }}"
 
-- name: Setup an ingress for Authentik
-  ansible.builtin.import_role:
-    name: benschubert.infrastructure.ingress
-    tasks_from: provider
-  vars:
-    template_file: ingress-authentik.yml.j2
-    ingress_name: authentik
-    hostname: "{{ auth_authentik_hostname }}"
-
 - name: Wait for Blueprints to apply properly
   ansible.builtin.uri:
     url: >-
@@ -319,7 +334,7 @@
   until: >-
     _blueprints.json.results
     | rejectattr('status', 'equalto', 'successful') | list | length == 0
-  retries: 30
+  retries: 60
   delay: 3
   changed_when: false
 

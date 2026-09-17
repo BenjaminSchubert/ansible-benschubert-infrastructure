@@ -94,30 +94,18 @@
         WantedBy=infrastructure.target
   register: _container
 
-- name: Start and check the health of the Mimir container
-  block:
-    - name: Ensure the Mimir container is started
-      become: true
-      ansible.builtin.systemd_service:
-        name: monitoring-mimir
-        state: >-
-          {{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}
-        enabled: true
-        daemon_reload: "{{ _container.changed }}"
-  rescue:
-    - name: Gather the logs of the Mimir service
-      become: true
-      ansible.builtin.command:
-        cmd: journalctl -u monitoring-mimir.service --no-pager -n 20
-      changed_when: false
-      register: _mimir_logs
-
-    - name: And finally fail
-      ansible.builtin.fail:
-        msg: |-
-          Mimir is unhealthy:
-
-          {{ _mimir_logs.stdout }}
+- name: Ensure the Mimir container is started
+  become: true
+  ansible.builtin.systemd_service:
+    name: monitoring-mimir
+    state: >-
+      {{ (_configuration.changed or _container.changed) | ternary('restarted', 'started') }}
+    enabled: true
+    daemon_reload: "{{ _container.changed }}"
+  async: 900
+  poll: 0
+  register: _mimir_container_start
+  changed_when: false
 
 - name: Create an application for Mimir on Authentik
   ansible.builtin.import_role:
@@ -175,6 +163,33 @@
       }}
     grafana_password: "{{ monitoring_grafana_admin_bootstrap_password | default(omit) }}"
     validate_certs: false
+
+- name: Check the health of the Mimir container
+  block:
+    - name: Wait for the Mimir container to be started
+      become: true
+      ansible.builtin.async_status:
+        jid: "{{ _mimir_container_start.ansible_job_id }}"
+      register: _result
+      until: _result.finished
+      retries: 100
+      delay: 3
+      changed_when: _result.changed
+      failed_when: _result.failed
+  rescue:
+    - name: Gather the logs of the Mimir service
+      become: true
+      ansible.builtin.command:
+        cmd: journalctl -u monitoring-mimir.service --no-pager -n 20
+      changed_when: false
+      register: _mimir_logs
+
+    - name: And finally fail
+      ansible.builtin.fail:
+        msg: |-
+          Mimir is unhealthy:
+
+          {{ _mimir_logs.stdout }}
 
 - name: Retrieve the Mimir container information
   become: true
