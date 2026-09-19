@@ -47,7 +47,7 @@ def test_no_tasks_failed(
 
     results = {}
     for task in collected:
-        if task["aggregated_status"] == "successful":
+        if task["aggregated_status"] == "info":
             continue
         results[task["uid"]] = {
             "description": task["description"],
