@@ -96,6 +96,9 @@
         cdrom: "{{ pool_path }}/molecule-benschubert-infrastructure-test-cloud-init.iso"
         disks:
           - path: "{{ pool_path }}/molecule-benschubert-infrastructure-test-disk.raw"
+            bus: scsi
+            driver:
+              discard: unmap
         import: true
         graphics:
           type: spice
