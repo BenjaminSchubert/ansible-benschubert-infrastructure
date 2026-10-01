@@ -37,7 +37,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
           enable-cache: true
       - name: Install dependencies
@@ -47,7 +47,7 @@ jobs:
       - name: Install test collections
         run: uv run --no-sync ansible-galaxy install --role-file=extensions/molecule/default/requirements.yml
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@665d9e07a1943254d2910faffc106adaf7ea7294  # 26.8.0
+        uses: ansible/ansible-lint@e7f397ad6dfa20d274afa17cd7bbedd84ed136f5  # 26.9.0
         with:
           args: --strict
           setup_python: false
@@ -66,7 +66,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
           enable-cache: true
       - name: Install dependencies
@@ -87,7 +87,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
           enable-cache: true
       - name: Install dependencies
@@ -127,7 +127,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Secret Scanning
-        uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c  # v.3.97.4
+        uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85  # v.3.97.9
 
   ###
   # Tests
@@ -147,7 +147,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
           enable-cache: true
       - name: Update apt cache
@@ -221,7 +221,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
           enable-cache: true
       - name: Install dependencies
@@ -255,7 +255,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON }}
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
           enable-cache: true
       - name: Install dependencies
