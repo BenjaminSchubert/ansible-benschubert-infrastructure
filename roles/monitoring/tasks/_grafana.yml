@@ -166,6 +166,7 @@
     read_only: true
     cap_drop: [all]
     env:
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
       # Login
       GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
       GF_AUTH_GENERIC_OAUTH_NAME: authentik
@@ -209,6 +210,7 @@
         }}
       GF_SECURITY_ADMIN_PASSWORD: >-
         {{ monitoring_grafana_admin_bootstrap_password | default(omit) }}
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
       HTTPS_PROXY: http://egress:3128
       NO_PROXY: localhost,127.0.0.1,{{ auth_authentik_hostname }}
     pull: newer
