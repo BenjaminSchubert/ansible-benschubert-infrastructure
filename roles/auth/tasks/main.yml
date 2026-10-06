@@ -322,21 +322,56 @@
     enabled: true
     daemon_reload: "{{ _container.changed }}"
 
-- name: Wait for Blueprints to apply properly
-  ansible.builtin.uri:
-    url: >-
-      https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/
-    headers:
-      Authorization: Bearer {{ auth_authentik_token }}
-    ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
-    validate_certs: "{{ ingress_validate_certs }}"
-  register: _blueprints
-  until: >-
-    _blueprints.json.results
-    | rejectattr('status', 'equalto', 'successful') | list | length == 0
-  retries: 60
-  delay: 3
-  changed_when: false
+- name: Ensure all Blueprints are properly provisioned
+  block:
+    - name: Wait for Blueprints to apply properly
+      ansible.builtin.uri:
+        url: >-
+          https://{{ auth_authentik_hostname }}:{{ ingress_https_port }}/api/v3/managed/blueprints/
+        headers:
+          Authorization: Bearer {{ auth_authentik_token }}
+        ca_path: "{{ ingress_custom_ca_cert | default(omit) }}"
+        validate_certs: "{{ ingress_validate_certs }}"
+      register: _blueprints
+      until: >-
+        _blueprints.json.results
+        | rejectattr('status', 'equalto', 'successful')
+        | rejectattr('status', 'equalto', 'error')
+        | list
+        | length == 0
+      failed_when: >-
+        _blueprints.json.results
+        | rejectattr('status', 'equalto', 'successful')
+        | list
+        | length > 0
+      changed_when: false
+      retries: 90
+      delay: 5
+  rescue:
+    - name: Re-apply failed blueprint in worker
+      become: true
+      ansible.builtin.command:
+        cmd: podman exec auth-worker ak apply_blueprint "{{ item.path }}"
+      register: _blueprint
+      until: "'deadlock' not in _blueprint.stderr | lower"
+      retries: 5
+      delay: 5
+      changed_when: true
+      # Sort first the ones not provided by us
+      loop: >-
+        {{
+          (
+            _blueprints.json.results
+            | rejectattr('status', 'equalto', 'successful')
+            | rejectattr('name', 'match', '^benschubert\.infrastructure')
+          ) + (
+            _blueprints.json.results
+            | rejectattr('status', 'equalto', 'successful')
+            | selectattr('name', 'match', '^benschubert\.infrastructure')
+          )
+        }}
+      loop_control:
+        label: "{{ item.name }}"
 
 - name: Configure the Alloy image if not provided explicitly
   ansible.builtin.set_fact:
