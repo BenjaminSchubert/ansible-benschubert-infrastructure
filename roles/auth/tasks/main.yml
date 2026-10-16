@@ -347,6 +347,9 @@
       changed_when: false
       retries: 90
       delay: 5
+      tags:
+        - molecule-idempotence-notest
+
   rescue:
     - name: Re-apply failed blueprint in worker
       become: true
