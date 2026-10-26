@@ -482,6 +482,11 @@ argument_specs:
         required: true
         description:
           - The path on disk where the Mimir data should be stored.
+      monitoring_mimir_distributor_remote_timeout:
+        type: str
+        default: 2s
+        description:
+          - Timeout for downstream ingesters
       monitoring_mimir_image:
         type: str
         default: See I(monitoring_mimir_image) from the monitoring role

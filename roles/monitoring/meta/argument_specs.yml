@@ -184,6 +184,11 @@ argument_specs:
           - Users not in any of the specified groups won't be able to see or
             login to Mimir.
           - C(null) or C([]) doesn't restrict the access.
+      monitoring_mimir_distributor_remote_timeout:
+        type: str
+        default: 2s
+        description:
+          - Timeout for downstream ingesters
       monitoring_mimir_hostname:
         type: str
         required: true

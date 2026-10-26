@@ -15,6 +15,7 @@ hostnames
 https
 iifname
 inet
+ingesters
 initdb
 Jinja
 Mailpit
