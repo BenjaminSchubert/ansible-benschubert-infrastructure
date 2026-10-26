@@ -42,6 +42,9 @@ compactor:
     kvstore:
       store: memberlist
 
+distributor:
+  remote_timeout: {{ monitoring_mimir_distributor_remote_timeout }}
+
 ingester:
   ring:
     replication_factor: 1
