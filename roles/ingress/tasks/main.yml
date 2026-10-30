@@ -11,18 +11,6 @@
   become: true
   containers.podman.podman_network:
     name: ingress
-    # Keep this network not-internal, it's required for DNS resolution for
-    # DNS challenges
-    internal: false
-    state: quadlet
-    quadlet_options: |
-      [Network]
-      PodmanArgs= --interface-name br-ingress
-
-- name: Create an ingress network for the monitoring agent
-  become: true
-  containers.podman.podman_network:
-    name: ingress-monitor-internal
     internal: true
     state: quadlet
 
@@ -34,7 +22,7 @@
     egress_name: ingress-egress
     egress_config_path: "{{ ingress_egress_config_path }}"
     egress_app_networks:
-      - ingress-monitor-internal.network
+      - ingress.network
     egress_allowed_domains: "{{ ingress_egress_allowed_remotes }}"
     egress_envoy_image: "{{ ingress_egress_envoy_image }}"
 
@@ -104,7 +92,7 @@
     network: |
       {{
         (ingress_networks | map('regex_replace', '^(.*)$', '\1.network'))
-        + ['ingress-monitor-internal.network', 'ingress.network']
+        + ['ingress.network']
       }}
     network_aliases: "{{ ingress_network_aliases }}"
     publish: |
