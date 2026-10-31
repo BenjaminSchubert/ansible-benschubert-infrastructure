@@ -161,7 +161,7 @@
         [Unit]
         Before=infrastructure.target
         StopPropagatedFrom=infrastructure.target
-        {%- if ((ingress_egress_allowed_remotes | default([])) | length) > 0 %}
+        {% if ((ingress_egress_allowed_remotes | default([])) | length) > 0 %}
         After=ingress-egress.service
         Wants=ingress-egress.service
         {% endif %}

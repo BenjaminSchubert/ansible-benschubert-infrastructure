@@ -14,6 +14,14 @@ entryPoints:
   web:
     address: ":{{ ingress_http_port }}"
     http:
+      aliasHeadersStrategy: "reject"
+      encodedCharacters:
+        allowEncodedSlash: false
+        allowEncodedBackSlash: false
+        allowEncodedNullCharacter: false
+        allowEncodedSemicolon: false
+        allowEncodedPercent: false
+        allowEncodedQuestionMark: false
       redirections:
         entryPoint:
           permanent: true
@@ -22,8 +30,19 @@ entryPoints:
   web-secure:
     address: ":{{ ingress_https_port }}"
     http:
+      aliasHeadersStrategy: "reject"
+      encodedCharacters:
+        allowEncodedSlash: false
+        allowEncodedBackSlash: false
+        allowEncodedNullCharacter: false
+        allowEncodedSemicolon: false
+        allowEncodedPercent: false
+        allowEncodedQuestionMark: false
       tls: { {%- if ingress_traefik_default_certificates_resolver %}certresolver: default{% endif -%} }
   metrics:
+    http:
+      aliasHeadersStrategy: "reject"
+
     address: ":8082"
   {% for entrypoint, port in ( ingress_extra_entrypoints | default({})).items() -%}
   {{ entrypoint }}:
