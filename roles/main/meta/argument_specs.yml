@@ -258,6 +258,11 @@ argument_specs:
           - Users not in any of the specified groups won't be able to see or
             login to the dashboard.
           - C(null) or C([]) doesn't restrict the access.
+      ingress_traefik_allow_encoded_slash:
+        type: bool
+        default: false
+        description:
+          - Whether to allow encoded slashes in URLs that Traefik forwards
       ingress_traefik_additional_dynamic_configuration:
         type: list
         elements: str

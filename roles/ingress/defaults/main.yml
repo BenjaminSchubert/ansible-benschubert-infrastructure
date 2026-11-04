@@ -10,3 +10,4 @@ ingress_traefik_environment_variables: {}
 ingress_traefik_image: docker.io/traefik:latest
 ingress_traefik_secrets: {}
 ingress_traefik_4xx_alerts_exclude_services: []
+ingress_traefik_allow_encoded_slash: false

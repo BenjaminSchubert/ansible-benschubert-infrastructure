@@ -16,7 +16,7 @@ entryPoints:
     http:
       aliasHeadersStrategy: "reject"
       encodedCharacters:
-        allowEncodedSlash: false
+        allowEncodedSlash: "{{ ingress_traefik_allow_encoded_slash }}"
         allowEncodedBackSlash: false
         allowEncodedNullCharacter: false
         allowEncodedSemicolon: false
@@ -32,7 +32,7 @@ entryPoints:
     http:
       aliasHeadersStrategy: "reject"
       encodedCharacters:
-        allowEncodedSlash: false
+        allowEncodedSlash: "{{ ingress_traefik_allow_encoded_slash }}"
         allowEncodedBackSlash: false
         allowEncodedNullCharacter: false
         allowEncodedSemicolon: false
