@@ -41,7 +41,7 @@
     cap_drop: [all]
     shm_size: 256m
     tmpfs:
-      /var/run: rw
+      /run: rw
     network:
       - "{{ postgres_network }}.network"
     userns: auto:size=1000
