@@ -161,6 +161,11 @@ argument_specs:
         default: docker.io/grafana/loki:latest
         description:
           - The container image path and tag to use for Loki
+      monitoring_loki_log_level:
+        type: str
+        default: info
+        description:
+          - The log level to use for Loki
       monitoring_mimir_additional_networks:
         type: list
         elements: str
