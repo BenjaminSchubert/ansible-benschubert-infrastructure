@@ -153,9 +153,14 @@ jobs:
       - name: Update apt cache
         run: sudo apt-get update
       - name: Install libvirt and dependencies
-        run: sudo apt-get install --assume-yes cloud-image-utils libvirt-daemon-system libvirt-dev qemu-kvm virtinst
-      - name: Add user to the kvm group
-        run: sudo adduser "${USER}" kvm
+        run: sudo apt-get install --assume-yes cloud-image-utils libvirt-daemon-system libvirt-dev python3-gi qemu-system-x86 virtinst
+      - name: Allow any process (incl. session libvirtd) to use /dev/kvm
+        run: |
+          set -eu
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
       - name: Add user to the libvirt-qemu group
         run: sudo adduser "${USER}" libvirt-qemu
       - name: Configure bridge for user-space networking
@@ -165,7 +170,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --no-default-groups --group tests
       - name: molecule create
-        run: sg kvm 'sg libvirt-qemu "sg \"${USER}\" \"uv run --no-sync molecule create\""'
+        run: sg libvirt-qemu 'sg "${USER}" "uv run --no-sync molecule create"'
       - name: molecule converge
         run: mkdir -p ${PWD}/.cache && uv run --no-sync molecule converge
         env:
