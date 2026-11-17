@@ -2,6 +2,10 @@
 - name: Create container instances
   hosts: localhost
   gather_facts: false
+
+  environment:
+    PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
   tasks:
     - name: Gather facts about storage pools
       community.libvirt.virt_pool:
@@ -112,7 +116,7 @@
     - name: Recover the VM connection information
       ansible.builtin.command:
         cmd: >-
-          virsh
+          virsh --connect qemu:///session
             qemu-agent-command
             molecule-benschubert-infrastructure-test
             '{"execute":"guest-network-get-interfaces"}'
