@@ -18,3 +18,11 @@
   annotations:
     summary: Traefik many HTTP 4xx errors (instance {{ '{{' }} $labels.instance {{ '}}' }})
     description: Traefik has more than 10% of queries returning 4xx\n  VALUE = {{ '{{' }} $value {{ '}}' }}\n  LABELS = {{ '{{' }} $labels {{ '}}' }}
+
+- alert: TraefikCertExpiringSoon
+  expr: (traefik_tls_certs_not_after - time()) / 86400 < 7
+  for: 1h
+  labels:
+    severity: critical
+  annotations:
+    summary: "Certificate {{ '{{' }} $labels.cn {{ '}}' }} expires in {{ '{{' }} $value | printf \"%.0f\" {{ '}}' }} days"
